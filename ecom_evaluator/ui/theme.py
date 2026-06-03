@@ -1,0 +1,364 @@
+"""Premium SaaS theme CSS and helpers."""
+
+from __future__ import annotations
+
+import html
+
+import streamlit as st
+
+PREMIUM_THEME_CSS = """
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+:root {
+    --ps-bg: #F8F9FA;
+    --ps-surface: #FFFFFF;
+    --ps-border: #E9ECEF;
+    --ps-text: #0F172A;
+    --ps-muted: #64748B;
+    --ps-blue: #3B82F6;
+    --ps-blue-deep: #1E40AF;
+    --ps-indigo: #4338CA;
+    --ps-pill-bg: #E3F2FD;
+    --ps-pill-text: #0D47A1;
+    --ps-success: #10B981;
+    --ps-radius: 12px;
+    --ps-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
+}
+
+/* Global canvas */
+.stApp {
+    background-color: var(--ps-bg) !important;
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+}
+html, body, [class*="css"] {
+    font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    color: var(--ps-text);
+}
+section[data-testid="stSidebar"] { display: none !important; }
+section[data-testid="stMain"] > div {
+    max-width: 1180px;
+    margin: 0 auto;
+    padding: 0 1.25rem 3rem;
+}
+header[data-testid="stHeader"] { background: transparent !important; }
+.block-container { padding-top: 1.25rem; max-width: 1180px; }
+
+/* Cards & bordered containers */
+div[data-testid="stVerticalBlockBorderWrapper"] {
+    background: var(--ps-surface) !important;
+    border: 1px solid var(--ps-border) !important;
+    border-radius: var(--ps-radius) !important;
+    box-shadow: var(--ps-shadow) !important;
+}
+div[data-testid="stVerticalBlockBorderWrapper"] > div {
+    padding: 0.35rem 0.15rem !important;
+}
+
+/* Tabs */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+    background: transparent;
+    border-bottom: 1px solid var(--ps-border);
+}
+.stTabs [data-baseweb="tab"] {
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: var(--ps-muted);
+    border-radius: 8px 8px 0 0;
+    padding: 0.6rem 1rem;
+}
+.stTabs [aria-selected="true"] {
+    color: var(--ps-blue-deep) !important;
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-bottom-color: var(--ps-surface) !important;
+}
+
+/* App shell */
+.app-topbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 0 1.25rem;
+    border-bottom: 1px solid var(--ps-border);
+    margin-bottom: 1.75rem;
+}
+.brand-lockup { display: flex; flex-direction: column; gap: 0.15rem; }
+.brand-name {
+    font-size: 1.15rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--ps-text);
+    margin: 0;
+}
+.brand-tagline { font-size: 0.82rem; color: var(--ps-muted); margin: 0; }
+
+/* Hero banner */
+.hero-block {
+    background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    border-radius: var(--ps-radius);
+    padding: 2rem 2.25rem;
+    color: #F8FAFC;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 20px 50px rgba(30, 64, 175, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+.hero-kicker {
+    display: inline-block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #BFDBFE;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    border-radius: 999px;
+    padding: 0.35rem 0.75rem;
+    margin: 0 0 0.85rem 0;
+}
+.hero-title {
+    font-size: 1.85rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.65rem 0;
+    color: #FFFFFF;
+}
+.hero-copy {
+    font-size: 0.98rem;
+    line-height: 1.65;
+    color: #CBD5E1;
+    margin: 0;
+    max-width: 680px;
+}
+
+/* Step pills & card headers */
+.form-card-header { margin-bottom: 1rem; }
+.step-pill {
+    display: inline-block;
+    background: var(--ps-pill-bg);
+    color: var(--ps-pill-text);
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    border-radius: 999px;
+    padding: 0.28rem 0.65rem;
+    margin-bottom: 0.45rem;
+}
+.form-card-title {
+    font-size: 1.08rem;
+    font-weight: 600;
+    color: var(--ps-text);
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.45rem;
+}
+.form-card-label { display: none; }
+
+/* Inputs */
+div[data-testid="stTextInput"] label,
+div[data-testid="stNumberInput"] label,
+div[data-testid="stTextArea"] label,
+div[data-testid="stFileUploader"] label {
+    font-size: 0.82rem !important;
+    font-weight: 600 !important;
+    color: #334155 !important;
+}
+div[data-testid="stTextInput"] input,
+div[data-testid="stNumberInput"] input,
+div[data-testid="stTextArea"] textarea {
+    background: var(--ps-surface) !important;
+    border: 1px solid var(--ps-border) !important;
+    border-radius: 8px !important;
+    color: var(--ps-text) !important;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
+}
+div[data-testid="stTextInput"] input:focus,
+div[data-testid="stNumberInput"] input:focus,
+div[data-testid="stTextArea"] textarea:focus {
+    outline: none !important;
+    border-color: var(--ps-blue) !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
+}
+
+/* Primary CTA */
+.stButton > button[kind="primary"] {
+    background: linear-gradient(180deg, #1D4ED8 0%, #1E3A8A 100%) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+    border-radius: 8px !important;
+    padding: 0.78rem 1.25rem !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    letter-spacing: 0.01em;
+    box-shadow: 0 10px 24px rgba(30, 64, 175, 0.22) !important;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease !important;
+}
+.stButton > button[kind="primary"]:hover:not(:disabled) {
+    transform: translateY(-1px) scale(1.01);
+    filter: brightness(1.05);
+    box-shadow: 0 14px 32px rgba(30, 64, 175, 0.28) !important;
+    color: #FFFFFF !important;
+    border: none !important;
+}
+.stButton > button[kind="primary"]:disabled {
+    opacity: 0.55 !important;
+    transform: none !important;
+}
+.stButton > button[kind="secondary"] {
+    border-radius: 8px !important;
+    border-color: var(--ps-border) !important;
+    background: var(--ps-surface) !important;
+}
+
+/* Readiness checklist */
+.readiness-card {
+    background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%);
+    border: 1px solid var(--ps-border);
+    border-radius: 10px;
+    padding: 0.85rem 0.95rem;
+}
+.readiness-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.85rem;
+    padding-bottom: 0.65rem;
+    border-bottom: 1px solid #F1F3F5;
+}
+.readiness-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ps-muted);
+}
+.readiness-score {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ps-blue-deep);
+    background: var(--ps-pill-bg);
+    border-radius: 999px;
+    padding: 0.2rem 0.55rem;
+}
+.check-row {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-size: 0.86rem;
+    padding: 0.42rem 0;
+    color: #94A3B8;
+}
+.check-dot {
+    width: 9px;
+    height: 9px;
+    border-radius: 999px;
+    background: #D1D5DB;
+    flex-shrink: 0;
+    box-shadow: inset 0 0 0 1px rgba(0,0,0,0.04);
+}
+.check-row--done { color: var(--ps-text); font-weight: 500; }
+.check-row--done .check-dot {
+    background: var(--ps-success);
+    box-shadow: 0 0 0 3px rgba(16, 185, 129, 0.15);
+}
+
+/* Utility & dashboard */
+.section-eyebrow {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ps-muted);
+    margin: 0 0 0.35rem 0;
+}
+.report-meta { font-size: 0.88rem; color: var(--ps-muted); margin: -0.5rem 0 1rem 0; }
+.status-banner {
+    border-radius: 10px;
+    padding: 0.75rem 1rem;
+    font-size: 0.88rem;
+    font-weight: 500;
+    margin-bottom: 1rem;
+}
+.status-banner--success {
+    background: #ECFDF5;
+    color: #065F46;
+    border: 1px solid #A7F3D0;
+}
+.metric-hint {
+    background: #F8F9FA;
+    border: 1px solid var(--ps-border);
+    border-radius: 8px;
+    padding: 0.75rem 0.9rem;
+    font-size: 0.84rem;
+    color: #475569;
+    margin-top: 0.5rem;
+}
+.verdict-label {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ps-text);
+    margin: 0.5rem 0 1rem 0;
+}
+.saturation-badge {
+    display: inline-block;
+    padding: 0.35rem 0.85rem;
+    border-radius: 999px;
+    font-weight: 700;
+    font-size: 0.9rem;
+}
+.insight-card {
+    background: #FAFBFC;
+    border: 1px solid var(--ps-border);
+    border-left: 4px solid var(--ps-blue);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    color: #334155;
+    font-size: 0.95rem;
+    line-height: 1.55;
+}
+.hook-card {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius);
+    padding: 1rem 1.1rem;
+    min-height: 220px;
+    box-shadow: var(--ps-shadow);
+}
+.hook-label {
+    font-size: 0.72rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--ps-muted);
+    margin: 0.6rem 0 0.25rem 0;
+}
+.hook-label:first-child { margin-top: 0; }
+.hook-text { font-size: 0.98rem; font-weight: 600; color: var(--ps-text); line-height: 1.4; margin: 0; }
+.hook-body { font-size: 0.9rem; color: #475569; line-height: 1.45; margin: 0; }
+.research-channel-card {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: #475569;
+    line-height: 1.5;
+    min-height: 120px;
+}
+"""
+
+
+def inject_custom_css() -> None:
+    """Inject premium theme — must run immediately after st.set_page_config()."""
+    st.markdown(f"<style>{PREMIUM_THEME_CSS}</style>", unsafe_allow_html=True)
+
+
+def form_step_header(step: str, icon: str, title: str) -> str:
+    return (
+        f'<div class="form-card-header">'
+        f'<span class="step-pill">{step}</span>'
+        f'<p class="form-card-title"><span>{icon}</span> {html.escape(title)}</p>'
+        f"</div>"
+    )
