@@ -1,5 +1,6 @@
 """Application configuration constants."""
 
+import os
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -14,5 +15,11 @@ WEB_SEARCH_QUERY_DELAY_SECONDS = 1.0
 # Shared hosting: keep free-tier API usage under control
 MAX_ANALYSES_PER_SESSION = 3
 ANALYSIS_COOLDOWN_SECONDS = 45
+
+# SaaS free tier (per browser session)
+DEFAULT_FREE_EVALUATIONS = 1
+
+# Set in Streamlit secrets or .env when Stripe Checkout is ready
+STRIPE_CHECKOUT_URL = os.getenv("STRIPE_CHECKOUT_URL", "").strip()
 
 PLOTLY_CHART_CONFIG = {"displayModeBar": False, "staticPlot": False}

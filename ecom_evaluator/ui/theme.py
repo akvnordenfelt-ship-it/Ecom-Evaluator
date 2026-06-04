@@ -43,6 +43,14 @@ section[data-testid="stMain"] > div {
 header[data-testid="stHeader"] { background: transparent !important; }
 .block-container { padding-top: 1.25rem; max-width: 1180px; }
 
+/* Hide default Streamlit chrome for SaaS shell */
+#MainMenu { visibility: hidden; }
+footer { visibility: hidden; }
+[data-testid="stToolbar"] { display: none !important; }
+[data-testid="stDecoration"] { display: none !important; }
+.stAppDeployButton, [data-testid="stAppDeployButton"] { display: none !important; }
+button[kind="header"] { display: none !important; }
+
 /* Cards & bordered containers */
 div[data-testid="stVerticalBlockBorderWrapper"] {
     background: var(--ps-surface) !important;
@@ -347,12 +355,116 @@ div[data-testid="stTextArea"] textarea:focus {
     line-height: 1.5;
     min-height: 120px;
 }
+
+/* Landing page */
+.landing-wrap { margin: 0.5rem 0 2rem; }
+.landing-hero {
+    background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    border-radius: 16px;
+    padding: 3rem 2.5rem;
+    text-align: center;
+    color: #F8FAFC;
+    box-shadow: 0 24px 60px rgba(30, 64, 175, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+.landing-kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #BFDBFE;
+    margin: 0 0 1rem;
+}
+.landing-title {
+    font-size: 2.35rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    margin: 0 0 1rem;
+    line-height: 1.15;
+}
+.landing-lead {
+    font-size: 1.05rem;
+    color: #E2E8F0;
+    max-width: 640px;
+    margin: 0 auto;
+    line-height: 1.6;
+}
+.landing-feature {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius);
+    padding: 1.25rem 1.1rem;
+    min-height: 160px;
+    box-shadow: var(--ps-shadow);
+}
+.landing-feature-icon { font-size: 1.5rem; display: block; margin-bottom: 0.5rem; }
+.landing-feature-title { font-weight: 700; font-size: 1rem; margin: 0 0 0.35rem; color: var(--ps-text); }
+.landing-feature-body { font-size: 0.88rem; color: var(--ps-muted); margin: 0; line-height: 1.5; }
+.landing-cta-spacer { height: 1.5rem; }
+.landing-footnote {
+    text-align: center;
+    font-size: 0.82rem;
+    color: var(--ps-muted);
+    margin-top: 1rem;
+}
+
+/* Tool intro (replaces in-tool hero) */
+.tool-intro { margin-bottom: 1.25rem; }
+.tool-intro-kicker {
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--ps-muted);
+    margin: 0;
+}
+.tool-intro-title {
+    font-size: 1.35rem;
+    font-weight: 700;
+    color: var(--ps-text);
+    margin: 0.25rem 0 0;
+}
+
+/* Paywall */
+.paywall-card {
+    background: linear-gradient(160deg, #0F172A 0%, #1E3A8A 55%, #312E81 100%);
+    border-radius: var(--ps-radius);
+    padding: 1.5rem 1.35rem;
+    color: #F8FAFC;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.2);
+    margin-bottom: 0.75rem;
+}
+.paywall-kicker {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #93C5FD;
+    margin: 0 0 0.5rem;
+}
+.paywall-title { font-size: 1.35rem; font-weight: 700; margin: 0 0 0.5rem; }
+.paywall-copy { font-size: 0.92rem; color: #CBD5E1; line-height: 1.55; margin: 0 0 0.85rem; }
+.paywall-list {
+    margin: 0;
+    padding-left: 1.1rem;
+    font-size: 0.88rem;
+    color: #E2E8F0;
+    line-height: 1.7;
+}
+"""
+
+SAAS_CHROME_CSS = """
+header[data-testid="stHeader"] { display: none !important; }
 """
 
 
-def inject_custom_css() -> None:
+def inject_custom_css(*, saas_mode: bool = False) -> None:
     """Inject premium theme — must run immediately after st.set_page_config()."""
-    st.markdown(f"<style>{PREMIUM_THEME_CSS}</style>", unsafe_allow_html=True)
+    css = PREMIUM_THEME_CSS
+    if saas_mode:
+        css += SAAS_CHROME_CSS
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
 def form_step_header(step: str, icon: str, title: str) -> str:
