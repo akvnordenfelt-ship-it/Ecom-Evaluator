@@ -1,4 +1,4 @@
-"""Normalize LLM JSON payloads before Pydantic validation."""
+"""Coerce LLM enum mistakes before Pydantic validation — no generic filler text."""
 
 from __future__ import annotations
 
@@ -21,7 +21,7 @@ def _pick_literal(value: Any, allowed: tuple[str, ...], aliases: dict[str, str],
     for option in allowed:
         if option.lower() == text.lower():
             return option
-    return default
+    return default if not text else default
 
 
 def _coerce_competitor_count(value: Any) -> str:
@@ -31,18 +31,12 @@ def _coerce_competitor_count(value: Any) -> str:
         {
             "low": "Few",
             "few": "Few",
-            "light": "Few",
             "medium": "Moderate",
             "moderate": "Moderate",
             "mid": "Moderate",
-            "average": "Moderate",
             "high": "Many",
             "many": "Many",
-            "heavy": "Many",
-            "crowded": "Many",
             "unknown": "Unknown",
-            "unclear": "Unknown",
-            "n/a": "Unknown",
         },
         "Unknown",
     )
@@ -52,15 +46,7 @@ def _coerce_demand_level(value: Any) -> str:
     return _pick_literal(
         value,
         ("Low", "Medium", "High", "Unknown"),
-        {
-            "low": "Low",
-            "medium": "Medium",
-            "moderate": "Medium",
-            "mid": "Medium",
-            "high": "High",
-            "unknown": "Unknown",
-            "unclear": "Unknown",
-        },
+        {"low": "Low", "medium": "Medium", "moderate": "Medium", "high": "High", "unknown": "Unknown"},
         "Unknown",
     )
 
@@ -69,13 +55,7 @@ def _coerce_saturation_level(value: Any) -> str:
     return _pick_literal(
         value,
         ("Low", "Medium", "High"),
-        {
-            "low": "Low",
-            "medium": "Medium",
-            "moderate": "Medium",
-            "mid": "Medium",
-            "high": "High",
-        },
+        {"low": "Low", "medium": "Medium", "moderate": "Medium", "high": "High"},
         "Medium",
     )
 
@@ -102,7 +82,6 @@ def _coerce_organic_vs_paid(value: Any) -> str:
             "paid": "Paid-first",
             "balanced": "Balanced",
             "both": "Balanced",
-            "hybrid": "Balanced",
         },
         "Balanced",
     )
@@ -123,17 +102,12 @@ def _coerce_platform(value: Any) -> str:
     text = _as_str(value)
     if text in allowed:
         return text
-    lower = text.lower()
     aliases = {
         "tiktok": "TikTok",
-        "tik tok": "TikTok",
         "instagram": "Instagram",
-        "ig": "Instagram",
         "facebook": "Facebook",
-        "fb": "Facebook",
         "meta": "Facebook",
         "youtube": "YouTube",
-        "yt": "YouTube",
         "google ads": "Google Ads",
         "google": "Google Ads",
         "amazon ads": "Amazon Ads",
@@ -141,11 +115,8 @@ def _coerce_platform(value: Any) -> str:
         "pinterest": "Pinterest",
         "email": "Email/SMS",
         "sms": "Email/SMS",
-        "email/sms": "Email/SMS",
     }
-    if lower in aliases:
-        return aliases[lower]
-    return "Other"
+    return aliases.get(text.lower(), "Other")
 
 
 def _coerce_competitor_platform(value: Any) -> str:
@@ -155,47 +126,26 @@ def _coerce_competitor_platform(value: Any) -> str:
         {
             "amazon": "Amazon",
             "aliexpress": "AliExpress",
-            "ali express": "AliExpress",
             "independent": "Independent",
-            "independent stores": "Independent",
             "shopify": "Independent",
-            "dtc": "Independent",
             "other": "Other",
         },
         "Other",
     )
 
 
-def _ensure_text(value: Any, fallback: str) -> str:
-    text = _as_str(value)
-    return text if text else fallback
-
-
-def _ensure_str_list(value: Any, *, min_items: int, max_items: int, fallback: str) -> list[str]:
-    items: list[str] = []
-    if isinstance(value, list):
-        for item in value:
-            text = _as_str(item)
-            if text:
-                items.append(text)
-    elif _as_str(value):
-        items.append(_as_str(value))
-    while len(items) < min_items:
-        items.append(fallback)
-    return items[:max_items]
+def _coerce_score(value: Any, default: int = 50) -> int:
+    try:
+        return max(0, min(100, int(value)))
+    except (TypeError, ValueError):
+        return default
 
 
 def _normalize_scored_dimension(raw: Any) -> dict[str, Any]:
     data = raw if isinstance(raw, dict) else {}
-    score = data.get("score", 50)
-    try:
-        score = int(score)
-    except (TypeError, ValueError):
-        score = 50
-    score = max(0, min(100, score))
     return {
-        "score": score,
-        "motivation": _ensure_text(data.get("motivation"), "No rationale provided."),
+        "score": _coerce_score(data.get("score")),
+        "motivation": _as_str(data.get("motivation")),
     }
 
 
@@ -207,44 +157,35 @@ def _normalize_market_research(raw: Any) -> dict[str, Any]:
     for item in data.get("key_competitors") or []:
         if not isinstance(item, dict):
             continue
+        url = _as_str(item.get("source_url"))
+        title = _as_str(item.get("listing_title"))
+        if not url or not title or "example.com" in url.lower():
+            continue
         competitors.append(
             {
                 "platform": _coerce_competitor_platform(item.get("platform")),
-                "listing_title": _ensure_text(item.get("listing_title"), "Unknown listing"),
-                "source_url": _ensure_text(item.get("source_url"), "https://example.com"),
-                "price_signal": _ensure_text(item.get("price_signal"), "Not stated"),
-                "similarity_note": _ensure_text(item.get("similarity_note"), "Similar product"),
+                "listing_title": title,
+                "source_url": url,
+                "price_signal": _as_str(item.get("price_signal")),
+                "similarity_note": _as_str(item.get("similarity_note")),
             }
         )
 
     return {
-        "executive_summary": _ensure_text(
-            data.get("executive_summary"),
-            _ensure_text(data.get("strategic_implications"), "Market research summary unavailable."),
-        ),
+        "executive_summary": _as_str(data.get("executive_summary")),
         "competitor_count_signal": _coerce_competitor_count(data.get("competitor_count_signal")),
-        "amazon_landscape": _ensure_text(data.get("amazon_landscape"), "No Amazon data in search results."),
-        "aliexpress_landscape": _ensure_text(
-            data.get("aliexpress_landscape"), "No AliExpress data in search results."
-        ),
-        "independent_stores_landscape": _ensure_text(
-            data.get("independent_stores_landscape"), "No independent store data in search results."
-        ),
-        "price_range_observed": _ensure_text(data.get("price_range_observed"), "Not observed"),
+        "amazon_landscape": _as_str(data.get("amazon_landscape")),
+        "aliexpress_landscape": _as_str(data.get("aliexpress_landscape")),
+        "independent_stores_landscape": _as_str(data.get("independent_stores_landscape")),
+        "price_range_observed": _as_str(data.get("price_range_observed")),
         "demand_estimate": {
             "level": _coerce_demand_level(demand.get("level")),
-            "estimated_sales_note": _ensure_text(
-                demand.get("estimated_sales_note"), "Qualitative demand only."
-            ),
-            "reasoning": _ensure_text(demand.get("reasoning"), "Based on limited search snippets."),
+            "estimated_sales_note": _as_str(demand.get("estimated_sales_note")),
+            "reasoning": _as_str(demand.get("reasoning")),
         },
         "key_competitors": competitors[:3],
-        "strategic_implications": _ensure_text(
-            data.get("strategic_implications"), "Differentiate on brand and offer."
-        ),
-        "data_limitations": _ensure_text(
-            data.get("data_limitations"), "Search snippets only; no verified sales figures."
-        ),
+        "strategic_implications": _as_str(data.get("strategic_implications")),
+        "data_limitations": _as_str(data.get("data_limitations")),
     }
 
 
@@ -254,36 +195,26 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
     organic = data.get("organic_strategy") if isinstance(data.get("organic_strategy"), dict) else {}
     paid = data.get("paid_ads_strategy") if isinstance(data.get("paid_ads_strategy"), dict) else {}
 
+    def _str_list(value: Any, max_items: int) -> list[str]:
+        items = [_as_str(v) for v in value] if isinstance(value, list) else []
+        return [item for item in items if item][:max_items]
+
     platforms: list[dict[str, Any]] = []
     for item in data.get("platform_recommendations") or []:
         if not isinstance(item, dict):
             continue
-        fit = item.get("fit_score", 50)
-        try:
-            fit = max(0, min(100, int(fit)))
-        except (TypeError, ValueError):
-            fit = 50
+        why = _as_str(item.get("why_it_works"))
+        signal = _as_str(item.get("competitor_success_signal"))
+        if not why and not signal:
+            continue
         platforms.append(
             {
                 "platform": _coerce_platform(item.get("platform")),
-                "fit_score": fit,
+                "fit_score": _coerce_score(item.get("fit_score")),
                 "roi_potential": _coerce_roi_level(item.get("roi_potential")),
                 "organic_vs_paid": _coerce_organic_vs_paid(item.get("organic_vs_paid")),
-                "why_it_works": _ensure_text(item.get("why_it_works"), "Fits this audience."),
-                "competitor_success_signal": _ensure_text(
-                    item.get("competitor_success_signal"), "Similar products active on this channel."
-                ),
-            }
-        )
-    while len(platforms) < 3:
-        platforms.append(
-            {
-                "platform": "Other",
-                "fit_score": 40,
-                "roi_potential": "Medium",
-                "organic_vs_paid": "Balanced",
-                "why_it_works": "Test after core channels.",
-                "competitor_success_signal": "Limited evidence from search.",
+                "why_it_works": why,
+                "competitor_success_signal": signal,
             }
         )
 
@@ -291,90 +222,54 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
     for item in data.get("creative_concepts") or []:
         if not isinstance(item, dict):
             continue
+        title = _as_str(item.get("title"))
+        script = _as_str(item.get("script_or_copy"))
+        if not title and not script:
+            continue
         concepts.append(
             {
-                "title": _ensure_text(item.get("title"), "Concept"),
-                "format": _ensure_text(item.get("format"), "Short video"),
-                "hook_angle": _ensure_text(item.get("hook_angle"), "Problem-solution"),
-                "script_or_copy": _ensure_text(item.get("script_or_copy"), "Demo the product benefit."),
-                "recommended_platform": _ensure_text(item.get("recommended_platform"), "TikTok"),
-            }
-        )
-    while len(concepts) < 2:
-        concepts.append(
-            {
-                "title": f"Concept {len(concepts) + 1}",
-                "format": "Short video",
-                "hook_angle": "Before/after demo",
-                "script_or_copy": "Show the product solving a clear pain point.",
-                "recommended_platform": "TikTok",
+                "title": title,
+                "format": _as_str(item.get("format")),
+                "hook_angle": _as_str(item.get("hook_angle")),
+                "script_or_copy": script,
+                "recommended_platform": _as_str(item.get("recommended_platform")),
             }
         )
 
     return {
-        "executive_summary": _ensure_text(
-            data.get("executive_summary"), "Lead with short-form video and retarget warm traffic."
-        ),
+        "executive_summary": _as_str(data.get("executive_summary")),
         "target_audience": {
-            "persona_name": _ensure_text(audience.get("persona_name"), "Target buyer"),
-            "age_range": _ensure_text(audience.get("age_range"), "25-44"),
-            "psychographics": _ensure_text(audience.get("psychographics"), "Practical online shopper."),
-            "pain_points": _ensure_str_list(
-                audience.get("pain_points"), min_items=2, max_items=5, fallback="Unclear product fit"
-            ),
-            "platforms_they_use": _ensure_str_list(
-                audience.get("platforms_they_use"),
-                min_items=2,
-                max_items=6,
-                fallback="Instagram",
-            ),
+            "persona_name": _as_str(audience.get("persona_name")),
+            "age_range": _as_str(audience.get("age_range")),
+            "psychographics": _as_str(audience.get("psychographics")),
+            "pain_points": _str_list(audience.get("pain_points"), 5),
+            "platforms_they_use": _str_list(audience.get("platforms_they_use"), 6),
         },
         "organic_strategy": {
-            "overview": _ensure_text(organic.get("overview"), "Publish short demo content."),
-            "content_formats": _ensure_str_list(
-                organic.get("content_formats"), min_items=2, max_items=5, fallback="Short video"
-            ),
-            "posting_cadence": _ensure_text(organic.get("posting_cadence"), "3-4 posts per week"),
-            "creator_angles": _ensure_str_list(
-                organic.get("creator_angles"), min_items=2, max_items=4, fallback="Product demo"
-            ),
+            "overview": _as_str(organic.get("overview")),
+            "content_formats": _str_list(organic.get("content_formats"), 5),
+            "posting_cadence": _as_str(organic.get("posting_cadence")),
+            "creator_angles": _str_list(organic.get("creator_angles"), 4),
         },
         "paid_ads_strategy": {
-            "overview": _ensure_text(paid.get("overview"), "Start with small paid tests."),
-            "primary_channels": _ensure_str_list(
-                paid.get("primary_channels"), min_items=1, max_items=4, fallback="Meta Ads"
-            ),
-            "budget_starter_usd": _ensure_text(paid.get("budget_starter_usd"), "$20-40/day"),
-            "targeting_approach": _ensure_text(paid.get("targeting_approach"), "Interest-based targeting."),
+            "overview": _as_str(paid.get("overview")),
+            "primary_channels": _str_list(paid.get("primary_channels"), 4),
+            "budget_starter_usd": _as_str(paid.get("budget_starter_usd")),
+            "targeting_approach": _as_str(paid.get("targeting_approach")),
             "roi_outlook": _coerce_roi_level(paid.get("roi_outlook")),
         },
         "platform_recommendations": platforms[:3],
-        "competitor_marketing_insights": _ensure_text(
-            data.get("competitor_marketing_insights"), "Competitors rely on demos and offer-led ads."
-        ),
+        "competitor_marketing_insights": _as_str(data.get("competitor_marketing_insights")),
         "creative_concepts": concepts[:2],
-        "priority_playbook": _ensure_str_list(
-            data.get("priority_playbook"),
-            min_items=3,
-            max_items=3,
-            fallback="Launch a test campaign",
-        ),
+        "priority_playbook": _str_list(data.get("priority_playbook"), 3),
     }
 
 
-def normalize_evaluation_payload(raw: Any) -> dict[str, Any]:
-    """Coerce common LLM JSON mistakes into a ProductEvaluationResponse-shaped dict."""
+def normalize_core_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
-
-    try:
-        final_score = max(0, min(100, int(data.get("final_score", 50))))
-    except (TypeError, ValueError):
-        final_score = 50
-
     saturation = data.get("market_saturation") if isinstance(data.get("market_saturation"), dict) else {}
-
     return {
-        "final_score": final_score,
+        "final_score": _coerce_score(data.get("final_score")),
         "market_research": _normalize_market_research(data.get("market_research")),
         "short_term_potential": _normalize_scored_dimension(data.get("short_term_potential")),
         "long_term_stability": _normalize_scored_dimension(data.get("long_term_stability")),
@@ -382,13 +277,22 @@ def normalize_evaluation_payload(raw: Any) -> dict[str, Any]:
         "marketing_suitability": _normalize_scored_dimension(data.get("marketing_suitability")),
         "market_saturation": {
             "level": _coerce_saturation_level(saturation.get("level")),
-            "motivation": _ensure_text(saturation.get("motivation"), "Moderate competitive pressure."),
+            "motivation": _as_str(saturation.get("motivation")),
         },
-        "estimated_shipping_category": _ensure_text(
-            data.get("estimated_shipping_category"), "Standard small parcel shipping."
-        ),
-        "marketing_plan": _normalize_marketing_plan(data.get("marketing_plan")),
-        "go_to_market_strategy": _ensure_text(
-            data.get("go_to_market_strategy"), "## Phase 1\nValidate offer and creative."
-        ),
+        "estimated_shipping_category": _as_str(data.get("estimated_shipping_category")),
     }
+
+
+def normalize_marketing_payload(raw: Any) -> dict[str, Any]:
+    data = dict(raw) if isinstance(raw, dict) else {}
+    return {
+        "marketing_plan": _normalize_marketing_plan(data.get("marketing_plan")),
+        "go_to_market_strategy": _as_str(data.get("go_to_market_strategy")),
+    }
+
+
+def normalize_evaluation_payload(raw: Any) -> dict[str, Any]:
+    data = dict(raw) if isinstance(raw, dict) else {}
+    core = normalize_core_payload(data)
+    marketing = normalize_marketing_payload(data)
+    return {**core, **marketing}

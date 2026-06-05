@@ -60,7 +60,7 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         else:
             st.caption(f"Found {len(web_research)} competitor/search snippets.")
 
-        with st.spinner("Shark Tank is analyzing with Groq… This may take 15–45 seconds."):
+        with st.spinner("Running AI analysis (2 phases — may take 30–60 seconds)…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),

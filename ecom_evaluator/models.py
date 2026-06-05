@@ -121,6 +121,26 @@ class ProductEvaluationResponse(BaseModel):
     go_to_market_strategy: str = Field(min_length=1)
 
 
+class ProductCoreResponse(BaseModel):
+    """Phase 1 — scores, market research, logistics."""
+
+    final_score: int = Field(ge=0, le=100)
+    market_research: MarketResearchAnalysis
+    short_term_potential: ScoredDimension
+    long_term_stability: ScoredDimension
+    scalability: ScoredDimension
+    marketing_suitability: ScoredDimension
+    market_saturation: MarketSaturation
+    estimated_shipping_category: str = Field(min_length=1)
+
+
+class MarketingPhaseResponse(BaseModel):
+    """Phase 2 — marketing playbook and GTM."""
+
+    marketing_plan: MarketingPlan
+    go_to_market_strategy: str = Field(min_length=1)
+
+
 class MarketSearchHit(TypedDict):
     channel: str
     query: str

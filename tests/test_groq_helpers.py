@@ -1,7 +1,6 @@
 """Tests for Groq client helpers (no live API calls)."""
 
 from ecom_evaluator.groq_client import (
-    build_user_prompt,
     extract_json_text,
     is_transient_api_error,
     logistics_summary,
@@ -35,7 +34,9 @@ def test_logistics_summary_dimensional_weight():
 
 
 def test_build_user_prompt_includes_product_and_research():
-    prompt = build_user_prompt(
+    from ecom_evaluator.groq_client import build_product_context
+
+    context = build_product_context(
         product_name="Test Widget",
         purchase_price=5.0,
         sales_price=19.99,
@@ -47,9 +48,9 @@ def test_build_user_prompt_includes_product_and_research():
         has_image=False,
         web_research_text="## Live web research\n- Example hit",
     )
-    assert "Test Widget" in prompt
-    assert "Live web research" in prompt
-    assert "$19.99" in prompt
+    assert "Test Widget" in context
+    assert "Live web research" in context
+    assert "$19.99" in context
 
 
 def test_extract_json_text_strips_fence():
