@@ -4,7 +4,12 @@ from __future__ import annotations
 
 import time
 
-from ecom_evaluator.config import WEB_SEARCH_MAX_RESULTS, WEB_SEARCH_QUERY_DELAY_SECONDS
+from ecom_evaluator.config import (
+    WEB_SEARCH_MAX_RESULTS,
+    WEB_SEARCH_PROMPT_MAX_HITS,
+    WEB_SEARCH_PROMPT_SNIPPET_CHARS,
+    WEB_SEARCH_QUERY_DELAY_SECONDS,
+)
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.models import MarketSearchHit
 
@@ -65,7 +70,7 @@ def run_web_market_research(*, product_name: str, description: str) -> list[Mark
                         query=query,
                         title=title,
                         url=url,
-                        snippet=snippet[:500],
+                        snippet=snippet[:WEB_SEARCH_PROMPT_SNIPPET_CHARS],
                     )
                 )
         except Exception:
@@ -90,7 +95,7 @@ def format_web_research_for_prompt(hits: list[MarketSearchHit]) -> str:
         "Only cite URLs and titles that appear here. Group findings by Amazon, AliExpress, and independent stores.",
         "",
     ]
-    for index, hit in enumerate(hits, start=1):
+    for index, hit in enumerate(hits[:WEB_SEARCH_PROMPT_MAX_HITS], start=1):
         lines.extend(
             [
                 f"### Result {index} — {hit['channel']}",

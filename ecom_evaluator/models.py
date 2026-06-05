@@ -39,7 +39,7 @@ class MarketResearchAnalysis(BaseModel):
     independent_stores_landscape: str = Field(min_length=1)
     price_range_observed: str = Field(min_length=1)
     demand_estimate: DemandEstimate
-    key_competitors: list[CompetitorListing] = Field(default_factory=list, max_length=8)
+    key_competitors: list[CompetitorListing] = Field(default_factory=list, max_length=3)
     strategic_implications: str = Field(min_length=1)
     data_limitations: str = Field(min_length=1)
 
@@ -102,10 +102,10 @@ class MarketingPlan(BaseModel):
     target_audience: TargetAudienceProfile
     organic_strategy: OrganicMarketingStrategy
     paid_ads_strategy: PaidAdsStrategy
-    platform_recommendations: list[PlatformRecommendation] = Field(min_length=3, max_length=6)
+    platform_recommendations: list[PlatformRecommendation] = Field(min_length=3, max_length=3)
     competitor_marketing_insights: str = Field(min_length=1)
-    creative_concepts: list[CreativeConcept] = Field(min_length=2, max_length=4)
-    priority_playbook: list[str] = Field(min_length=3, max_length=6)
+    creative_concepts: list[CreativeConcept] = Field(min_length=2, max_length=2)
+    priority_playbook: list[str] = Field(min_length=3, max_length=3)
 
 
 class ProductEvaluationResponse(BaseModel):

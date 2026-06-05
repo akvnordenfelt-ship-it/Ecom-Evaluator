@@ -16,6 +16,7 @@ from ecom_evaluator.config import (
     GROQ_MODEL,
     GROQ_VISION_MODEL,
     MAX_API_ATTEMPTS,
+    MAX_PARSE_ATTEMPTS,
     RETRY_BACKOFF_SECONDS,
     TRANSIENT_API_CODES,
 )
@@ -42,10 +43,19 @@ Rules:
 - estimated_shipping_category must analyze volumetric/dimensional weight using L×W×H cm ÷ 5000.
 - Fully populate `marketing_plan` (target_audience, organic_strategy, paid_ads_strategy,
   platform_recommendations, competitor_marketing_insights, creative_concepts, priority_playbook).
-- go_to_market_strategy must be a detailed multi-paragraph operational plan in Markdown (phases, fulfillment, risks).
+- go_to_market_strategy must be a brief operational markdown bullet list (max 120 words).
+- Keep EVERY string field to 1-2 sentences. The full JSON must fit in one response — incomplete JSON is unacceptable.
+- Limits: key_competitors max 3, platform_recommendations exactly 3, creative_concepts exactly 2,
+  priority_playbook exactly 3 steps, pain_points exactly 2, content_formats exactly 2, creator_angles exactly 2.
 - Top-level JSON keys required: final_score, market_research, short_term_potential, long_term_stability,
   scalability, marketing_suitability, market_saturation, estimated_shipping_category, marketing_plan,
-  go_to_market_strategy."""
+  go_to_market_strategy. Start with final_score and market_research.executive_summary first."""
+
+CONCISE_RETRY_ADDENDUM = """
+RETRY — previous output was incomplete or too long. Return a SHORTER but COMPLETE JSON object.
+Use 1 sentence per text field. go_to_market_strategy max 80 words. key_competitors max 2 or [].
+Do not omit market_research.executive_summary or any required key.
+"""
 
 
 def logistics_summary(
@@ -195,7 +205,7 @@ def generate_with_retry(
     *,
     model: str,
     messages: list[dict[str, Any]],
-) -> str:
+) -> tuple[str, str | None]:
     last_error: Exception | None = None
 
     for attempt in range(MAX_API_ATTEMPTS):
@@ -203,14 +213,16 @@ def generate_with_retry(
             response = client.chat.completions.create(
                 model=model,
                 messages=messages,
-                temperature=0.6,
+                temperature=0.5,
                 max_completion_tokens=GROQ_MAX_COMPLETION_TOKENS,
                 response_format={"type": "json_object"},
             )
-            content = response.choices[0].message.content or ""
+            choice = response.choices[0]
+            content = choice.message.content or ""
+            finish_reason = getattr(choice, "finish_reason", None)
             if not content.strip():
                 raise AnalysisError("Groq returned an empty response. Try again.")
-            return content
+            return content, finish_reason
         except AnalysisError:
             raise
         except Exception as exc:
@@ -233,19 +245,30 @@ def generate_with_retry(
     raise AnalysisError("Groq API call failed after multiple retries. Please try again shortly.")
 
 
-def parse_evaluation_response(raw: str) -> ProductEvaluationResponse:
+def parse_evaluation_response(raw: str, *, truncated: bool = False) -> ProductEvaluationResponse:
     cleaned = extract_json_text(raw)
     try:
-        return ProductEvaluationResponse.model_validate_json(cleaned)
+        payload = json.loads(cleaned)
+    except json.JSONDecodeError as exc:
+        hint = " The response may have been cut off mid-JSON." if truncated else ""
+        raise AnalysisError(
+            "The AI returned invalid JSON and the report could not be built."
+            f"{hint} Please try again."
+        ) from exc
+
+    try:
+        return ProductEvaluationResponse.model_validate(payload)
     except ValidationError as first_error:
-        try:
-            return ProductEvaluationResponse.model_validate(json.loads(cleaned))
-        except (json.JSONDecodeError, ValidationError) as inner:
-            detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
-            raise AnalysisError(
-                "The AI response could not be parsed into a complete report "
-                f"(validation failed near {detail}). Try running the analysis again."
-            ) from inner
+        detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
+        hint = (
+            " The model output was likely too long and got cut off."
+            if truncated
+            else " A required field may be missing or empty."
+        )
+        raise AnalysisError(
+            "The AI response could not be parsed into a complete report "
+            f"(validation failed near {detail}).{hint} Please try again."
+        ) from first_error
 
 
 def run_product_evaluation(
@@ -288,9 +311,34 @@ def run_product_evaluation(
 
     client = Groq(api_key=api_key.strip())
     model = select_model(has_image=image_bytes is not None)
-    messages = build_messages(prompt, image_bytes, image_mime)
-    raw = generate_with_retry(client, model=model, messages=messages)
-    return parse_evaluation_response(raw)
+
+    last_error: AnalysisError | None = None
+    for parse_attempt in range(MAX_PARSE_ATTEMPTS):
+        concise = parse_attempt > 0
+        if concise:
+            st.warning(
+                f"Report incomplete — retrying with a shorter format "
+                f"({parse_attempt + 1}/{MAX_PARSE_ATTEMPTS})…"
+            )
+
+        system_content = SYSTEM_INSTRUCTION + (CONCISE_RETRY_ADDENDUM if concise else "")
+        messages = build_messages(prompt, image_bytes, image_mime)
+        messages[0] = {"role": "system", "content": system_content}
+
+        raw, finish_reason = generate_with_retry(client, model=model, messages=messages)
+        truncated = finish_reason == "length"
+
+        try:
+            return parse_evaluation_response(raw, truncated=truncated)
+        except AnalysisError as exc:
+            last_error = exc
+            if parse_attempt >= MAX_PARSE_ATTEMPTS - 1:
+                raise
+            continue
+
+    if last_error is not None:
+        raise last_error
+    raise AnalysisError("Failed to build a complete report. Please try again.")
 
 
 run_shark_tank_analysis = run_product_evaluation
