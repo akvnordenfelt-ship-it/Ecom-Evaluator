@@ -7,7 +7,7 @@ PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
 GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
-GROQ_MAX_COMPLETION_TOKENS = int(os.getenv("GROQ_MAX_COMPLETION_TOKENS", "16384"))
+GROQ_MAX_COMPLETION_TOKENS = int(os.getenv("GROQ_MAX_COMPLETION_TOKENS", "8192"))
 MAX_API_ATTEMPTS = 4
 RETRY_BACKOFF_SECONDS = [2, 4, 8]
 TRANSIENT_API_CODES = {429, 500, 502, 503, 504}
