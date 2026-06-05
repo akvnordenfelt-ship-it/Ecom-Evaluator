@@ -21,6 +21,7 @@ from ecom_evaluator.config import (
     TRANSIENT_API_CODES,
 )
 from ecom_evaluator.exceptions import AnalysisError
+from ecom_evaluator.llm_normalize import normalize_evaluation_payload
 from ecom_evaluator.models import MarketSearchHit, ProductEvaluationResponse
 from ecom_evaluator.web_search import format_web_research_for_prompt, run_web_market_research
 
@@ -257,7 +258,7 @@ def parse_evaluation_response(raw: str, *, truncated: bool = False) -> ProductEv
         ) from exc
 
     try:
-        return ProductEvaluationResponse.model_validate(payload)
+        return ProductEvaluationResponse.model_validate(normalize_evaluation_payload(payload))
     except ValidationError as first_error:
         detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
         hint = (
