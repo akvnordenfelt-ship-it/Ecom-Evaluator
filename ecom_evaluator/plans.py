@@ -40,7 +40,7 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         groq_marketing_model="llama-3.3-70b-versatile",
         includes_premium_sections=False,
         web_search_max_results=3,
-        core_max_tokens=6144,
+        core_max_tokens=8192,
         marketing_max_tokens=0,
         extra_eval_note="Upgrade for full reports",
     ),

@@ -140,19 +140,25 @@ def friendly_analysis_error(message: str) -> str:
             "**Tip:** The hosted API key may be missing or invalid. "
             "Contact the site owner or add your own key in Settings."
         )
+    if "incomplete report" in lower or "did not generate enough detail" in lower:
+        return (
+            f"{message}\n\n"
+            "**Tip:** The AI returned a partial response. Click **Run analysis** again — "
+            "the app auto-retries up to 3 times. Uploading a product image often improves results."
+        )
     if "503" in message or "high demand" in lower or "overloaded" in lower:
         return (
             f"{message}\n\n"
             "**Tip:** The AI provider may be overloaded. Wait a minute and try again — "
             "the app will auto-retry up to 3 times."
         )
-    if "429" in message or "quota" in lower or "rate" in lower:
+    if "429" in message or "quota" in lower or "rate limit" in lower:
         return (
             f"{message}\n\n"
             "**Tip:** The free API quota may be exhausted for now. "
             "Try again later or use your own key in Settings."
         )
-    if "schema" in lower or "empty response" in lower:
+    if "schema" in lower or "empty response" in lower or "invalid json" in lower:
         return f"{message}\n\n**Tip:** Run the analysis again — occasional model glitches happen."
     return message
 

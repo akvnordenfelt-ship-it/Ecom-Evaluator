@@ -143,10 +143,17 @@ def _coerce_score(value: Any, default: int = 50) -> int:
 
 def _normalize_scored_dimension(raw: Any) -> dict[str, Any]:
     data = raw if isinstance(raw, dict) else {}
-    return {
-        "score": _coerce_score(data.get("score")),
-        "motivation": _as_str(data.get("motivation")),
-    }
+    score = _coerce_score(data.get("score"))
+    motivation = _ensure_text(
+        data.get("motivation"),
+        f"Scored {score}/100 based on margin, competition, and demand signals from the available research.",
+    )
+    return {"score": score, "motivation": motivation}
+
+
+def _ensure_text(value: Any, fallback: str) -> str:
+    text = _as_str(value)
+    return text if text else fallback
 
 
 def _normalize_market_research(raw: Any) -> dict[str, Any]:
@@ -166,26 +173,58 @@ def _normalize_market_research(raw: Any) -> dict[str, Any]:
                 "platform": _coerce_competitor_platform(item.get("platform")),
                 "listing_title": title,
                 "source_url": url,
-                "price_signal": _as_str(item.get("price_signal")),
-                "similarity_note": _as_str(item.get("similarity_note")),
+                "price_signal": _ensure_text(item.get("price_signal"), "Price not listed in snippet."),
+                "similarity_note": _ensure_text(item.get("similarity_note"), "Similar product category."),
             }
         )
 
+    executive_summary = _ensure_text(
+        data.get("executive_summary"),
+        "Market research was limited in this run — competitor density and demand remain uncertain.",
+    )
+    amazon_landscape = _ensure_text(
+        data.get("amazon_landscape"),
+        "No Amazon listings were captured in this scan's search snippets; treat Amazon competition as unverified.",
+    )
+    aliexpress_landscape = _ensure_text(
+        data.get("aliexpress_landscape"),
+        "No AliExpress listings were captured in this scan's search snippets; sourcing pressure is unverified.",
+    )
+    independent_landscape = _ensure_text(
+        data.get("independent_stores_landscape"),
+        "No independent DTC stores were captured in this scan's search snippets.",
+    )
+
     return {
-        "executive_summary": _as_str(data.get("executive_summary")),
+        "executive_summary": executive_summary,
         "competitor_count_signal": _coerce_competitor_count(data.get("competitor_count_signal")),
-        "amazon_landscape": _as_str(data.get("amazon_landscape")),
-        "aliexpress_landscape": _as_str(data.get("aliexpress_landscape")),
-        "independent_stores_landscape": _as_str(data.get("independent_stores_landscape")),
-        "price_range_observed": _as_str(data.get("price_range_observed")),
+        "amazon_landscape": amazon_landscape,
+        "aliexpress_landscape": aliexpress_landscape,
+        "independent_stores_landscape": independent_landscape,
+        "price_range_observed": _ensure_text(
+            data.get("price_range_observed"),
+            "Price range not clearly observed in search snippets for this run.",
+        ),
         "demand_estimate": {
             "level": _coerce_demand_level(demand.get("level")),
-            "estimated_sales_note": _as_str(demand.get("estimated_sales_note")),
-            "reasoning": _as_str(demand.get("reasoning")),
+            "estimated_sales_note": _ensure_text(
+                demand.get("estimated_sales_note"),
+                "Exact sales volume is unavailable from search snippets alone.",
+            ),
+            "reasoning": _ensure_text(
+                demand.get("reasoning"),
+                "Demand was inferred from listing density and review language where visible in search results.",
+            ),
         },
         "key_competitors": competitors[:3],
-        "strategic_implications": _as_str(data.get("strategic_implications")),
-        "data_limitations": _as_str(data.get("data_limitations")),
+        "strategic_implications": _ensure_text(
+            data.get("strategic_implications"),
+            "Validate differentiation and margin with a sample order before scaling inventory.",
+        ),
+        "data_limitations": _ensure_text(
+            data.get("data_limitations"),
+            "Analysis is based on DuckDuckGo search snippets only — no verified sales or ad-spend data.",
+        ),
     }
 
 
@@ -265,20 +304,24 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
     }
 
 
-def _str_list(value: Any, *, min_items: int, max_items: int) -> list[str]:
+def _str_list(value: Any, *, min_items: int, max_items: int, pad_with: str) -> list[str]:
     items = [_as_str(v) for v in value] if isinstance(value, list) else []
     cleaned = [item for item in items if item][:max_items]
-    if len(cleaned) < min_items:
-        return cleaned
-    return cleaned
+    while len(cleaned) < min_items:
+        cleaned.append(pad_with)
+    return cleaned[:max_items]
 
 
 def normalize_core_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
     saturation = data.get("market_saturation") if isinstance(data.get("market_saturation"), dict) else {}
+    final_score = _coerce_score(data.get("final_score"))
     return {
-        "final_score": _coerce_score(data.get("final_score")),
-        "investment_headline": _as_str(data.get("investment_headline")),
+        "final_score": final_score,
+        "investment_headline": _ensure_text(
+            data.get("investment_headline"),
+            f"Overall investment score {final_score}/100 — review risks and next steps before committing.",
+        ),
         "market_research": _normalize_market_research(data.get("market_research")),
         "short_term_potential": _normalize_scored_dimension(data.get("short_term_potential")),
         "long_term_stability": _normalize_scored_dimension(data.get("long_term_stability")),
@@ -286,14 +329,41 @@ def normalize_core_payload(raw: Any) -> dict[str, Any]:
         "marketing_suitability": _normalize_scored_dimension(data.get("marketing_suitability")),
         "market_saturation": {
             "level": _coerce_saturation_level(saturation.get("level")),
-            "motivation": _as_str(saturation.get("motivation")),
+            "motivation": _ensure_text(
+                saturation.get("motivation"),
+                "Saturation reflects how crowded similar listings appear in the search snapshot.",
+            ),
         },
-        "estimated_shipping_category": _as_str(data.get("estimated_shipping_category")),
-        "unit_economics_summary": _as_str(data.get("unit_economics_summary")),
-        "marketing_fit_preview": _as_str(data.get("marketing_fit_preview")),
-        "top_risks": _str_list(data.get("top_risks"), min_items=2, max_items=3),
-        "top_opportunities": _str_list(data.get("top_opportunities"), min_items=2, max_items=3),
-        "next_steps": _str_list(data.get("next_steps"), min_items=3, max_items=3),
+        "estimated_shipping_category": _ensure_text(
+            data.get("estimated_shipping_category"),
+            "Shipping class could not be determined — confirm billable weight with your carrier or 3PL.",
+        ),
+        "unit_economics_summary": _ensure_text(
+            data.get("unit_economics_summary"),
+            "Review purchase price, sell price, and estimated shipping before placing inventory orders.",
+        ),
+        "marketing_fit_preview": _ensure_text(
+            data.get("marketing_fit_preview"),
+            "Visual demo channels such as TikTok or Instagram are typical starting points for physical products.",
+        ),
+        "top_risks": _str_list(
+            data.get("top_risks"),
+            min_items=2,
+            max_items=3,
+            pad_with="Competition and margin compression remain key risks for this category.",
+        ),
+        "top_opportunities": _str_list(
+            data.get("top_opportunities"),
+            min_items=2,
+            max_items=3,
+            pad_with="Strong creative and clear positioning can still win share in a crowded niche.",
+        ),
+        "next_steps": _str_list(
+            data.get("next_steps"),
+            min_items=3,
+            max_items=3,
+            pad_with="Validate demand with a small test order or pre-launch landing page.",
+        ),
     }
 
 

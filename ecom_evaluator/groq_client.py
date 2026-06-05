@@ -49,6 +49,7 @@ Quality bar (critical):
 - investment_headline: one punchy sentence — the bottom-line go/no-go in plain English.
 - Write 4-6 substantive sentences for market_research.executive_summary with specific evidence.
 - Each channel landscape (Amazon, AliExpress, independent stores) must be 2-4 specific sentences citing search results by title or URL.
+- NEVER leave amazon_landscape, aliexpress_landscape, or independent_stores_landscape empty. If a channel has no search hits, write 1-2 sentences stating that explicitly.
 - Each score motivation must be 2-3 sentences referencing margin, competition, or demand evidence — never generic filler.
 - key_competitors: up to 3 REAL listings from the research with actual URLs and titles.
 - estimated_shipping_category: analyze billable weight using L×W×H÷5000 vs actual weight; name likely carrier tier.

@@ -48,3 +48,11 @@ def test_core_payload_validates_from_sample():
     payload = _sample_payload()
     core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
     assert core.final_score == 72
+
+
+def test_empty_amazon_landscape_gets_honest_fallback():
+    payload = _sample_payload()
+    payload["market_research"]["amazon_landscape"] = ""
+    core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
+    assert core.market_research.amazon_landscape
+    assert "unverified" in core.market_research.amazon_landscape.lower() or "no amazon" in core.market_research.amazon_landscape.lower()
