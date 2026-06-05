@@ -15,7 +15,7 @@ def load_env_api_key() -> str:
     except ImportError:
         pass
 
-    key = (os.getenv("GOOGLE_AI_API_KEY") or os.getenv("GEMINI_API_KEY") or "").strip()
+    key = os.getenv("GROQ_API_KEY", "").strip()
     if key:
         return key
 
@@ -23,9 +23,7 @@ def load_env_api_key() -> str:
         import streamlit as st
 
         if hasattr(st, "secrets"):
-            return (
-                st.secrets.get("GOOGLE_AI_API_KEY") or st.secrets.get("GEMINI_API_KEY") or ""
-            ).strip()
+            return (st.secrets.get("GROQ_API_KEY") or "").strip()
     except Exception:
         pass
 

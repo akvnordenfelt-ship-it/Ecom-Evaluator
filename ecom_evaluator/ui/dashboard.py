@@ -106,7 +106,7 @@ def render_market_research_section(
     raw_hits: list[MarketSearchHit] | list[dict],
 ) -> None:
     st.markdown("### Market research analysis")
-    st.caption("Live DuckDuckGo research · synthesized by Gemini")
+    st.caption("Live DuckDuckGo research · synthesized by Groq")
 
     gauge_col, summary_col = st.columns([1, 2])
     with gauge_col:
@@ -325,7 +325,7 @@ def render_marketing_section(plan: MarketingPlan) -> None:
 
 def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None) -> None:
     st.markdown(
-        '<div class="status-banner status-banner--success">Evaluation complete · Gemini 2.5 Flash + live market research</div>',
+        '<div class="status-banner status-banner--success">Evaluation complete · Groq AI + live market research</div>',
         unsafe_allow_html=True,
     )
 

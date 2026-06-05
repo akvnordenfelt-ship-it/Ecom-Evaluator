@@ -1,4 +1,4 @@
-"""Pydantic schemas for Gemini structured output."""
+"""Pydantic schemas for LLM structured output."""
 
 from __future__ import annotations
 

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from ecom_evaluator.exceptions import AnalysisError
-from ecom_evaluator.gemini_client import run_product_evaluation
+from ecom_evaluator.groq_client import run_product_evaluation
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
@@ -60,7 +60,7 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         else:
             st.caption(f"Found {len(web_research)} competitor/search snippets.")
 
-        with st.spinner("Shark Tank is analyzing with Gemini… This may take 15–45 seconds."):
+        with st.spinner("Shark Tank is analyzing with Groq… This may take 15–45 seconds."):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),

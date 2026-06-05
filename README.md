@@ -6,8 +6,8 @@
 
 - **Shark Tank-style scoring** — investment score plus four dimension gauges
 - **Live market research** — DuckDuckGo scans Amazon, AliExpress, and independent stores
-- **Gemini 2.5 Flash** — structured JSON analysis with multimodal product images
-- **Premium dashboard** — Plotly gauges, market intel, TikTok hooks, GTM strategy
+- **Groq AI** — fast Llama models with JSON output and optional vision (product images)
+- **Premium dashboard** — Plotly gauges, market intel, marketing playbook, GTM strategy
 - **Exports** — download JSON or Markdown reports
 
 ## Quick start
@@ -23,7 +23,7 @@ pip install -r requirements.txt
 
 ### 2. Configure API key
 
-Copy the example env file and add your [Google AI Studio](https://aistudio.google.com/apikey) key:
+Copy the example env file and add your [Groq](https://console.groq.com/keys) key:
 
 ```powershell
 copy .env.example .env
@@ -31,7 +31,7 @@ notepad .env
 ```
 
 ```env
-GOOGLE_AI_API_KEY=your_key_here
+GROQ_API_KEY=your_groq_key_here
 ```
 
 You can also paste a key in **Settings** (top right) in the app.
@@ -52,7 +52,7 @@ Ecom-Evaluator/
 ├── ecom_evaluator/
 │   ├── config.py               # Constants
 │   ├── models.py               # Pydantic schemas
-│   ├── gemini_client.py        # Gemini API + retries
+│   ├── groq_client.py          # Groq API + retries
 │   ├── web_search.py           # DuckDuckGo market research
 │   ├── reports.py              # Markdown export
 │   ├── settings.py             # .env / API key
@@ -79,7 +79,7 @@ pytest
 
 ### Public hosting (shared API key + rate limits)
 
-ProductScore is set up for **free public access** with your Gemini key on the server and **per-session rate limits** so you stay within free-tier quotas.
+ProductScore is set up for **free public access** with your Groq key on the server and **per-session rate limits**.
 
 **Defaults:** 3 evaluations per browser session, 45 seconds between runs.
 
@@ -88,48 +88,29 @@ ProductScore is set up for **free public access** with your Gemini key on the se
 3. Open **App settings → Secrets** and paste:
 
 ```toml
-GOOGLE_AI_API_KEY = "your_key_here"
+GROQ_API_KEY = "your_groq_key_here"
 MAX_ANALYSES_PER_SESSION = "3"
 ANALYSIS_COOLDOWN_SECONDS = "45"
 RATE_LIMIT_ENABLED = "true"
 ```
 
-4. Deploy and share the public URL. Users can run evaluations without their own key.
-
-**Optional:** Users can paste their own key in **Settings** to bypass session limits (they use their quota, not yours).
-
-**Tune limits** via secrets or environment:
-
-| Variable | Default | Purpose |
-|----------|---------|---------|
-| `MAX_ANALYSES_PER_SESSION` | `3` | Free runs per browser session |
-| `ANALYSIS_COOLDOWN_SECONDS` | `45` | Minimum wait between runs |
-| `RATE_LIMIT_ENABLED` | `true` | Set `false` to disable limits (local dev only) |
-
-See `.streamlit/secrets.toml.example` for a local copy.
-
-### Streamlit Community Cloud (quick reference)
-
-1. Push repo to GitHub
-2. [share.streamlit.io](https://share.streamlit.io) → New app → `app.py`
-3. Add `GOOGLE_AI_API_KEY` in Secrets
+4. Deploy and share the public URL.
 
 ### Docker
 
 ```powershell
 docker build -t productscore .
-docker run -p 8501:8501 -e GOOGLE_AI_API_KEY=your_key productscore
+docker run -p 8501:8501 -e GROQ_API_KEY=your_key productscore
 ```
-
-Or mount a local `.env` file (development only).
 
 ## Environment variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `GOOGLE_AI_API_KEY` | Yes* | Gemini API key from Google AI Studio |
-| `GEMINI_API_KEY` | Alt | Alias for the same key |
-| `MAX_ANALYSES_PER_SESSION` | No | Free runs per session when using hosted key (default `3`) |
+| `GROQ_API_KEY` | Yes* | API key from [console.groq.com](https://console.groq.com/keys) |
+| `GROQ_MODEL` | No | Text model (default `llama-3.3-70b-versatile`) |
+| `GROQ_VISION_MODEL` | No | Vision model when image uploaded (default `meta-llama/llama-4-scout-17b-16e-instruct`) |
+| `MAX_ANALYSES_PER_SESSION` | No | Free runs per session (default `3`) |
 | `ANALYSIS_COOLDOWN_SECONDS` | No | Cooldown between runs (default `45`) |
 | `RATE_LIMIT_ENABLED` | No | `true` / `false` (default `true`) |
 
@@ -137,8 +118,8 @@ Or mount a local `.env` file (development only).
 
 ## Notes
 
-- Web search uses **DuckDuckGo** (free) — no Google Custom Search CX needed
-- Sales figures are **estimated qualitatively** from search snippets, not exact unit data
+- Uses **JSON mode** + Pydantic validation (avoids Gemini-style strict schema limits)
+- Web search uses **DuckDuckGo** (free)
 - Never commit `.env` — it is listed in `.gitignore`
 
 ## License

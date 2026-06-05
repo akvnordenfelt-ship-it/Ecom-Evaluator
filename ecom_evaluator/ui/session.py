@@ -93,7 +93,7 @@ def validate_inputs(data: dict) -> list[str]:
     if not resolve_api_key(data["api_key"]):
         errors.append(
             "No API key is configured on the server. Ask the site owner to set "
-            "`GOOGLE_AI_API_KEY`, or paste your own key in Settings (top right)."
+            "`GROQ_API_KEY`, or paste your own key in Settings (top right)."
         )
     if not data["product_name"].strip():
         errors.append("Enter a product name.")
@@ -140,10 +140,10 @@ def friendly_analysis_error(message: str) -> str:
             "**Tip:** The hosted API key may be missing or invalid. "
             "Contact the site owner or add your own key in Settings."
         )
-    if "503" in message or "high demand" in lower:
+    if "503" in message or "high demand" in lower or "overloaded" in lower:
         return (
             f"{message}\n\n"
-            "**Tip:** Google's servers are overloaded. Wait a minute and try again — "
+            "**Tip:** The AI provider may be overloaded. Wait a minute and try again — "
             "the app will auto-retry up to 3 times."
         )
     if "429" in message or "quota" in lower or "rate" in lower:

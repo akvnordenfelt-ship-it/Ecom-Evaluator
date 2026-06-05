@@ -1,18 +1,20 @@
-"""Gemini 2.5 Flash product evaluation with structured JSON output."""
+"""Groq LLM product evaluation with JSON output + Pydantic validation."""
 
 from __future__ import annotations
 
+import base64
 import json
 import time
+from typing import Any
 
 import streamlit as st
-from google import genai
-from google.genai import errors as genai_errors
-from google.genai import types
+from groq import APIStatusError, Groq, RateLimitError
 from pydantic import ValidationError
 
 from ecom_evaluator.config import (
-    GEMINI_MODEL,
+    GROQ_MAX_COMPLETION_TOKENS,
+    GROQ_MODEL,
+    GROQ_VISION_MODEL,
     MAX_API_ATTEMPTS,
     RETRY_BACKOFF_SECONDS,
     TRANSIENT_API_CODES,
@@ -25,28 +27,25 @@ SYSTEM_INSTRUCTION = """You are a panel of ruthless Shark Tank investors combine
 e-commerce operators (DTC, TikTok Shop, Amazon FBA). Your job is to evaluate whether a product
 deserves investment of time and ad spend.
 
+Respond with ONE valid JSON object only. No markdown fences, no commentary outside JSON.
+
 Rules:
 - Be critical, specific, and honest. No generic praise.
 - You MUST fully populate `market_research` by analyzing the "Live web research (DuckDuckGo)" section.
 - In `market_research`, synthesize Amazon, AliExpress, and independent-store findings separately.
 - `key_competitors` must list real listings from the web research (use their URLs and titles). If none were found for a channel, say so in the landscape fields and leave competitors empty.
-- `demand_estimate.estimated_sales_note` must be qualitative (e.g. "likely moderate demand based on review volume language") — never invent precise monthly unit counts unless a snippet states them.
+- `demand_estimate.estimated_sales_note` must be qualitative — never invent precise monthly unit counts unless a snippet states them.
 - Ground `market_saturation` and all score motivations in BOTH the form data AND your `market_research` conclusions.
 - Do not invent URLs, prices, or sales numbers absent from the web research snippets.
 - Scores are integers from 0 (terrible) to 100 (exceptional).
 - market_saturation.level must be exactly "Low", "Medium", or "High".
-- estimated_shipping_category must analyze volumetric/dimensional weight using the dimensions
-  (common air-cargo formula: L×W×H cm ÷ 5000 = dimensional weight in kg) and compare to actual weight.
-- Fully populate `marketing_plan` as a serious go-to-market marketing blueprint:
-  - `target_audience`: infer persona, age range, psychographics, pain points, and platforms they use from the product description AND web research.
-  - `organic_strategy`: UGC, content formats, posting cadence, creator angles — be specific to this product.
-  - `paid_ads_strategy`: which paid channels, starter budget tier (as a string like "$20–50/day"), targeting, ROI outlook.
-  - `platform_recommendations`: 3–6 platforms ranked by fit_score; each must cite how similar products/competitors succeeded there (highest-ROI signals from web research). Set organic_vs_paid to Organic-first, Paid-first, or Balanced.
-  - `competitor_marketing_insights`: synthesize how competitors with similar products marketed (ads, influencers, Amazon PPC, etc.) based on search snippets — no invented campaigns.
-  - `creative_concepts`: 2–4 concrete ad/content concepts with hook, format, and copy — not generic TikTok-only hooks.
-  - `priority_playbook`: ordered list of the first actions to take this week.
+- estimated_shipping_category must analyze volumetric/dimensional weight using L×W×H cm ÷ 5000.
+- Fully populate `marketing_plan` (target_audience, organic_strategy, paid_ads_strategy,
+  platform_recommendations, competitor_marketing_insights, creative_concepts, priority_playbook).
 - go_to_market_strategy must be a detailed multi-paragraph operational plan in Markdown (phases, fulfillment, risks).
-- Output must match the JSON schema exactly."""
+- Top-level JSON keys required: final_score, market_research, short_term_potential, long_term_stability,
+  scalability, marketing_suitability, market_saturation, estimated_shipping_category, marketing_plan,
+  go_to_market_strategy."""
 
 
 def logistics_summary(
@@ -86,7 +85,7 @@ def build_user_prompt(
 
     image_note = (
         "A product image is attached — assess packaging, perceived quality, visual hook potential, "
-        "and whether it stands out in a TikTok feed."
+        "and whether it stands out in social feeds."
         if has_image
         else "No product image was provided — rely on the text and flag visual/marketing uncertainty."
     )
@@ -116,63 +115,137 @@ def build_user_prompt(
 
 {web_research_text}
 
-Return a complete Shark Tank-style evaluation with a full `marketing_plan` (organic + paid + platform mix) as JSON matching the required schema."""
+Return the complete evaluation as a single JSON object with marketing_plan included."""
 
 
-def build_contents(prompt: str, image_bytes: bytes | None, image_mime: str | None) -> list:
-    parts: list = [types.Part.from_text(text=prompt)]
+def build_messages(
+    prompt: str,
+    image_bytes: bytes | None,
+    image_mime: str | None,
+) -> list[dict[str, Any]]:
+    system = {
+        "role": "system",
+        "content": SYSTEM_INSTRUCTION,
+    }
+
     if image_bytes:
         mime = image_mime or "image/jpeg"
-        parts.append(types.Part.from_bytes(data=image_bytes, mime_type=mime))
-    return parts
+        encoded = base64.standard_b64encode(image_bytes).decode("ascii")
+        user = {
+            "role": "user",
+            "content": [
+                {"type": "text", "text": prompt},
+                {
+                    "type": "image_url",
+                    "image_url": {"url": f"data:{mime};base64,{encoded}"},
+                },
+            ],
+        }
+    else:
+        user = {"role": "user", "content": prompt}
+
+    return [system, user]
 
 
-def is_transient_api_error(exc: genai_errors.APIError) -> bool:
-    if exc.code in TRANSIENT_API_CODES:
+def select_model(*, has_image: bool) -> str:
+    return GROQ_VISION_MODEL if has_image else GROQ_MODEL
+
+
+def extract_json_text(raw: str) -> str:
+    text = raw.strip()
+    if not text.startswith("```"):
+        return text
+    lines = text.splitlines()
+    if lines[0].startswith("```"):
+        lines = lines[1:]
+    if lines and lines[-1].strip() == "```":
+        lines = lines[:-1]
+    return "\n".join(lines).strip()
+
+
+def is_transient_api_error(exc: Exception) -> bool:
+    if isinstance(exc, RateLimitError):
         return True
-    message = (exc.message or "").lower()
+    status_code = getattr(exc, "status_code", None)
+    if status_code in TRANSIENT_API_CODES:
+        return True
+    if isinstance(exc, APIStatusError):
+        message = str(exc).lower()
+        return any(
+            phrase in message
+            for phrase in ("rate limit", "overloaded", "try again", "temporarily unavailable")
+        )
+    message = str(exc).lower()
     return any(
         phrase in message
-        for phrase in ("high demand", "unavailable", "overloaded", "try again later")
+        for phrase in ("rate limit", "overloaded", "try again", "temporarily unavailable")
     )
 
 
-def generate_with_retry(client: genai.Client, contents: list) -> genai.types.GenerateContentResponse:
-    last_error: genai_errors.APIError | None = None
+def api_error_message(exc: Exception) -> str:
+    if isinstance(exc, APIStatusError):
+        return f"Groq API error ({exc.status_code}): {exc.message}"
+    if isinstance(exc, RateLimitError):
+        return f"Groq rate limit: {exc}"
+    return f"Groq API error: {exc}"
+
+
+def generate_with_retry(
+    client: Groq,
+    *,
+    model: str,
+    messages: list[dict[str, Any]],
+) -> str:
+    last_error: Exception | None = None
 
     for attempt in range(MAX_API_ATTEMPTS):
         try:
-            return client.models.generate_content(
-                model=GEMINI_MODEL,
-                contents=contents,
-                config=types.GenerateContentConfig(
-                    system_instruction=SYSTEM_INSTRUCTION,
-                    temperature=0.6,
-                    max_output_tokens=16384,
-                    response_mime_type="application/json",
-                    response_schema=ProductEvaluationResponse,
-                ),
+            response = client.chat.completions.create(
+                model=model,
+                messages=messages,
+                temperature=0.6,
+                max_completion_tokens=GROQ_MAX_COMPLETION_TOKENS,
+                response_format={"type": "json_object"},
             )
-        except genai_errors.APIError as exc:
+            content = response.choices[0].message.content or ""
+            if not content.strip():
+                raise AnalysisError("Groq returned an empty response. Try again.")
+            return content
+        except AnalysisError:
+            raise
+        except Exception as exc:
             last_error = exc
             is_last_attempt = attempt >= MAX_API_ATTEMPTS - 1
             if is_last_attempt or not is_transient_api_error(exc):
-                raise AnalysisError(f"Gemini API error ({exc.code}): {exc.message}") from exc
+                raise AnalysisError(api_error_message(exc)) from exc
 
             wait_seconds = RETRY_BACKOFF_SECONDS[attempt]
             st.warning(
-                f"Google servers are busy (error {exc.code}). "
-                f"Retrying in {wait_seconds} seconds… "
+                f"Groq servers are busy. Retrying in {wait_seconds} seconds… "
                 f"(attempt {attempt + 2} of {MAX_API_ATTEMPTS})"
             )
             time.sleep(wait_seconds)
 
     if last_error is not None:
         raise AnalysisError(
-            f"Gemini API unavailable after {MAX_API_ATTEMPTS} attempts "
-            f"(last error {last_error.code}): {last_error.message}"
+            f"Groq API unavailable after {MAX_API_ATTEMPTS} attempts: {last_error}"
         ) from last_error
-    raise AnalysisError("Gemini API call failed after multiple retries. Please try again shortly.")
+    raise AnalysisError("Groq API call failed after multiple retries. Please try again shortly.")
+
+
+def parse_evaluation_response(raw: str) -> ProductEvaluationResponse:
+    cleaned = extract_json_text(raw)
+    try:
+        return ProductEvaluationResponse.model_validate_json(cleaned)
+    except ValidationError as first_error:
+        try:
+            return ProductEvaluationResponse.model_validate(json.loads(cleaned))
+        except (json.JSONDecodeError, ValidationError) as inner:
+            detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
+            raise AnalysisError(
+                "The AI response could not be parsed into a complete report "
+                f"(validation failed near {detail}). Try running the analysis again."
+            ) from inner
 
 
 def run_product_evaluation(
@@ -213,26 +286,11 @@ def run_product_evaluation(
         web_research_text=web_research_text,
     )
 
-    client = genai.Client(api_key=api_key.strip())
-    contents = build_contents(prompt, image_bytes, image_mime)
-    response = generate_with_retry(client, contents)
-
-    raw = (response.text or "").strip()
-    if not raw:
-        raise AnalysisError("Gemini returned an empty response. Try again.")
-
-    try:
-        return ProductEvaluationResponse.model_validate_json(raw)
-    except ValidationError as first_error:
-        try:
-            return ProductEvaluationResponse.model_validate(json.loads(raw))
-        except (json.JSONDecodeError, ValidationError) as inner:
-            detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
-            raise AnalysisError(
-                "The AI response could not be parsed into a complete report "
-                f"(validation failed near {detail}). This often means the response was "
-                "truncated or the model hit a limit. Please try again in a minute."
-            ) from inner
+    client = Groq(api_key=api_key.strip())
+    model = select_model(has_image=image_bytes is not None)
+    messages = build_messages(prompt, image_bytes, image_mime)
+    raw = generate_with_retry(client, model=model, messages=messages)
+    return parse_evaluation_response(raw)
 
 
 run_shark_tank_analysis = run_product_evaluation

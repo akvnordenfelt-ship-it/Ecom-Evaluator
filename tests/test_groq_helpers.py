@@ -1,24 +1,30 @@
-"""Tests for Gemini client helpers (no live API calls)."""
+"""Tests for Groq client helpers (no live API calls)."""
 
-from ecom_evaluator.gemini_client import (
+from ecom_evaluator.groq_client import (
     build_user_prompt,
+    extract_json_text,
     is_transient_api_error,
     logistics_summary,
+    select_model,
 )
 
 
-class _FakeAPIError:
-    def __init__(self, code: int, message: str):
-        self.code = code
+class _FakeStatusError(Exception):
+    status_code = 503
+
+    def __init__(self, message: str):
         self.message = message
+        super().__init__(message)
 
 
 def test_is_transient_api_error_for_503():
-    assert is_transient_api_error(_FakeAPIError(503, "This model is currently experiencing high demand"))
+    assert is_transient_api_error(_FakeStatusError("Service unavailable"))
 
 
 def test_is_transient_api_error_for_401():
-    assert not is_transient_api_error(_FakeAPIError(401, "Invalid API key"))
+    err = _FakeStatusError("Unauthorized")
+    err.status_code = 401
+    assert not is_transient_api_error(err)
 
 
 def test_logistics_summary_dimensional_weight():
@@ -44,3 +50,13 @@ def test_build_user_prompt_includes_product_and_research():
     assert "Test Widget" in prompt
     assert "Live web research" in prompt
     assert "$19.99" in prompt
+
+
+def test_extract_json_text_strips_fence():
+    raw = '```json\n{"final_score": 70}\n```'
+    assert extract_json_text(raw) == '{"final_score": 70}'
+
+
+def test_select_model_uses_vision_when_image():
+    assert "scout" in select_model(has_image=True).lower()
+    assert select_model(has_image=False) == "llama-3.3-70b-versatile"
