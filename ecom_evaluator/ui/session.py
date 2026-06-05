@@ -24,6 +24,7 @@ def init_session_state() -> None:
         "analysis_result": None,
         "analysis_meta": None,
         "analysis_running": False,
+        "analysis_error": None,
         "market_research": None,
         "rate_limit_count": 0,
         "rate_limit_last_at": None,
@@ -111,6 +112,24 @@ def validate_inputs(data: dict) -> list[str]:
         )
 
     return errors
+
+
+def set_analysis_error(message: str) -> None:
+    st.session_state["analysis_error"] = message
+
+
+def clear_analysis_error() -> None:
+    st.session_state["analysis_error"] = None
+
+
+def render_analysis_error() -> None:
+    message = st.session_state.get("analysis_error")
+    if not message:
+        return
+    st.error(message)
+    if st.button("Dismiss error", key="dismiss_analysis_error"):
+        clear_analysis_error()
+        st.rerun()
 
 
 def friendly_analysis_error(message: str) -> str:

@@ -148,7 +148,7 @@ def generate_with_retry(client: genai.Client, contents: list) -> genai.types.Gen
                 config=types.GenerateContentConfig(
                     system_instruction=SYSTEM_INSTRUCTION,
                     temperature=0.6,
-                    max_output_tokens=8192,
+                    max_output_tokens=16384,
                     response_mime_type="application/json",
                     response_schema=ProductEvaluationResponse,
                 ),
@@ -223,12 +223,15 @@ def run_product_evaluation(
 
     try:
         return ProductEvaluationResponse.model_validate_json(raw)
-    except ValidationError:
+    except ValidationError as first_error:
         try:
             return ProductEvaluationResponse.model_validate(json.loads(raw))
         except (json.JSONDecodeError, ValidationError) as inner:
+            detail = str(first_error.errors()[0]["loc"]) if first_error.errors() else "unknown field"
             raise AnalysisError(
-                "The model response did not match the expected schema. Please run the analysis again."
+                "The AI response could not be parsed into a complete report "
+                f"(validation failed near {detail}). This often means the response was "
+                "truncated or the model hit a limit. Please try again in a minute."
             ) from inner
 
 

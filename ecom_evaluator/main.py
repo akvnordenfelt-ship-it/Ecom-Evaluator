@@ -13,12 +13,16 @@ from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
 from ecom_evaluator.ui.session import (
+    clear_analysis_error,
     friendly_analysis_error,
     init_session_state,
     mark_analysis_for_rate_limit,
+    render_analysis_error,
+    set_analysis_error,
     validate_inputs,
 )
 from ecom_evaluator.ui.subscription import (
+    APP_VIEW_TOOL,
     is_tool_view,
     mark_evaluation_consumed,
     show_paywall,
@@ -34,13 +38,15 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         image_bytes = data["uploaded_file"].getvalue()
         image_mime = data["uploaded_file"].type
 
-    if image_bytes is None:
-        st.warning(
-            "No product image uploaded — visual and creative scores may be less accurate."
-        )
-
+    clear_analysis_error()
     st.session_state["analysis_running"] = True
+
     try:
+        if image_bytes is None:
+            st.warning(
+                "No product image uploaded — visual and creative scores may be less accurate."
+            )
+
         with st.spinner("Searching Amazon, AliExpress, and the web (DuckDuckGo)…"):
             web_research = run_web_market_research(
                 product_name=data["product_name"].strip(),
@@ -69,6 +75,7 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
                 image_mime=image_mime,
                 web_research=web_research,
             )
+
         st.session_state["analysis_result"] = result
         st.session_state["market_research"] = web_research
         st.session_state["analysis_meta"] = {
@@ -78,16 +85,18 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         }
         mark_analysis_for_rate_limit(data)
         mark_evaluation_consumed()
+        st.session_state["app_view"] = APP_VIEW_TOOL
+        st.session_state["analysis_running"] = False
+        st.rerun()
     except AnalysisError as exc:
-        st.error(friendly_analysis_error(str(exc)))
+        set_analysis_error(friendly_analysis_error(str(exc)))
     except Exception as exc:
-        st.error(
+        set_analysis_error(
             f"Something unexpected went wrong: {exc}\n\n"
             "**Tip:** Check your internet connection and try again."
         )
     finally:
         st.session_state["analysis_running"] = False
-        st.rerun()
 
 
 def main() -> None:
@@ -112,15 +121,19 @@ def main() -> None:
         tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
         with tab_inputs:
             data = render_evaluation_form(compact=True)
+            render_analysis_error()
         with tab_report:
             meta = st.session_state.get("analysis_meta") or {}
             render_dashboard(st.session_state["analysis_result"], meta)
     else:
         data = render_evaluation_form(compact=False)
 
+    render_analysis_error()
+
     resolved_key = resolve_api_key(data["api_key"])
 
     if data["run_analysis"]:
+        clear_analysis_error()
         if show_paywall():
             return
         if st.session_state.get("analysis_running"):
