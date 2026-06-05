@@ -452,6 +452,129 @@ div[data-testid="stTextArea"] textarea:focus {
     color: #E2E8F0;
     line-height: 1.7;
 }
+
+/* Dashboard visuals */
+.insight-card--hero { border-left: 4px solid var(--ps-blue); }
+.insight-card--marketing { border-left: 4px solid var(--ps-indigo); }
+.card-kicker {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--ps-muted);
+    margin: 0 0 0.5rem;
+}
+.stat-tile {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-radius: 10px;
+    padding: 1rem 1.1rem;
+    box-shadow: var(--ps-shadow);
+    min-height: 110px;
+}
+.stat-tile-label { font-size: 0.78rem; font-weight: 600; color: var(--ps-muted); margin: 0 0 0.35rem; }
+.stat-tile-value { font-size: 1.25rem; font-weight: 700; color: var(--ps-text); margin: 0; }
+.stat-tile-body { font-size: 0.9rem; color: #475569; margin: 0; line-height: 1.5; }
+.channel-head { display: flex; align-items: center; gap: 0.45rem; margin-bottom: 0.5rem; }
+.channel-logo, .platform-logo { width: 20px; height: 20px; object-fit: contain; }
+.channel-name { font-weight: 700; color: var(--ps-text); }
+.metric-pill {
+    display: inline-block;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+}
+.competitor-row {
+    background: #FAFBFC;
+    border: 1px solid var(--ps-border);
+    border-radius: 10px;
+    padding: 0.85rem 1rem;
+    margin-bottom: 0.5rem;
+}
+.competitor-meta { font-size: 0.85rem; color: #64748B; margin: 0.35rem 0 0; }
+.persona-card {
+    background: linear-gradient(160deg, #EFF6FF 0%, #FFFFFF 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: var(--ps-radius);
+    padding: 1.25rem;
+    box-shadow: var(--ps-shadow);
+}
+.persona-icon { font-size: 1.75rem; margin: 0; }
+.persona-name { font-size: 1.15rem; font-weight: 700; margin: 0.35rem 0 0.15rem; }
+.persona-meta { font-size: 0.82rem; color: var(--ps-muted); margin: 0 0 0.5rem; }
+.persona-body { font-size: 0.92rem; color: #475569; margin: 0; line-height: 1.55; }
+.chip-row { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.platform-chip, .format-chip {
+    display: inline-block;
+    background: #F1F5F9;
+    border: 1px solid #E2E8F0;
+    border-radius: 999px;
+    padding: 0.25rem 0.65rem;
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #334155;
+    margin: 0.15rem 0.25rem 0.15rem 0;
+}
+.strategy-card {
+    border-radius: var(--ps-radius);
+    padding: 1rem 1.05rem;
+    margin-bottom: 0.75rem;
+    border: 1px solid var(--ps-border);
+    font-size: 0.92rem;
+    line-height: 1.55;
+    color: #475569;
+}
+.strategy-card--organic { background: #ECFDF5; border-color: #A7F3D0; }
+.strategy-card--paid { background: #EFF6FF; border-color: #BFDBFE; }
+.strategy-card-title { font-weight: 700; color: var(--ps-text); margin: 0 0 0.45rem; }
+.platform-card {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-radius: var(--ps-radius);
+    padding: 1rem;
+    box-shadow: var(--ps-shadow);
+    margin-bottom: 0.5rem;
+}
+.platform-card-head { display: flex; align-items: center; gap: 0.4rem; margin-bottom: 0.35rem; font-weight: 700; }
+.platform-score { font-size: 0.82rem; color: var(--ps-muted); margin: 0.25rem 0 0.5rem; }
+.platform-body, .platform-evidence { font-size: 0.88rem; color: #475569; line-height: 1.5; margin: 0.5rem 0 0; }
+.platform-evidence { font-size: 0.82rem; color: #64748B; }
+.creative-card {
+    background: var(--ps-surface);
+    border: 1px solid var(--ps-border);
+    border-left: 4px solid var(--ps-blue);
+    border-radius: 10px;
+    padding: 1rem 1.05rem;
+    margin-bottom: 0.75rem;
+    box-shadow: var(--ps-shadow);
+}
+.creative-format { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--ps-muted); margin: 0 0 0.35rem; }
+.creative-title { font-size: 1rem; font-weight: 700; margin: 0 0 0.35rem; color: var(--ps-text); }
+.creative-hook { font-size: 0.88rem; margin: 0 0 0.35rem; color: #334155; }
+.creative-copy { font-size: 0.88rem; color: #64748B; margin: 0; line-height: 1.5; }
+.playbook-step {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--ps-border);
+    font-size: 0.95rem;
+    color: #334155;
+}
+.playbook-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.65rem;
+    height: 1.65rem;
+    border-radius: 999px;
+    background: var(--ps-blue-deep);
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 700;
+    flex-shrink: 0;
+}
 """
 
 SAAS_CHROME_CSS = """

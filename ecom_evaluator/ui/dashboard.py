@@ -10,9 +10,21 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from ecom_evaluator.config import PLOTLY_CHART_CONFIG
-from ecom_evaluator.models import MarketResearchAnalysis, MarketSearchHit, ProductEvaluationResponse
+from ecom_evaluator.models import MarketResearchAnalysis, MarketSearchHit, MarketingPlan, ProductEvaluationResponse
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
 from ecom_evaluator.scoring import score_bar_color, verdict_label
+from ecom_evaluator.ui.visuals import (
+    CHANNEL_VISUALS,
+    ROI_COLORS,
+    make_competition_gauge,
+    make_demand_gauge,
+    make_dimension_radar_chart,
+    make_organic_paid_chart,
+    make_platform_fit_chart,
+    platform_color,
+    platform_emoji,
+    platform_icon_url,
+)
 
 
 def make_score_gauge(title: str, score: int, *, height: int = 220, title_size: int = 14) -> go.Figure:
@@ -64,17 +76,28 @@ def saturation_badge_html(level: str) -> str:
     )
 
 
-def demand_badge_html(level: str) -> str:
-    palette = {
-        "Low": ("#065f46", "#ecfdf5", "#6ee7b7"),
-        "Medium": ("#92400e", "#fffbeb", "#fcd34d"),
-        "High": ("#991b1b", "#fef2f2", "#fca5a5"),
-        "Unknown": ("#334155", "#f1f5f9", "#cbd5e1"),
-    }
-    text_color, bg, border = palette.get(level, palette["Unknown"])
+def roi_badge_html(level: str) -> str:
+    color = ROI_COLORS.get(level, "#64748B")
     return (
-        f'<span class="saturation-badge" style="color:{text_color};background:{bg};'
-        f'border:1px solid {border};">{level}</span>'
+        f'<span class="metric-pill" style="background:{color}22;color:{color};'
+        f'border:1px solid {color}55;">ROI {html.escape(level)}</span>'
+    )
+
+
+def channel_icon_url(label: str) -> str:
+    meta = CHANNEL_VISUALS.get(label, {"slug": "googlechrome", "color": "#64748B"})
+    return f"https://cdn.simpleicons.org/{meta['slug']}/{meta['color'].lstrip('#')}"
+
+
+def channel_header_html(label: str) -> str:
+    meta = CHANNEL_VISUALS.get(label, {"emoji": "🌐", "color": "#64748B", "slug": "googlechrome"})
+    icon = channel_icon_url(label)
+    return (
+        f'<div class="channel-head">'
+        f'<img class="channel-logo" src="{icon}" alt="{html.escape(label)}" '
+        f'onerror="this.style.display=\'none\'"/>'
+        f'<span class="channel-emoji">{meta["emoji"]}</span>'
+        f'<span class="channel-name">{html.escape(label)}</span></div>'
     )
 
 
@@ -82,22 +105,35 @@ def render_market_research_section(
     analysis: MarketResearchAnalysis,
     raw_hits: list[MarketSearchHit] | list[dict],
 ) -> None:
-    """Dedicated dashboard section for Gemini's web research analysis."""
     st.markdown("### Market research analysis")
-    st.caption("Based on live DuckDuckGo searches — analyzed by Gemini, not raw data.")
+    st.caption("Live DuckDuckGo research · synthesized by Gemini")
 
-    summary_col, signal_col = st.columns([2, 1])
+    gauge_col, summary_col = st.columns([1, 2])
+    with gauge_col:
+        g1, g2 = st.columns(2)
+        with g1:
+            st.plotly_chart(
+                make_competition_gauge(analysis.competitor_count_signal),
+                use_container_width=True,
+                config=PLOTLY_CHART_CONFIG,
+            )
+        with g2:
+            st.plotly_chart(
+                make_demand_gauge(analysis.demand_estimate.level),
+                use_container_width=True,
+                config=PLOTLY_CHART_CONFIG,
+            )
     with summary_col:
         st.markdown(
-            f'<div class="insight-card">{html.escape(analysis.executive_summary)}</div>',
+            f'<div class="insight-card insight-card--hero">'
+            f'<p class="card-kicker">Executive summary</p>'
+            f"<p>{html.escape(analysis.executive_summary)}</p></div>",
             unsafe_allow_html=True,
         )
-    with signal_col:
-        st.markdown("**Competition density**")
-        st.markdown(demand_badge_html(analysis.competitor_count_signal), unsafe_allow_html=True)
-        st.markdown("**Demand estimate**")
-        st.markdown(demand_badge_html(analysis.demand_estimate.level), unsafe_allow_html=True)
-        st.caption(analysis.demand_estimate.estimated_sales_note)
+        st.markdown(
+            f"**Demand note:** {html.escape(analysis.demand_estimate.estimated_sales_note)}",
+            unsafe_allow_html=True,
+        )
 
     st.markdown("#### Channel breakdown")
     channel_cols = st.columns(3)
@@ -108,7 +144,7 @@ def render_market_research_section(
     ]
     for col, (label, text) in zip(channel_cols, channel_blocks, strict=True):
         with col:
-            st.markdown(f"**{label}**")
+            st.markdown(channel_header_html(label), unsafe_allow_html=True)
             st.markdown(
                 f'<div class="research-channel-card">{html.escape(text)}</div>',
                 unsafe_allow_html=True,
@@ -116,19 +152,28 @@ def render_market_research_section(
 
     price_col, demand_col = st.columns(2)
     with price_col:
-        st.markdown("**Price range observed**")
-        st.info(analysis.price_range_observed)
+        st.markdown(
+            '<div class="stat-tile"><p class="stat-tile-label">💰 Price range observed</p>'
+            f"<p class=\"stat-tile-value\">{html.escape(analysis.price_range_observed)}</p></div>",
+            unsafe_allow_html=True,
+        )
     with demand_col:
-        st.markdown("**Demand reasoning**")
-        st.info(analysis.demand_estimate.reasoning)
+        st.markdown(
+            '<div class="stat-tile"><p class="stat-tile-label">📈 Demand reasoning</p>'
+            f"<p class=\"stat-tile-body\">{html.escape(analysis.demand_estimate.reasoning)}</p></div>",
+            unsafe_allow_html=True,
+        )
 
     if analysis.key_competitors:
         st.markdown("#### Key competitors identified")
         for comp in analysis.key_competitors:
             st.markdown(
-                f"**[{comp.platform}]** [{html.escape(comp.listing_title)}]({comp.source_url})  \n"
-                f"*Price signal:* {html.escape(comp.price_signal)}  \n"
-                f"*Similarity:* {html.escape(comp.similarity_note)}"
+                f'<div class="competitor-row">'
+                f'<span class="metric-pill">{html.escape(comp.platform)}</span> '
+                f'<a href="{html.escape(comp.source_url)}">{html.escape(comp.listing_title)}</a>'
+                f'<p class="competitor-meta"><strong>Price:</strong> {html.escape(comp.price_signal)} · '
+                f"<strong>Similarity:</strong> {html.escape(comp.similarity_note)}</p></div>",
+                unsafe_allow_html=True,
             )
 
     st.markdown("**Strategic implications**")
@@ -153,8 +198,132 @@ def render_market_research_section(
                 st.divider()
 
 
+def render_marketing_section(plan: MarketingPlan) -> None:
+    st.markdown("### Marketing playbook")
+    st.caption("Organic content · paid ads · platform mix · audience fit")
+
+    st.markdown(
+        f'<div class="insight-card insight-card--hero insight-card--marketing">'
+        f'<p class="card-kicker">How to market this product</p>'
+        f"<p>{html.escape(plan.executive_summary)}</p></div>",
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("#### Target audience")
+    aud = plan.target_audience
+    aud_left, aud_right = st.columns([1.1, 1])
+    with aud_left:
+        st.markdown(
+            f'<div class="persona-card">'
+            f'<p class="persona-icon">👤</p>'
+            f'<p class="persona-name">{html.escape(aud.persona_name)}</p>'
+            f'<p class="persona-meta">Age {html.escape(aud.age_range)}</p>'
+            f'<p class="persona-body">{html.escape(aud.psychographics)}</p></div>',
+            unsafe_allow_html=True,
+        )
+    with aud_right:
+        st.markdown("**Pain points**")
+        for point in aud.pain_points:
+            st.markdown(f"- {point}")
+        st.markdown("**Where they spend time**")
+        chip_html = " ".join(
+            f'<span class="platform-chip">{platform_emoji(p)} {html.escape(p)}</span>'
+            for p in aud.platforms_they_use
+        )
+        st.markdown(f'<div class="chip-row">{chip_html}</div>', unsafe_allow_html=True)
+
+    st.markdown("#### Organic vs paid")
+    mix_col, organic_col, paid_col = st.columns([1, 1.2, 1.2])
+    with mix_col:
+        st.plotly_chart(
+            make_organic_paid_chart(plan),
+            use_container_width=True,
+            config=PLOTLY_CHART_CONFIG,
+        )
+    with organic_col:
+        org = plan.organic_strategy
+        st.markdown(
+            '<div class="strategy-card strategy-card--organic">'
+            '<p class="strategy-card-title">🌱 Organic content</p>'
+            f"<p>{html.escape(org.overview)}</p></div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(f"**Cadence:** {org.posting_cadence}")
+        for fmt in org.content_formats:
+            st.markdown(f'<span class="format-chip">{html.escape(fmt)}</span>', unsafe_allow_html=True)
+        with st.expander("Creator angles"):
+            for angle in org.creator_angles:
+                st.markdown(f"- {angle}")
+    with paid_col:
+        paid = plan.paid_ads_strategy
+        st.markdown(
+            '<div class="strategy-card strategy-card--paid">'
+            '<p class="strategy-card-title">💳 Paid ads</p>'
+            f"<p>{html.escape(paid.overview)}</p></div>",
+            unsafe_allow_html=True,
+        )
+        st.markdown(f"**Starter budget:** {paid.budget_starter_usd}")
+        st.markdown(f"**ROI outlook:** {roi_badge_html(paid.roi_outlook)}", unsafe_allow_html=True)
+        st.markdown(f"**Targeting:** {paid.targeting_approach}")
+        st.markdown("**Channels:** " + ", ".join(paid.primary_channels))
+
+    st.markdown("#### Best platforms for this product")
+    st.plotly_chart(
+        make_platform_fit_chart(plan.platform_recommendations),
+        use_container_width=True,
+        config=PLOTLY_CHART_CONFIG,
+    )
+
+    plat_cols = st.columns(min(len(plan.platform_recommendations), 3))
+    for col, plat in zip(plat_cols, plan.platform_recommendations[:3], strict=False):
+        with col:
+            icon = platform_icon_url(plat.platform)
+            st.markdown(
+                f'<div class="platform-card" style="border-top: 4px solid {platform_color(plat.platform)};">'
+                f'<div class="platform-card-head">'
+                f'<img class="platform-logo" src="{icon}" alt="{html.escape(plat.platform)}" '
+                f'onerror="this.style.display=\'none\'"/>'
+                f'<span>{platform_emoji(plat.platform)}</span>'
+                f"<strong>{html.escape(plat.platform)}</strong></div>"
+                f'<p class="platform-score">{plat.fit_score}/100 fit · {html.escape(plat.organic_vs_paid)}</p>'
+                f"{roi_badge_html(plat.roi_potential)}"
+                f"<p class=\"platform-body\">{html.escape(plat.why_it_works)}</p>"
+                f'<p class="platform-evidence"><em>Competitor signal:</em> '
+                f"{html.escape(plat.competitor_success_signal)}</p></div>",
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("#### What competitors did best")
+    st.markdown(
+        f'<div class="insight-card">{html.escape(plan.competitor_marketing_insights)}</div>',
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("#### Creative concepts to test first")
+    concept_cols = st.columns(2)
+    for col, concept in zip(concept_cols, plan.creative_concepts[:4], strict=False):
+        with col:
+            st.markdown(
+                f'<div class="creative-card">'
+                f'<p class="creative-format">{html.escape(concept.format)} · '
+                f"{html.escape(concept.recommended_platform)}</p>"
+                f'<p class="creative-title">{html.escape(concept.title)}</p>'
+                f'<p class="creative-hook"><strong>Angle:</strong> {html.escape(concept.hook_angle)}</p>'
+                f'<p class="creative-copy">{html.escape(concept.script_or_copy)}</p></div>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("#### Priority playbook — do this first")
+    for idx, step in enumerate(plan.priority_playbook, start=1):
+        st.markdown(
+            f'<div class="playbook-step">'
+            f'<span class="playbook-num">{idx}</span>'
+            f"<span>{html.escape(step)}</span></div>",
+            unsafe_allow_html=True,
+        )
+
+
 def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None) -> None:
-    """Premium results dashboard with Plotly gauges."""
     st.markdown(
         '<div class="status-banner status-banner--success">Evaluation complete · Gemini 2.5 Flash + live market research</div>',
         unsafe_allow_html=True,
@@ -187,12 +356,22 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
             f'<p class="verdict-label">{verdict_label(result.final_score)}</p>',
             unsafe_allow_html=True,
         )
-        st.markdown("#### Market saturation")
-        st.markdown(saturation_badge_html(result.market_saturation.level), unsafe_allow_html=True)
-        st.caption(result.market_saturation.motivation)
+        metric_a, metric_b = st.columns(2)
+        with metric_a:
+            st.markdown("#### Market saturation")
+            st.markdown(saturation_badge_html(result.market_saturation.level), unsafe_allow_html=True)
+            st.caption(result.market_saturation.motivation)
+        with metric_b:
+            st.markdown("#### Marketing fit")
+            st.plotly_chart(
+                make_score_gauge("Marketing", result.marketing_suitability.score, height=160, title_size=12),
+                use_container_width=True,
+                config=PLOTLY_CHART_CONFIG,
+            )
+
         st.markdown("#### Shipping & logistics")
         st.markdown(
-            f'<div class="insight-card">{html.escape(result.estimated_shipping_category)}</div>',
+            f'<div class="insight-card">📦 {html.escape(result.estimated_shipping_category)}</div>',
             unsafe_allow_html=True,
         )
 
@@ -211,14 +390,26 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
         ("Scalability", result.scalability),
         ("Marketing suitability", result.marketing_suitability),
     ]
-    gauge_cols = st.columns(4)
-    for col, (label, dim) in zip(gauge_cols, dimension_specs, strict=True):
-        with col:
-            st.plotly_chart(
-                make_score_gauge(label, dim.score, height=230),
-                use_container_width=True,
-                config=PLOTLY_CHART_CONFIG,
-            )
+
+    radar_col, gauge_col = st.columns([1, 1.4])
+    with radar_col:
+        st.plotly_chart(
+            make_dimension_radar_chart(dimension_specs),
+            use_container_width=True,
+            config=PLOTLY_CHART_CONFIG,
+        )
+    with gauge_col:
+        row1 = st.columns(2)
+        row2 = st.columns(2)
+        for col, (label, dim) in zip(
+            (row1[0], row1[1], row2[0], row2[1]), dimension_specs, strict=True
+        ):
+            with col:
+                st.plotly_chart(
+                    make_score_gauge(label, dim.score, height=200, title_size=11),
+                    use_container_width=True,
+                    config=PLOTLY_CHART_CONFIG,
+                )
 
     st.markdown("#### Panel rationale")
     rationale_cols = st.columns(2)
@@ -228,27 +419,11 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
                 st.markdown(dim.motivation)
 
     st.divider()
-    st.markdown('<p class="section-eyebrow">Creative</p>', unsafe_allow_html=True)
-    st.markdown("### TikTok concepts")
-    hook_cols = st.columns(3)
-    for col, hook in zip(hook_cols, result.tiktok_hooks, strict=True):
-        with col:
-            st.markdown(
-                f"""
-                <div class="hook-card">
-                    <p class="hook-label">Hook</p>
-                    <p class="hook-text">{html.escape(hook.hook_text)}</p>
-                    <p class="hook-label">Visuals</p>
-                    <p class="hook-body">{html.escape(hook.visuals)}</p>
-                    <p class="hook-label">Voiceover</p>
-                    <p class="hook-body">{html.escape(hook.voiceover)}</p>
-                </div>
-                """,
-                unsafe_allow_html=True,
-            )
+    st.markdown('<p class="section-eyebrow">Marketing</p>', unsafe_allow_html=True)
+    render_marketing_section(result.marketing_plan)
 
     st.divider()
-    st.markdown('<p class="section-eyebrow">Strategy</p>', unsafe_allow_html=True)
+    st.markdown('<p class="section-eyebrow">Operations</p>', unsafe_allow_html=True)
     st.markdown("### Go-to-market plan")
     with st.container(border=True):
         st.markdown(result.go_to_market_strategy)

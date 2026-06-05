@@ -97,28 +97,84 @@ def build_markdown_report(
                 lines.append(f"  {hit['snippet']}")
         lines.append("")
 
+    plan = result.marketing_plan
     lines.extend(
         [
             "## Shipping & logistics",
             "",
             result.estimated_shipping_category,
             "",
-            "## TikTok creative concepts",
+            "## Marketing playbook",
+            "",
+            plan.executive_summary,
+            "",
+            "### Target audience",
+            "",
+            f"**{plan.target_audience.persona_name}** ({plan.target_audience.age_range})",
+            "",
+            plan.target_audience.psychographics,
+            "",
+            "**Pain points:** " + "; ".join(plan.target_audience.pain_points),
+            "",
+            "**Platforms they use:** " + ", ".join(plan.target_audience.platforms_they_use),
+            "",
+            "### Organic content",
+            "",
+            plan.organic_strategy.overview,
+            "",
+            f"**Cadence:** {plan.organic_strategy.posting_cadence}",
+            "",
+            "**Formats:** " + ", ".join(plan.organic_strategy.content_formats),
+            "",
+            "### Paid ads",
+            "",
+            plan.paid_ads_strategy.overview,
+            "",
+            f"**Starter budget:** {plan.paid_ads_strategy.budget_starter_usd}",
+            "",
+            f"**ROI outlook:** {plan.paid_ads_strategy.roi_outlook}",
+            "",
+            f"**Targeting:** {plan.paid_ads_strategy.targeting_approach}",
+            "",
+            "**Channels:** " + ", ".join(plan.paid_ads_strategy.primary_channels),
+            "",
+            "### Platform recommendations",
             "",
         ]
     )
-    for i, hook in enumerate(result.tiktok_hooks, start=1):
+    for plat in plan.platform_recommendations:
         lines.extend(
             [
-                f"### Hook {i}",
-                "",
-                f"**Hook:** {hook.hook_text}",
-                "",
-                f"**Visuals:** {hook.visuals}",
-                "",
-                f"**Voiceover:** {hook.voiceover}",
+                f"- **{plat.platform}** — fit {plat.fit_score}/100, ROI {plat.roi_potential}, "
+                f"{plat.organic_vs_paid}",
+                f"  {plat.why_it_works}",
+                f"  *Competitor signal:* {plat.competitor_success_signal}",
                 "",
             ]
         )
-    lines.extend(["## Go-to-market strategy", "", result.go_to_market_strategy, ""])
+    lines.extend(
+        [
+            "### Competitor marketing insights",
+            "",
+            plan.competitor_marketing_insights,
+            "",
+            "### Creative concepts",
+            "",
+        ]
+    )
+    for concept in plan.creative_concepts:
+        lines.extend(
+            [
+                f"**{concept.title}** ({concept.format} · {concept.recommended_platform})",
+                "",
+                f"*Angle:* {concept.hook_angle}",
+                "",
+                concept.script_or_copy,
+                "",
+            ]
+        )
+    lines.extend(["### Priority playbook", ""])
+    for idx, step in enumerate(plan.priority_playbook, start=1):
+        lines.append(f"{idx}. {step}")
+    lines.extend(["", "## Go-to-market strategy", "", result.go_to_market_strategy, ""])
     return "\n".join(lines)

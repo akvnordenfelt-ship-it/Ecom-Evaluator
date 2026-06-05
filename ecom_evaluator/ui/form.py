@@ -78,7 +78,7 @@ def render_hero(*, compact: bool = False) -> None:
             <p class="hero-title">Evaluate any product in minutes</p>
             <p class="hero-copy">
                 Enter your product details once. We scan Amazon, AliExpress, and the open web,
-                then produce scores, competitor intel, TikTok hooks, and a go-to-market plan.
+                then produce scores, competitor intel, a marketing playbook, and a go-to-market plan.
             </p>
         </div>
         """,

@@ -37,8 +37,15 @@ Rules:
 - market_saturation.level must be exactly "Low", "Medium", or "High".
 - estimated_shipping_category must analyze volumetric/dimensional weight using the dimensions
   (common air-cargo formula: L×W×H cm ÷ 5000 = dimensional weight in kg) and compare to actual weight.
-- Provide exactly 3 tiktok_hooks, each with concrete hook_text, visuals, and voiceover.
-- go_to_market_strategy must be a detailed multi-paragraph plan in Markdown (phases, channels, risks).
+- Fully populate `marketing_plan` as a serious go-to-market marketing blueprint:
+  - `target_audience`: infer persona, age range, psychographics, pain points, and platforms they use from the product description AND web research.
+  - `organic_strategy`: UGC, content formats, posting cadence, creator angles — be specific to this product.
+  - `paid_ads_strategy`: which paid channels, starter budget tier (as a string like "$20–50/day"), targeting, ROI outlook.
+  - `platform_recommendations`: 3–6 platforms ranked by fit_score; each must cite how similar products/competitors succeeded there (highest-ROI signals from web research). Set organic_vs_paid to Organic-first, Paid-first, or Balanced.
+  - `competitor_marketing_insights`: synthesize how competitors with similar products marketed (ads, influencers, Amazon PPC, etc.) based on search snippets — no invented campaigns.
+  - `creative_concepts`: 2–4 concrete ad/content concepts with hook, format, and copy — not generic TikTok-only hooks.
+  - `priority_playbook`: ordered list of the first actions to take this week.
+- go_to_market_strategy must be a detailed multi-paragraph operational plan in Markdown (phases, fulfillment, risks).
 - Output must match the JSON schema exactly."""
 
 
@@ -109,7 +116,7 @@ def build_user_prompt(
 
 {web_research_text}
 
-Return a complete Shark Tank-style evaluation as JSON matching the required schema."""
+Return a complete Shark Tank-style evaluation with a full `marketing_plan` (organic + paid + platform mix) as JSON matching the required schema."""
 
 
 def build_contents(prompt: str, image_bytes: bytes | None, image_mime: str | None) -> list:

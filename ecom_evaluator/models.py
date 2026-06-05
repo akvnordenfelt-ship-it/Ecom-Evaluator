@@ -17,12 +17,6 @@ class MarketSaturation(BaseModel):
     motivation: str = Field(min_length=1)
 
 
-class TikTokHook(BaseModel):
-    hook_text: str = Field(min_length=1)
-    visuals: str = Field(min_length=1)
-    voiceover: str = Field(min_length=1)
-
-
 class CompetitorListing(BaseModel):
     platform: Literal["Amazon", "AliExpress", "Independent", "Other"]
     listing_title: str = Field(min_length=1)
@@ -50,6 +44,70 @@ class MarketResearchAnalysis(BaseModel):
     data_limitations: str = Field(min_length=1)
 
 
+MarketingPlatform = Literal[
+    "TikTok",
+    "Instagram",
+    "Facebook",
+    "YouTube",
+    "Google Ads",
+    "Amazon Ads",
+    "Pinterest",
+    "Email/SMS",
+    "Other",
+]
+
+
+class TargetAudienceProfile(BaseModel):
+    persona_name: str = Field(min_length=1)
+    age_range: str = Field(min_length=1)
+    psychographics: str = Field(min_length=1)
+    pain_points: list[str] = Field(min_length=2, max_length=5)
+    platforms_they_use: list[str] = Field(min_length=2, max_length=6)
+
+
+class OrganicMarketingStrategy(BaseModel):
+    overview: str = Field(min_length=1)
+    content_formats: list[str] = Field(min_length=2, max_length=5)
+    posting_cadence: str = Field(min_length=1)
+    creator_angles: list[str] = Field(min_length=2, max_length=4)
+
+
+class PaidAdsStrategy(BaseModel):
+    overview: str = Field(min_length=1)
+    primary_channels: list[str] = Field(min_length=1, max_length=4)
+    budget_starter_usd: str = Field(min_length=1)
+    targeting_approach: str = Field(min_length=1)
+    roi_outlook: Literal["Low", "Medium", "High"]
+
+
+class PlatformRecommendation(BaseModel):
+    platform: MarketingPlatform
+    fit_score: int = Field(ge=0, le=100)
+    roi_potential: Literal["Low", "Medium", "High"]
+    organic_vs_paid: Literal["Organic-first", "Paid-first", "Balanced"]
+    why_it_works: str = Field(min_length=1)
+    competitor_success_signal: str = Field(min_length=1)
+
+
+class CreativeConcept(BaseModel):
+    title: str = Field(min_length=1)
+    format: str = Field(min_length=1)
+    hook_angle: str = Field(min_length=1)
+    script_or_copy: str = Field(min_length=1)
+    recommended_platform: str = Field(min_length=1)
+
+
+class MarketingPlan(BaseModel):
+    executive_summary: str = Field(min_length=1)
+    target_audience: TargetAudienceProfile
+    organic_strategy: OrganicMarketingStrategy
+    paid_ads_strategy: PaidAdsStrategy
+    platform_recommendations: list[PlatformRecommendation] = Field(min_length=3, max_length=6)
+    competitor_marketing_insights: str = Field(min_length=1)
+    creative_concepts: list[CreativeConcept] = Field(min_length=2, max_length=4)
+    priority_playbook: list[str] = Field(min_length=3, max_length=6)
+
+
 class ProductEvaluationResponse(BaseModel):
     final_score: int = Field(ge=0, le=100)
     market_research: MarketResearchAnalysis
@@ -59,7 +117,7 @@ class ProductEvaluationResponse(BaseModel):
     marketing_suitability: ScoredDimension
     market_saturation: MarketSaturation
     estimated_shipping_category: str = Field(min_length=1)
-    tiktok_hooks: list[TikTokHook] = Field(min_length=3, max_length=3)
+    marketing_plan: MarketingPlan
     go_to_market_strategy: str = Field(min_length=1)
 
 

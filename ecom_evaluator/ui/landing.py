@@ -16,7 +16,7 @@ def render_landing_page() -> None:
                 <h1 class="landing-title">Evaluate any product in minutes</h1>
                 <p class="landing-lead">
                     ProductScore scans Amazon, AliExpress, and the open web, then delivers
-                    investment scores, competitor intel, TikTok hooks, and a go-to-market plan —
+                    investment scores, competitor intel, a full marketing playbook, and a go-to-market plan —
                     powered by AI.
                 </p>
             </div>
@@ -29,7 +29,7 @@ def render_landing_page() -> None:
     features = [
         ("📊", "Investment score", "Four dimension gauges plus a final Shark Tank-style verdict."),
         ("🔍", "Live market research", "Real competitor signals from Amazon, AliExpress, and indie stores."),
-        ("🚀", "Go-to-market plan", "TikTok hooks, shipping insights, and a channel strategy you can ship."),
+        ("🚀", "Go-to-market plan", "Marketing playbook, shipping insights, and channel strategy."),
     ]
     for col, (icon, title, body) in zip((c1, c2, c3), features):
         with col:
