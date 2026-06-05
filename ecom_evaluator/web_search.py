@@ -47,17 +47,23 @@ def dedupe_search_hits(hits: list[MarketSearchHit]) -> list[MarketSearchHit]:
     return unique
 
 
-def run_web_market_research(*, product_name: str, description: str) -> list[MarketSearchHit]:
+def run_web_market_research(
+    *,
+    product_name: str,
+    description: str,
+    max_results: int | None = None,
+) -> list[MarketSearchHit]:
     DDGS = _get_ddgs_client()
     hits: list[MarketSearchHit] = []
     keywords = product_name.strip()
     desc_hint = " ".join(description.split()[:8])
     search_name = f"{keywords} {desc_hint}".strip() if desc_hint else keywords
+    per_query_max = max_results if max_results is not None else WEB_SEARCH_MAX_RESULTS
 
     for channel, template in MARKET_SEARCH_TEMPLATES:
         query = template.format(name=search_name)
         try:
-            raw_results = DDGS().text(query, max_results=WEB_SEARCH_MAX_RESULTS, region="wt-wt")
+            raw_results = DDGS().text(query, max_results=per_query_max, region="wt-wt")
             for item in raw_results or []:
                 url = (item.get("href") or item.get("link") or "").strip()
                 title = (item.get("title") or "").strip()

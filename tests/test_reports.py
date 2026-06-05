@@ -31,5 +31,5 @@ def test_build_markdown_report_contains_sections():
     )
     assert "# Shark Tank Analysis — Test Widget" in md
     assert "## Market research analysis" in md
-    assert "## Marketing playbook" in md
-    assert "## Go-to-market strategy" in md
+    assert "## Top risks" in md
+    assert "## Next steps (this week)" in md

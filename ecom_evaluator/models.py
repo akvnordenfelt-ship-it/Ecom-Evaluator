@@ -108,23 +108,11 @@ class MarketingPlan(BaseModel):
     priority_playbook: list[str] = Field(min_length=3, max_length=3)
 
 
-class ProductEvaluationResponse(BaseModel):
-    final_score: int = Field(ge=0, le=100)
-    market_research: MarketResearchAnalysis
-    short_term_potential: ScoredDimension
-    long_term_stability: ScoredDimension
-    scalability: ScoredDimension
-    marketing_suitability: ScoredDimension
-    market_saturation: MarketSaturation
-    estimated_shipping_category: str = Field(min_length=1)
-    marketing_plan: MarketingPlan
-    go_to_market_strategy: str = Field(min_length=1)
-
-
 class ProductCoreResponse(BaseModel):
-    """Phase 1 — scores, market research, logistics."""
+    """Phase 1 — scores, market research, economics, and action summary."""
 
     final_score: int = Field(ge=0, le=100)
+    investment_headline: str = Field(min_length=1)
     market_research: MarketResearchAnalysis
     short_term_potential: ScoredDimension
     long_term_stability: ScoredDimension
@@ -132,6 +120,21 @@ class ProductCoreResponse(BaseModel):
     marketing_suitability: ScoredDimension
     market_saturation: MarketSaturation
     estimated_shipping_category: str = Field(min_length=1)
+    unit_economics_summary: str = Field(min_length=1)
+    marketing_fit_preview: str = Field(min_length=1)
+    top_risks: list[str] = Field(min_length=2, max_length=3)
+    top_opportunities: list[str] = Field(min_length=2, max_length=3)
+    next_steps: list[str] = Field(min_length=3, max_length=3)
+
+
+class ProductEvaluationResponse(ProductCoreResponse):
+    """Full or partial evaluation — premium sections are optional on free tier."""
+
+    marketing_plan: MarketingPlan | None = None
+    go_to_market_strategy: str | None = None
+
+    def has_premium_sections(self) -> bool:
+        return self.marketing_plan is not None and self.go_to_market_strategy is not None
 
 
 class MarketingPhaseResponse(BaseModel):

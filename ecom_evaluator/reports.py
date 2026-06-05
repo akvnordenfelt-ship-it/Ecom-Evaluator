@@ -29,6 +29,8 @@ def build_markdown_report(
         f"## Final score: {result.final_score}/100",
         f"**Verdict:** {verdict_label(result.final_score)}",
         "",
+        f"**Headline:** {result.investment_headline}",
+        "",
         "## Market research analysis",
         "",
         result.market_research.executive_summary,
@@ -97,13 +99,43 @@ def build_markdown_report(
                 lines.append(f"  {hit['snippet']}")
         lines.append("")
 
-    plan = result.marketing_plan
     lines.extend(
         [
+            "## Unit economics & logistics",
+            "",
+            result.unit_economics_summary,
+            "",
             "## Shipping & logistics",
             "",
             result.estimated_shipping_category,
             "",
+            "## Marketing fit preview",
+            "",
+            result.marketing_fit_preview,
+            "",
+            "## Top risks",
+            "",
+        ]
+    )
+    for risk in result.top_risks:
+        lines.append(f"- {risk}")
+    lines.extend(["", "## Top opportunities", ""])
+    for opp in result.top_opportunities:
+        lines.append(f"- {opp}")
+    lines.extend(["", "## Next steps (this week)", ""])
+    for idx, step in enumerate(result.next_steps, start=1):
+        lines.append(f"{idx}. {step}")
+    lines.append("")
+
+    if not result.has_premium_sections():
+        return "\n".join(lines)
+
+    plan = result.marketing_plan
+    if plan is None or result.go_to_market_strategy is None:
+        return "\n".join(lines)
+
+    lines.extend(
+        [
             "## Marketing playbook",
             "",
             plan.executive_summary,

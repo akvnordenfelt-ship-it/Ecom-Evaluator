@@ -83,6 +83,7 @@ def _sample_marketing_plan() -> dict:
 def _sample_payload() -> dict:
     return {
         "final_score": 72,
+        "investment_headline": "Solid niche opportunity if you differentiate on creative and margin.",
         "market_research": {
             "executive_summary": "Moderate competition with room to niche.",
             "competitor_count_signal": "Moderate",
@@ -105,6 +106,15 @@ def _sample_payload() -> dict:
         "marketing_suitability": {"score": 80, "motivation": "Strong visual demo potential."},
         "market_saturation": {"level": "Medium", "motivation": "Crowded but not saturated."},
         "estimated_shipping_category": "Small parcel; billable weight ~0.4 kg.",
+        "unit_economics_summary": "Healthy margin at listed prices; shipping stays in small-parcel tier.",
+        "marketing_fit_preview": "Strong TikTok demo potential — full playbook covers organic cadence, paid tests, and creatives.",
+        "top_risks": ["Crowded Amazon listings compress price", "Commoditization from AliExpress clones"],
+        "top_opportunities": ["UGC-friendly before/after demos", "Bundle positioning vs single SKUs"],
+        "next_steps": [
+            "Order samples and film 3 short demo clips",
+            "Validate $25–30 price point with a landing page test",
+            "Check billable weight with your 3PL quote",
+        ],
         "marketing_plan": _sample_marketing_plan(),
         "go_to_market_strategy": "## Phase 1\nValidate creative on TikTok before scaling paid.",
     }

@@ -9,10 +9,13 @@ from datetime import datetime, timezone
 import plotly.graph_objects as go
 import streamlit as st
 
-from ecom_evaluator.config import PLOTLY_CHART_CONFIG
+from ecom_evaluator.config import PAID_TIERS_ENABLED, PLOTLY_CHART_CONFIG
 from ecom_evaluator.models import MarketResearchAnalysis, MarketSearchHit, MarketingPlan, ProductEvaluationResponse
+from ecom_evaluator.plans import PlanTier
+from ecom_evaluator.report_sections import has_section_access, section_by_id
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
 from ecom_evaluator.scoring import score_bar_color, verdict_label
+from ecom_evaluator.ui.subscription import get_subscription_tier, stripe_checkout_url
 from ecom_evaluator.ui.visuals import (
     CHANNEL_VISUALS,
     ROI_COLORS,
@@ -198,8 +201,231 @@ def render_market_research_section(
                 st.divider()
 
 
+def render_section_header(section_id: str, *, locked: bool = False) -> None:
+    section = section_by_id(section_id)
+    lock_html = (
+        '<span class="section-lock-badge">Premium</span>' if locked else ""
+    )
+    st.markdown(
+        f'<p class="section-eyebrow">{html.escape(section.eyebrow)} {lock_html}</p>',
+        unsafe_allow_html=True,
+    )
+    st.markdown(f"### {html.escape(section.title)}")
+    st.caption(section.subtitle)
+
+
+def render_coming_soon_teaser(section_id: str) -> None:
+    section = section_by_id(section_id)
+    st.markdown(
+        f"""
+        <div class="coming-soon-card">
+            <p class="coming-soon-kicker">Coming soon</p>
+            <p class="coming-soon-title">{html.escape(section.title)}</p>
+            <p class="coming-soon-copy">
+                We're building the full {html.escape(section.title.lower())} into ProductScore.
+                Your free report already covers everything you need to validate the opportunity.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+
+def render_upgrade_cta(*, section_id: str, tier: PlanTier) -> None:
+    if not PAID_TIERS_ENABLED:
+        render_coming_soon_teaser(section_id)
+        return
+    section = section_by_id(section_id)
+    st.markdown(
+        f"""
+        <div class="locked-section-card">
+            <p class="locked-kicker">Section {section.number} · Premium unlock</p>
+            <p class="locked-title">{html.escape(section.title)}</p>
+            <p class="locked-copy">
+                Your free report covers 4 of 6 sections — enough to decide if the product is worth pursuing.
+                Unlock the full marketing playbook and launch strategy to execute.
+            </p>
+            <ul class="locked-list">
+                <li><strong>Premium ($29/mo)</strong> — 20 evaluations · Claude Sonnet · all 6 sections</li>
+                <li><strong>Pro ($79/mo)</strong> — 100 evaluations · Claude Opus · deeper AI + cheaper add-ons</li>
+            </ul>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+    col_premium, col_pro = st.columns(2)
+    with col_premium:
+        st.link_button(
+            "Upgrade to Premium — $29/mo",
+            stripe_checkout_url(PlanTier.PREMIUM),
+            type="primary",
+            use_container_width=True,
+            key=f"upgrade_premium_{section_id}",
+        )
+    with col_pro:
+        st.link_button(
+            "Go Pro — $79/mo",
+            stripe_checkout_url(PlanTier.PRO),
+            use_container_width=True,
+            key=f"upgrade_pro_{section_id}",
+        )
+
+
+def render_marketing_fit_preview(result: ProductEvaluationResponse) -> None:
+    st.markdown('<p class="section-eyebrow">Section 4b · Marketing snapshot</p>', unsafe_allow_html=True)
+    st.markdown("### Marketing fit preview")
+    st.markdown(
+        f'<div class="insight-card insight-card--marketing">'
+        f'<p class="card-kicker">Best channel for this product</p>'
+        f"<p>{html.escape(result.marketing_fit_preview)}</p></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_action_summary(result: ProductEvaluationResponse) -> None:
+    st.markdown('<p class="section-eyebrow">Your action plan</p>', unsafe_allow_html=True)
+    st.markdown("### What to do next")
+    risk_col, opp_col = st.columns(2)
+    with risk_col:
+        st.markdown("#### Top risks")
+        for risk in result.top_risks:
+            st.markdown(
+                f'<div class="action-item action-item--risk">⚠️ {html.escape(risk)}</div>',
+                unsafe_allow_html=True,
+            )
+    with opp_col:
+        st.markdown("#### Top opportunities")
+        for opp in result.top_opportunities:
+            st.markdown(
+                f'<div class="action-item action-item--opp">✨ {html.escape(opp)}</div>',
+                unsafe_allow_html=True,
+            )
+
+    st.markdown("#### Priority next steps (this week)")
+    for idx, step in enumerate(result.next_steps, start=1):
+        st.markdown(
+            f'<div class="playbook-step">'
+            f'<span class="playbook-num">{idx}</span>'
+            f"<span>{html.escape(step)}</span></div>",
+            unsafe_allow_html=True,
+        )
+
+
+def render_unit_economics_section(result: ProductEvaluationResponse, meta: dict | None) -> None:
+    margin_note = ""
+    if meta:
+        purchase = meta.get("purchase_price")
+        sales = meta.get("sales_price")
+        if purchase is not None and sales is not None and sales > 0:
+            margin = sales - purchase
+            margin_pct = margin / sales * 100
+            margin_note = f"Form inputs: ${purchase:.2f} cost → ${sales:.2f} sell · ${margin:.2f} margin ({margin_pct:.1f}%)."
+
+    if margin_note:
+        st.markdown(
+            f'<div class="stat-tile"><p class="stat-tile-label">💵 Margin snapshot</p>'
+            f'<p class="stat-tile-body">{html.escape(margin_note)}</p></div>',
+            unsafe_allow_html=True,
+        )
+
+    st.markdown(
+        f'<div class="insight-card"><p class="card-kicker">Economics analysis</p>'
+        f"<p>{html.escape(result.unit_economics_summary)}</p></div>",
+        unsafe_allow_html=True,
+    )
+    st.markdown("#### Shipping & logistics")
+    st.markdown(
+        f'<div class="insight-card">📦 {html.escape(result.estimated_shipping_category)}</div>',
+        unsafe_allow_html=True,
+    )
+
+
+def render_investment_verdict_section(result: ProductEvaluationResponse) -> None:
+    st.markdown(
+        f'<div class="verdict-headline">{html.escape(result.investment_headline)}</div>',
+        unsafe_allow_html=True,
+    )
+    verdict_col, insight_col = st.columns([1.1, 1])
+
+    with verdict_col:
+        st.plotly_chart(
+            make_score_gauge("Final investment score", result.final_score, height=300, title_size=16),
+            use_container_width=True,
+            config=PLOTLY_CHART_CONFIG,
+        )
+
+    with insight_col:
+        st.markdown(
+            f'<p class="verdict-label">{verdict_label(result.final_score)}</p>',
+            unsafe_allow_html=True,
+        )
+        metric_a, metric_b = st.columns(2)
+        with metric_a:
+            st.markdown("#### Market saturation")
+            st.markdown(saturation_badge_html(result.market_saturation.level), unsafe_allow_html=True)
+            st.caption(result.market_saturation.motivation)
+        with metric_b:
+            st.markdown("#### Marketing fit")
+            st.plotly_chart(
+                make_score_gauge("Marketing", result.marketing_suitability.score, height=160, title_size=12),
+                use_container_width=True,
+                config=PLOTLY_CHART_CONFIG,
+            )
+
+
+def render_scorecard_section(result: ProductEvaluationResponse) -> None:
+    dimension_specs = [
+        ("Short-term potential", result.short_term_potential),
+        ("Long-term stability", result.long_term_stability),
+        ("Scalability", result.scalability),
+        ("Marketing suitability", result.marketing_suitability),
+    ]
+
+    radar_col, gauge_col = st.columns([1, 1.4])
+    with radar_col:
+        st.plotly_chart(
+            make_dimension_radar_chart(dimension_specs),
+            use_container_width=True,
+            config=PLOTLY_CHART_CONFIG,
+        )
+    with gauge_col:
+        row1 = st.columns(2)
+        row2 = st.columns(2)
+        for col, (label, dim) in zip(
+            (row1[0], row1[1], row2[0], row2[1]), dimension_specs, strict=True
+        ):
+            with col:
+                st.plotly_chart(
+                    make_score_gauge(label, dim.score, height=200, title_size=11),
+                    use_container_width=True,
+                    config=PLOTLY_CHART_CONFIG,
+                )
+
+    st.markdown("#### Panel rationale")
+    rationale_cols = st.columns(2)
+    for idx, (label, dim) in enumerate(dimension_specs):
+        with rationale_cols[idx % 2]:
+            with st.expander(f"{label} — {dim.score}/100", expanded=False):
+                st.markdown(dim.motivation)
+
+
+def render_launch_strategy_section(result: ProductEvaluationResponse) -> None:
+    if not result.marketing_plan or not result.go_to_market_strategy:
+        return
+
+    with st.container(border=True):
+        st.markdown(result.go_to_market_strategy)
+
+    st.markdown("#### Priority playbook — do this first")
+    for idx, step in enumerate(result.marketing_plan.priority_playbook, start=1):
+        st.markdown(
+            f'<div class="playbook-step">'
+            f'<span class="playbook-num">{idx}</span>'
+            f"<span>{html.escape(step)}</span></div>",
+            unsafe_allow_html=True,
+        )
+
 def render_marketing_section(plan: MarketingPlan) -> None:
-    st.markdown("### Marketing playbook")
     st.caption("Organic content · paid ads · platform mix · audience fit")
 
     st.markdown(
@@ -313,19 +539,14 @@ def render_marketing_section(plan: MarketingPlan) -> None:
                 unsafe_allow_html=True,
             )
 
-    st.markdown("#### Priority playbook — do this first")
-    for idx, step in enumerate(plan.priority_playbook, start=1):
-        st.markdown(
-            f'<div class="playbook-step">'
-            f'<span class="playbook-num">{idx}</span>'
-            f"<span>{html.escape(step)}</span></div>",
-            unsafe_allow_html=True,
-        )
-
 
 def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None) -> None:
+    tier = get_subscription_tier()
+    has_full = result.has_premium_sections()
+
     st.markdown(
-        '<div class="status-banner status-banner--success">Evaluation complete · Groq AI + live market research</div>',
+        f'<div class="status-banner status-banner--success">'
+        f"Evaluation complete · ProductScore AI · live market research</div>",
         unsafe_allow_html=True,
     )
 
@@ -340,93 +561,57 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
             )
         render_export_buttons(result, meta)
 
-    st.markdown('<p class="section-eyebrow">Overview</p>', unsafe_allow_html=True)
-    st.markdown("### Investment verdict")
-    verdict_col, insight_col = st.columns([1.1, 1])
-
-    with verdict_col:
-        st.plotly_chart(
-            make_score_gauge("Final investment score", result.final_score, height=300, title_size=16),
-            use_container_width=True,
-            config=PLOTLY_CHART_CONFIG,
-        )
-
-    with insight_col:
+    if PAID_TIERS_ENABLED and not has_full:
         st.markdown(
-            f'<p class="verdict-label">{verdict_label(result.final_score)}</p>',
-            unsafe_allow_html=True,
-        )
-        metric_a, metric_b = st.columns(2)
-        with metric_a:
-            st.markdown("#### Market saturation")
-            st.markdown(saturation_badge_html(result.market_saturation.level), unsafe_allow_html=True)
-            st.caption(result.market_saturation.motivation)
-        with metric_b:
-            st.markdown("#### Marketing fit")
-            st.plotly_chart(
-                make_score_gauge("Marketing", result.marketing_suitability.score, height=160, title_size=12),
-                use_container_width=True,
-                config=PLOTLY_CHART_CONFIG,
-            )
-
-        st.markdown("#### Shipping & logistics")
-        st.markdown(
-            f'<div class="insight-card">📦 {html.escape(result.estimated_shipping_category)}</div>',
+            '<div class="report-tier-banner">'
+            "Free report — 4 core sections. Upgrade later for marketing playbook and launch strategy."
+            "</div>",
             unsafe_allow_html=True,
         )
 
-    st.divider()
-    st.markdown('<p class="section-eyebrow">Market intelligence</p>', unsafe_allow_html=True)
     raw_hits = (meta or {}).get("web_research") or []
+
+    render_section_header("investment_verdict")
+    render_investment_verdict_section(result)
+    st.divider()
+
+    render_section_header("market_intelligence")
     render_market_research_section(result.market_research, raw_hits)
+    st.divider()
+
+    render_section_header("unit_economics")
+    render_unit_economics_section(result, meta)
+    st.divider()
+
+    render_section_header("scorecard")
+    render_scorecard_section(result)
+    st.divider()
+
+    render_marketing_fit_preview(result)
+    st.divider()
+
+    render_action_summary(result)
+
+    if not PAID_TIERS_ENABLED:
+        with st.expander("Raw JSON (Pydantic-validated)"):
+            st.json(result.model_dump())
+        return
+
+    locked_marketing = not has_section_access("marketing_playbook", tier) or not result.marketing_plan
+    render_section_header("marketing_playbook", locked=locked_marketing)
+    if locked_marketing or result.marketing_plan is None:
+        render_upgrade_cta(section_id="marketing_playbook", tier=tier)
+    else:
+        render_marketing_section(result.marketing_plan)
 
     st.divider()
-    st.markdown('<p class="section-eyebrow">Scorecard</p>', unsafe_allow_html=True)
-    st.markdown("### Dimension scores")
 
-    dimension_specs = [
-        ("Short-term potential", result.short_term_potential),
-        ("Long-term stability", result.long_term_stability),
-        ("Scalability", result.scalability),
-        ("Marketing suitability", result.marketing_suitability),
-    ]
-
-    radar_col, gauge_col = st.columns([1, 1.4])
-    with radar_col:
-        st.plotly_chart(
-            make_dimension_radar_chart(dimension_specs),
-            use_container_width=True,
-            config=PLOTLY_CHART_CONFIG,
-        )
-    with gauge_col:
-        row1 = st.columns(2)
-        row2 = st.columns(2)
-        for col, (label, dim) in zip(
-            (row1[0], row1[1], row2[0], row2[1]), dimension_specs, strict=True
-        ):
-            with col:
-                st.plotly_chart(
-                    make_score_gauge(label, dim.score, height=200, title_size=11),
-                    use_container_width=True,
-                    config=PLOTLY_CHART_CONFIG,
-                )
-
-    st.markdown("#### Panel rationale")
-    rationale_cols = st.columns(2)
-    for idx, (label, dim) in enumerate(dimension_specs):
-        with rationale_cols[idx % 2]:
-            with st.expander(f"{label} — {dim.score}/100", expanded=False):
-                st.markdown(dim.motivation)
-
-    st.divider()
-    st.markdown('<p class="section-eyebrow">Marketing</p>', unsafe_allow_html=True)
-    render_marketing_section(result.marketing_plan)
-
-    st.divider()
-    st.markdown('<p class="section-eyebrow">Operations</p>', unsafe_allow_html=True)
-    st.markdown("### Go-to-market plan")
-    with st.container(border=True):
-        st.markdown(result.go_to_market_strategy)
+    locked_launch = not has_section_access("launch_strategy", tier) or not result.go_to_market_strategy
+    render_section_header("launch_strategy", locked=locked_launch)
+    if locked_launch or not result.go_to_market_strategy:
+        render_upgrade_cta(section_id="launch_strategy", tier=tier)
+    else:
+        render_launch_strategy_section(result)
 
     with st.expander("Raw JSON (Pydantic-validated)"):
         st.json(result.model_dump())

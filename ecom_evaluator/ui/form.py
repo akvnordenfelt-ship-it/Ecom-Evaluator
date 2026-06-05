@@ -47,7 +47,7 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
                 st.link_button("Get an API key", "https://console.groq.com/keys", use_container_width=True)
         else:
             status_label = evaluations_status_label()
-            status_class = "done" if user_can_run() or st.session_state.get("is_premium") else "pending"
+            status_class = "done" if user_can_run() else "pending"
             st.markdown(
                 f'<div class="check-row check-row--{status_class}" style="justify-content:flex-end;margin-top:2.2rem;">'
                 f'<span class="check-dot"></span>{html.escape(status_label)}</div>',

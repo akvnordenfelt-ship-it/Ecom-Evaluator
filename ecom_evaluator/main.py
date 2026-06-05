@@ -8,6 +8,7 @@ import streamlit as st
 
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.groq_client import run_product_evaluation
+from ecom_evaluator.plans import PlanTier, get_plan_config
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
@@ -23,6 +24,7 @@ from ecom_evaluator.ui.session import (
 )
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_TOOL,
+    get_subscription_tier,
     is_tool_view,
     mark_evaluation_consumed,
     show_paywall,
@@ -48,9 +50,11 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
             )
 
         with st.spinner("Searching Amazon, AliExpress, and the web (DuckDuckGo)…"):
+            plan = get_plan_config(get_subscription_tier())
             web_research = run_web_market_research(
                 product_name=data["product_name"].strip(),
                 description=data["description"].strip(),
+                max_results=plan.web_search_max_results,
             )
         if not web_research:
             st.warning(
@@ -60,7 +64,9 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         else:
             st.caption(f"Found {len(web_research)} competitor/search snippets.")
 
-        with st.spinner("Running AI analysis (2 phases — may take 30–60 seconds)…"):
+        tier = get_subscription_tier()
+        phase_note = "about 30 seconds" if tier == PlanTier.FREE else "30–60 seconds"
+        with st.spinner(f"Running AI analysis ({phase_note})…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),
@@ -74,6 +80,7 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
                 image_bytes=image_bytes,
                 image_mime=image_mime,
                 web_research=web_research,
+                tier=tier,
             )
 
         st.session_state["analysis_result"] = result
@@ -82,6 +89,9 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
             "product_name": data["product_name"].strip(),
             "analyzed_at": datetime.now(timezone.utc).isoformat(),
             "web_research": web_research,
+            "purchase_price": data["purchase_price"],
+            "sales_price": data["sales_price"],
+            "subscription_tier": tier.value,
         }
         mark_analysis_for_rate_limit(data)
         mark_evaluation_consumed()

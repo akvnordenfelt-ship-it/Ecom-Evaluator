@@ -24,7 +24,12 @@ ANALYSIS_COOLDOWN_SECONDS = 45
 # SaaS free tier (per browser session)
 DEFAULT_FREE_EVALUATIONS = 1
 
-# Set in Streamlit secrets or .env when Stripe Checkout is ready
-STRIPE_CHECKOUT_URL = os.getenv("STRIPE_CHECKOUT_URL", "").strip()
+# Set to true when Premium/Pro billing is ready
+PAID_TIERS_ENABLED = os.getenv("PAID_TIERS_ENABLED", "false").lower() in ("1", "true", "yes")
+
+# Stripe Checkout links (configure when billing is live)
+STRIPE_PREMIUM_CHECKOUT_URL = os.getenv("STRIPE_PREMIUM_CHECKOUT_URL", os.getenv("STRIPE_CHECKOUT_URL", "")).strip()
+STRIPE_PRO_CHECKOUT_URL = os.getenv("STRIPE_PRO_CHECKOUT_URL", "").strip()
+STRIPE_CHECKOUT_URL = STRIPE_PREMIUM_CHECKOUT_URL
 
 PLOTLY_CHART_CONFIG = {"displayModeBar": False, "staticPlot": False}

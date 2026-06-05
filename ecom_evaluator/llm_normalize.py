@@ -265,11 +265,20 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
     }
 
 
+def _str_list(value: Any, *, min_items: int, max_items: int) -> list[str]:
+    items = [_as_str(v) for v in value] if isinstance(value, list) else []
+    cleaned = [item for item in items if item][:max_items]
+    if len(cleaned) < min_items:
+        return cleaned
+    return cleaned
+
+
 def normalize_core_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
     saturation = data.get("market_saturation") if isinstance(data.get("market_saturation"), dict) else {}
     return {
         "final_score": _coerce_score(data.get("final_score")),
+        "investment_headline": _as_str(data.get("investment_headline")),
         "market_research": _normalize_market_research(data.get("market_research")),
         "short_term_potential": _normalize_scored_dimension(data.get("short_term_potential")),
         "long_term_stability": _normalize_scored_dimension(data.get("long_term_stability")),
@@ -280,6 +289,11 @@ def normalize_core_payload(raw: Any) -> dict[str, Any]:
             "motivation": _as_str(saturation.get("motivation")),
         },
         "estimated_shipping_category": _as_str(data.get("estimated_shipping_category")),
+        "unit_economics_summary": _as_str(data.get("unit_economics_summary")),
+        "marketing_fit_preview": _as_str(data.get("marketing_fit_preview")),
+        "top_risks": _str_list(data.get("top_risks"), min_items=2, max_items=3),
+        "top_opportunities": _str_list(data.get("top_opportunities"), min_items=2, max_items=3),
+        "next_steps": _str_list(data.get("next_steps"), min_items=3, max_items=3),
     }
 
 
