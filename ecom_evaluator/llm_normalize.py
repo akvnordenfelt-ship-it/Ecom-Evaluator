@@ -1,8 +1,11 @@
-"""Coerce LLM enum mistakes before Pydantic validation — no generic filler text."""
+"""Coerce LLM enum mistakes before Pydantic validation."""
 
 from __future__ import annotations
 
 from typing import Any
+
+from ecom_evaluator.models import ScoredDimension
+from ecom_evaluator.scoring import reconcile_final_score
 
 
 def _as_str(value: Any) -> str:
@@ -134,26 +137,100 @@ def _coerce_competitor_platform(value: Any) -> str:
     )
 
 
-def _coerce_score(value: Any, default: int = 50) -> int:
-    try:
-        return max(0, min(100, int(value)))
-    except (TypeError, ValueError):
-        return default
-
-
-def _normalize_scored_dimension(raw: Any) -> dict[str, Any]:
-    data = raw if isinstance(raw, dict) else {}
-    score = _coerce_score(data.get("score"))
-    motivation = _ensure_text(
-        data.get("motivation"),
-        f"Scored {score}/100 based on margin, competition, and demand signals from the available research.",
+def _coerce_viability(value: Any) -> str:
+    return _pick_literal(
+        value,
+        ("Strong", "Marginal", "Weak"),
+        {"strong": "Strong", "marginal": "Marginal", "weak": "Weak", "poor": "Weak"},
+        "Marginal",
     )
-    return {"score": score, "motivation": motivation}
+
+
+def _coerce_score(value: Any, *, default: int | None = None) -> int | None:
+    if value is None:
+        return default
+    if isinstance(value, bool):
+        return default
+    if isinstance(value, (int, float)):
+        return max(0, min(100, int(round(value))))
+    text = _as_str(value)
+    if not text:
+        return default
+    if "/" in text:
+        text = text.split("/")[0].strip()
+    text = text.rstrip("%").strip()
+    try:
+        return max(0, min(100, int(round(float(text)))))
+    except ValueError:
+        return default
 
 
 def _ensure_text(value: Any, fallback: str) -> str:
     text = _as_str(value)
     return text if text else fallback
+
+
+def _extract_dimension_score(raw: Any) -> int | None:
+    if isinstance(raw, (int, float)) and not isinstance(raw, bool):
+        return _coerce_score(raw)
+    if isinstance(raw, str):
+        return _coerce_score(raw)
+    if isinstance(raw, dict):
+        for key in ("score", "value", "rating", "points", "score_out_of_100"):
+            if key in raw:
+                parsed = _coerce_score(raw[key])
+                if parsed is not None:
+                    return parsed
+    return None
+
+
+def _extract_dimension_motivation(raw: Any) -> str:
+    if isinstance(raw, dict):
+        for key in ("motivation", "rationale", "reasoning", "explanation", "summary"):
+            text = _as_str(raw.get(key))
+            if text:
+                return text
+    if isinstance(raw, str) and raw.strip():
+        return raw.strip()
+    return ""
+
+
+def _normalize_scored_dimension(raw: Any, *, label: str) -> dict[str, Any]:
+    score = _extract_dimension_score(raw)
+    motivation = _extract_dimension_motivation(raw)
+    if score is None:
+        raise ValueError(f"{label} score missing or invalid")
+    if not motivation:
+        motivation = f"Scored {score}/100 for {label.replace('_', ' ')}."
+    return {"score": score, "motivation": motivation}
+
+
+def _normalize_unit_economics(raw: Any) -> dict[str, Any]:
+    data = dict(raw) if isinstance(raw, dict) else {}
+    legacy_summary = _as_str(data.get("unit_economics_summary"))
+    return {
+        "viability": _coerce_viability(data.get("viability")),
+        "margin_verdict": _ensure_text(
+            data.get("margin_verdict") or legacy_summary,
+            "Margin viability could not be assessed from the model output.",
+        ),
+        "shipping_impact": _ensure_text(
+            data.get("shipping_impact"),
+            "Estimate shipping using billable weight and your carrier rate card.",
+        ),
+        "pricing_vs_market": _ensure_text(
+            data.get("pricing_vs_market"),
+            "Compare your intended sell price to the observed market range in the research section.",
+        ),
+        "break_even_guidance": _ensure_text(
+            data.get("break_even_guidance"),
+            "Validate break-even with a small test batch before scaling inventory.",
+        ),
+        "max_affordable_cac": _ensure_text(
+            data.get("max_affordable_cac"),
+            "Keep paid CAC below roughly 20–30% of gross margin per order.",
+        ),
+    }
 
 
 def _normalize_market_research(raw: Any) -> dict[str, Any]:
@@ -178,29 +255,24 @@ def _normalize_market_research(raw: Any) -> dict[str, Any]:
             }
         )
 
-    executive_summary = _ensure_text(
-        data.get("executive_summary"),
-        "Market research was limited in this run — competitor density and demand remain uncertain.",
-    )
-    amazon_landscape = _ensure_text(
-        data.get("amazon_landscape"),
-        "No Amazon listings were captured in this scan's search snippets; treat Amazon competition as unverified.",
-    )
-    aliexpress_landscape = _ensure_text(
-        data.get("aliexpress_landscape"),
-        "No AliExpress listings were captured in this scan's search snippets; sourcing pressure is unverified.",
-    )
-    independent_landscape = _ensure_text(
-        data.get("independent_stores_landscape"),
-        "No independent DTC stores were captured in this scan's search snippets.",
-    )
-
     return {
-        "executive_summary": executive_summary,
+        "executive_summary": _ensure_text(
+            data.get("executive_summary"),
+            "Market research was limited in this run — competitor density and demand remain uncertain.",
+        ),
         "competitor_count_signal": _coerce_competitor_count(data.get("competitor_count_signal")),
-        "amazon_landscape": amazon_landscape,
-        "aliexpress_landscape": aliexpress_landscape,
-        "independent_stores_landscape": independent_landscape,
+        "amazon_landscape": _ensure_text(
+            data.get("amazon_landscape"),
+            "No Amazon listings were captured in this scan's search snippets; treat Amazon competition as unverified.",
+        ),
+        "aliexpress_landscape": _ensure_text(
+            data.get("aliexpress_landscape"),
+            "No AliExpress listings were captured in this scan's search snippets; sourcing pressure is unverified.",
+        ),
+        "independent_stores_landscape": _ensure_text(
+            data.get("independent_stores_landscape"),
+            "No independent DTC stores were captured in this scan's search snippets.",
+        ),
         "price_range_observed": _ensure_text(
             data.get("price_range_observed"),
             "Price range not clearly observed in search snippets for this run.",
@@ -246,10 +318,11 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
         signal = _as_str(item.get("competitor_success_signal"))
         if not why and not signal:
             continue
+        fit = _coerce_score(item.get("fit_score"))
         platforms.append(
             {
                 "platform": _coerce_platform(item.get("platform")),
-                "fit_score": _coerce_score(item.get("fit_score")),
+                "fit_score": fit if fit is not None else 50,
                 "roi_potential": _coerce_roi_level(item.get("roi_potential")),
                 "organic_vs_paid": _coerce_organic_vs_paid(item.get("organic_vs_paid")),
                 "why_it_works": why,
@@ -304,18 +377,32 @@ def _normalize_marketing_plan(raw: Any) -> dict[str, Any]:
     }
 
 
-def _str_list(value: Any, *, min_items: int, max_items: int, pad_with: str) -> list[str]:
+def _str_list(value: Any, *, min_items: int, max_items: int) -> list[str]:
     items = [_as_str(v) for v in value] if isinstance(value, list) else []
     cleaned = [item for item in items if item][:max_items]
-    while len(cleaned) < min_items:
-        cleaned.append(pad_with)
-    return cleaned[:max_items]
+    if len(cleaned) < min_items:
+        raise ValueError(f"expected at least {min_items} list items, got {len(cleaned)}")
+    return cleaned
 
 
 def normalize_core_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
     saturation = data.get("market_saturation") if isinstance(data.get("market_saturation"), dict) else {}
-    final_score = _coerce_score(data.get("final_score"))
+
+    short_term = _normalize_scored_dimension(data.get("short_term_potential"), label="short_term_potential")
+    long_term = _normalize_scored_dimension(data.get("long_term_stability"), label="long_term_stability")
+    scalability = _normalize_scored_dimension(data.get("scalability"), label="scalability")
+    marketing = _normalize_scored_dimension(data.get("marketing_suitability"), label="marketing_suitability")
+
+    llm_final = _coerce_score(data.get("final_score"))
+    final_score = reconcile_final_score(
+        llm_final,
+        ScoredDimension.model_validate(short_term),
+        ScoredDimension.model_validate(long_term),
+        ScoredDimension.model_validate(scalability),
+        ScoredDimension.model_validate(marketing),
+    )
+
     return {
         "final_score": final_score,
         "investment_headline": _ensure_text(
@@ -323,10 +410,10 @@ def normalize_core_payload(raw: Any) -> dict[str, Any]:
             f"Overall investment score {final_score}/100 — review risks and next steps before committing.",
         ),
         "market_research": _normalize_market_research(data.get("market_research")),
-        "short_term_potential": _normalize_scored_dimension(data.get("short_term_potential")),
-        "long_term_stability": _normalize_scored_dimension(data.get("long_term_stability")),
-        "scalability": _normalize_scored_dimension(data.get("scalability")),
-        "marketing_suitability": _normalize_scored_dimension(data.get("marketing_suitability")),
+        "short_term_potential": short_term,
+        "long_term_stability": long_term,
+        "scalability": scalability,
+        "marketing_suitability": marketing,
         "market_saturation": {
             "level": _coerce_saturation_level(saturation.get("level")),
             "motivation": _ensure_text(
@@ -338,32 +425,16 @@ def normalize_core_payload(raw: Any) -> dict[str, Any]:
             data.get("estimated_shipping_category"),
             "Shipping class could not be determined — confirm billable weight with your carrier or 3PL.",
         ),
-        "unit_economics_summary": _ensure_text(
-            data.get("unit_economics_summary"),
-            "Review purchase price, sell price, and estimated shipping before placing inventory orders.",
+        "unit_economics": _normalize_unit_economics(
+            data.get("unit_economics") or {"unit_economics_summary": data.get("unit_economics_summary")}
         ),
         "marketing_fit_preview": _ensure_text(
             data.get("marketing_fit_preview"),
             "Visual demo channels such as TikTok or Instagram are typical starting points for physical products.",
         ),
-        "top_risks": _str_list(
-            data.get("top_risks"),
-            min_items=2,
-            max_items=3,
-            pad_with="Competition and margin compression remain key risks for this category.",
-        ),
-        "top_opportunities": _str_list(
-            data.get("top_opportunities"),
-            min_items=2,
-            max_items=3,
-            pad_with="Strong creative and clear positioning can still win share in a crowded niche.",
-        ),
-        "next_steps": _str_list(
-            data.get("next_steps"),
-            min_items=3,
-            max_items=3,
-            pad_with="Validate demand with a small test order or pre-launch landing page.",
-        ),
+        "top_risks": _str_list(data.get("top_risks"), min_items=2, max_items=3),
+        "top_opportunities": _str_list(data.get("top_opportunities"), min_items=2, max_items=3),
+        "next_steps": _str_list(data.get("next_steps"), min_items=3, max_items=3),
     }
 
 

@@ -35,8 +35,8 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
     with top_right:
         if not hide_api_status:
             with st.popover("Settings"):
-                st.markdown("**Groq API key**")
-                st.caption("Required for local use. Save `GROQ_API_KEY` in `.env` or paste below.")
+                st.markdown("**Gemini API key**")
+                st.caption("Required for local use. Save `GEMINI_API_KEY` in `.env` or paste below.")
                 st.text_input(
                     "API key",
                     type="password",
@@ -44,7 +44,7 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
                     key="settings_api_key",
                     label_visibility="collapsed",
                 )
-                st.link_button("Get an API key", "https://console.groq.com/keys", use_container_width=True)
+                st.link_button("Get an API key", "https://aistudio.google.com/apikey", use_container_width=True)
         else:
             status_label = evaluations_status_label()
             status_class = "done" if user_can_run() else "pending"

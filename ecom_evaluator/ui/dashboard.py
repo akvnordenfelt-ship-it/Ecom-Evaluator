@@ -10,6 +10,7 @@ import plotly.graph_objects as go
 import streamlit as st
 
 from ecom_evaluator.config import PAID_TIERS_ENABLED, PLOTLY_CHART_CONFIG
+from ecom_evaluator.economics import compute_economics_snapshot
 from ecom_evaluator.models import MarketResearchAnalysis, MarketSearchHit, MarketingPlan, ProductEvaluationResponse
 from ecom_evaluator.plans import PlanTier
 from ecom_evaluator.report_sections import has_section_access, section_by_id
@@ -109,7 +110,7 @@ def render_market_research_section(
     raw_hits: list[MarketSearchHit] | list[dict],
 ) -> None:
     st.markdown("### Market research analysis")
-    st.caption("Live DuckDuckGo research · synthesized by Groq")
+    st.caption("Live DuckDuckGo research · synthesized by Gemini")
 
     gauge_col, summary_col = st.columns([1, 2])
     with gauge_col:
@@ -311,31 +312,157 @@ def render_action_summary(result: ProductEvaluationResponse) -> None:
         )
 
 
-def render_unit_economics_section(result: ProductEvaluationResponse, meta: dict | None) -> None:
-    margin_note = ""
-    if meta:
-        purchase = meta.get("purchase_price")
-        sales = meta.get("sales_price")
-        if purchase is not None and sales is not None and sales > 0:
-            margin = sales - purchase
-            margin_pct = margin / sales * 100
-            margin_note = f"Form inputs: ${purchase:.2f} cost → ${sales:.2f} sell · ${margin:.2f} margin ({margin_pct:.1f}%)."
+def make_margin_waterfall_chart(
+    *,
+    sales_price: float,
+    purchase_price: float,
+    shipping_mid: float,
+) -> go.Figure:
+    gross = sales_price - purchase_price
+    contribution = gross - shipping_mid
+    fig = go.Figure(
+        go.Waterfall(
+            name="Unit economics",
+            orientation="v",
+            measure=["absolute", "relative", "relative", "total"],
+            x=["Sell price", "Product cost", "Est. shipping", "Contribution"],
+            y=[sales_price, -purchase_price, -shipping_mid, contribution],
+            text=[
+                f"${sales_price:.2f}",
+                f"-${purchase_price:.2f}",
+                f"-${shipping_mid:.2f}",
+                f"${contribution:.2f}",
+            ],
+            textposition="outside",
+            connector={"line": {"color": "#CBD5E1"}},
+            increasing={"marker": {"color": "#059669"}},
+            decreasing={"marker": {"color": "#DC2626"}},
+            totals={"marker": {"color": "#2563EB"}},
+        )
+    )
+    fig.update_layout(
+        height=320,
+        margin=dict(l=24, r=24, t=24, b=24),
+        paper_bgcolor="rgba(0,0,0,0)",
+        plot_bgcolor="rgba(0,0,0,0)",
+        showlegend=False,
+        yaxis_title="USD per unit",
+    )
+    return fig
 
-    if margin_note:
+
+def viability_badge_html(level: str) -> str:
+    palette = {
+        "Strong": ("#065f46", "#ecfdf5", "#6ee7b7"),
+        "Marginal": ("#92400e", "#fffbeb", "#fcd34d"),
+        "Weak": ("#991b1b", "#fef2f2", "#fca5a5"),
+    }
+    text_color, bg, border = palette.get(level, ("#334155", "#f1f5f9", "#cbd5e1"))
+    return (
+        f'<span class="saturation-badge" style="color:{text_color};background:{bg};'
+        f'border:1px solid {border};">{html.escape(level)} viability</span>'
+    )
+
+
+def render_unit_economics_section(result: ProductEvaluationResponse, meta: dict | None) -> None:
+    econ = None
+    if meta:
+        try:
+            econ = compute_economics_snapshot(
+                purchase_price=float(meta.get("purchase_price", 0)),
+                sales_price=float(meta.get("sales_price", 0)),
+                weight_kg=float(meta.get("weight_kg", 0)),
+                length_cm=float(meta.get("length_cm", 0)),
+                width_cm=float(meta.get("width_cm", 0)),
+                height_cm=float(meta.get("height_cm", 0)),
+            )
+        except (TypeError, ValueError):
+            econ = None
+
+    ue = result.unit_economics
+    st.markdown(viability_badge_html(ue.viability), unsafe_allow_html=True)
+
+    if econ:
+        chart_col, metrics_col = st.columns([1.2, 1])
+        ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
+        with chart_col:
+            st.plotly_chart(
+                make_margin_waterfall_chart(
+                    sales_price=econ.sales_price,
+                    purchase_price=econ.purchase_price,
+                    shipping_mid=ship_mid,
+                ),
+                use_container_width=True,
+                config=PLOTLY_CHART_CONFIG,
+            )
+        with metrics_col:
+            tiles = [
+                ("Gross margin", f"${econ.gross_margin_usd:.2f}", f"{econ.gross_margin_pct:.1f}% of sell price"),
+                (
+                    "Est. shipping",
+                    f"${econ.shipping_band_usd[0]:.2f}–${econ.shipping_band_usd[1]:.2f}",
+                    econ.shipping_tier_label,
+                ),
+                (
+                    "Contribution margin",
+                    f"${econ.contribution_margin_usd:.2f}",
+                    f"{econ.contribution_margin_pct:.1f}% after mid-range shipping",
+                ),
+                (
+                    "Max affordable CAC",
+                    f"${econ.max_cac_20pct_margin:.2f}–${econ.max_cac_30pct_margin:.2f}",
+                    "20–30% of gross margin per order",
+                ),
+            ]
+            for label, value, note in tiles:
+                st.markdown(
+                    f'<div class="stat-tile"><p class="stat-tile-label">{html.escape(label)}</p>'
+                    f'<p class="stat-tile-value">{html.escape(value)}</p>'
+                    f'<p class="stat-tile-body">{html.escape(note)}</p></div>',
+                    unsafe_allow_html=True,
+                )
+
         st.markdown(
-            f'<div class="stat-tile"><p class="stat-tile-label">💵 Margin snapshot</p>'
-            f'<p class="stat-tile-body">{html.escape(margin_note)}</p></div>',
+            f'<div class="stat-tile"><p class="stat-tile-label">Billable weight</p>'
+            f'<p class="stat-tile-body">Actual {econ.actual_weight_kg:.3f} kg · Dimensional '
+            f"{econ.dimensional_weight_kg:.3f} kg · Billable {econ.billable_weight_kg:.3f} kg · "
+            f"Volume {econ.volume_dm3:.2f} dm³</p></div>",
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("#### Margin assessment")
+    st.markdown(
+        f'<div class="insight-card"><p>{html.escape(ue.margin_verdict)}</p></div>',
+        unsafe_allow_html=True,
+    )
+
+    col_a, col_b = st.columns(2)
+    with col_a:
+        st.markdown("#### Shipping impact")
+        st.markdown(
+            f'<div class="insight-card"><p>{html.escape(ue.shipping_impact)}</p></div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown("#### Logistics class")
+        st.markdown(
+            f'<div class="insight-card">📦 {html.escape(result.estimated_shipping_category)}</div>',
+            unsafe_allow_html=True,
+        )
+    with col_b:
+        st.markdown("#### Pricing vs market")
+        st.markdown(
+            f'<div class="insight-card"><p>{html.escape(ue.pricing_vs_market)}</p></div>',
+            unsafe_allow_html=True,
+        )
+        st.markdown("#### Break-even guidance")
+        st.markdown(
+            f'<div class="insight-card"><p>{html.escape(ue.break_even_guidance)}</p></div>',
             unsafe_allow_html=True,
         )
 
     st.markdown(
-        f'<div class="insight-card"><p class="card-kicker">Economics analysis</p>'
-        f"<p>{html.escape(result.unit_economics_summary)}</p></div>",
-        unsafe_allow_html=True,
-    )
-    st.markdown("#### Shipping & logistics")
-    st.markdown(
-        f'<div class="insight-card">📦 {html.escape(result.estimated_shipping_category)}</div>',
+        f'<div class="insight-card insight-card--hero"><p class="card-kicker">Paid acquisition headroom</p>'
+        f"<p>{html.escape(ue.max_affordable_cac)}</p></div>",
         unsafe_allow_html=True,
     )
 
@@ -355,10 +482,19 @@ def render_investment_verdict_section(result: ProductEvaluationResponse) -> None
         )
 
     with insight_col:
+        from ecom_evaluator.scoring import dimension_average
+
+        dim_avg = dimension_average(
+            result.short_term_potential,
+            result.long_term_stability,
+            result.scalability,
+            result.marketing_suitability,
+        )
         st.markdown(
             f'<p class="verdict-label">{verdict_label(result.final_score)}</p>',
             unsafe_allow_html=True,
         )
+        st.caption(f"Dimension average: {dim_avg}/100 · Final score: {result.final_score}/100")
         metric_a, metric_b = st.columns(2)
         with metric_a:
             st.markdown("#### Market saturation")
@@ -546,7 +682,7 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
 
     st.markdown(
         f'<div class="status-banner status-banner--success">'
-        f"Evaluation complete · ProductScore AI · live market research</div>",
+        f"Evaluation complete · Gemini 2.5 Flash · live market research</div>",
         unsafe_allow_html=True,
     )
 

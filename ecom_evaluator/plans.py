@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
+from ecom_evaluator.config import GEMINI_MODEL
+
 
 class PlanTier(str, Enum):
     FREE = "free"
@@ -19,9 +21,7 @@ class PlanConfig:
     price_usd_monthly: int
     monthly_evaluations: int
     ai_model_label: str
-    """Display name for marketing (Claude Sonnet / Opus when wired)."""
-    groq_text_model: str
-    groq_marketing_model: str
+    gemini_model: str
     includes_premium_sections: bool
     web_search_max_results: int
     core_max_tokens: int
@@ -35,9 +35,8 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Free",
         price_usd_monthly=0,
         monthly_evaluations=1,
-        ai_model_label="ProductScore AI",
-        groq_text_model="llama-3.3-70b-versatile",
-        groq_marketing_model="llama-3.3-70b-versatile",
+        ai_model_label="Gemini 2.5 Flash",
+        gemini_model=GEMINI_MODEL,
         includes_premium_sections=False,
         web_search_max_results=3,
         core_max_tokens=8192,
@@ -49,9 +48,8 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Premium",
         price_usd_monthly=29,
         monthly_evaluations=20,
-        ai_model_label="Claude Sonnet",
-        groq_text_model="llama-3.3-70b-versatile",
-        groq_marketing_model="llama-3.3-70b-versatile",
+        ai_model_label="Gemini 2.5 Flash",
+        gemini_model=GEMINI_MODEL,
         includes_premium_sections=True,
         web_search_max_results=4,
         core_max_tokens=8192,
@@ -63,9 +61,8 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Pro",
         price_usd_monthly=79,
         monthly_evaluations=100,
-        ai_model_label="Claude Opus",
-        groq_text_model="llama-3.3-70b-versatile",
-        groq_marketing_model="llama-3.3-70b-versatile",
+        ai_model_label="Gemini 2.5 Flash",
+        gemini_model=GEMINI_MODEL,
         includes_premium_sections=True,
         web_search_max_results=4,
         core_max_tokens=8192,

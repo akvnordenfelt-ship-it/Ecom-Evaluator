@@ -31,6 +31,15 @@ class DemandEstimate(BaseModel):
     reasoning: str = Field(min_length=1)
 
 
+class UnitEconomicsAnalysis(BaseModel):
+    viability: Literal["Strong", "Marginal", "Weak"]
+    margin_verdict: str = Field(min_length=1)
+    shipping_impact: str = Field(min_length=1)
+    pricing_vs_market: str = Field(min_length=1)
+    break_even_guidance: str = Field(min_length=1)
+    max_affordable_cac: str = Field(min_length=1)
+
+
 class MarketResearchAnalysis(BaseModel):
     executive_summary: str = Field(min_length=1)
     competitor_count_signal: Literal["Few", "Moderate", "Many", "Unknown"]
@@ -120,7 +129,7 @@ class ProductCoreResponse(BaseModel):
     marketing_suitability: ScoredDimension
     market_saturation: MarketSaturation
     estimated_shipping_category: str = Field(min_length=1)
-    unit_economics_summary: str = Field(min_length=1)
+    unit_economics: UnitEconomicsAnalysis
     marketing_fit_preview: str = Field(min_length=1)
     top_risks: list[str] = Field(min_length=2, max_length=3)
     top_opportunities: list[str] = Field(min_length=2, max_length=3)

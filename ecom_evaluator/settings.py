@@ -7,6 +7,29 @@ import os
 from ecom_evaluator.config import PROJECT_ROOT
 
 
+def _read_key_from_env() -> str:
+    for name in ("GEMINI_API_KEY", "GOOGLE_AI_API_KEY", "GROQ_API_KEY"):
+        key = os.getenv(name, "").strip()
+        if key:
+            return key
+    return ""
+
+
+def _read_key_from_streamlit_secrets() -> str:
+    try:
+        import streamlit as st
+
+        if not hasattr(st, "secrets"):
+            return ""
+        for name in ("GEMINI_API_KEY", "GOOGLE_AI_API_KEY", "GROQ_API_KEY"):
+            key = (st.secrets.get(name) or "").strip()
+            if key:
+                return key
+    except Exception:
+        pass
+    return ""
+
+
 def load_env_api_key() -> str:
     try:
         from dotenv import load_dotenv
@@ -15,19 +38,7 @@ def load_env_api_key() -> str:
     except ImportError:
         pass
 
-    key = os.getenv("GROQ_API_KEY", "").strip()
-    if key:
-        return key
-
-    try:
-        import streamlit as st
-
-        if hasattr(st, "secrets"):
-            return (st.secrets.get("GROQ_API_KEY") or "").strip()
-    except Exception:
-        pass
-
-    return ""
+    return _read_key_from_env() or _read_key_from_streamlit_secrets()
 
 
 def resolve_api_key(form_key: str) -> str:
@@ -37,10 +48,8 @@ def resolve_api_key(form_key: str) -> str:
 
 
 def has_shared_api_key() -> bool:
-    """True when the server provides a key (env / Streamlit secrets)."""
     return bool(load_env_api_key())
 
 
 def uses_shared_api_key(form_key: str) -> bool:
-    """True when this run will bill the hosted key, not a user override."""
     return has_shared_api_key() and not form_key.strip()

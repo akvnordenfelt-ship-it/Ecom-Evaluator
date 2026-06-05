@@ -47,7 +47,7 @@ def test_does_not_invent_fake_competitor_urls():
 def test_core_payload_validates_from_sample():
     payload = _sample_payload()
     core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
-    assert core.final_score == 72
+    assert core.final_score == 69
 
 
 def test_empty_amazon_landscape_gets_honest_fallback():
@@ -56,3 +56,16 @@ def test_empty_amazon_landscape_gets_honest_fallback():
     core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
     assert core.market_research.amazon_landscape
     assert "unverified" in core.market_research.amazon_landscape.lower() or "no amazon" in core.market_research.amazon_landscape.lower()
+
+
+def test_flat_dimension_scores_are_parsed():
+    payload = _sample_payload()
+    payload["short_term_potential"] = 8
+    payload["long_term_stability"] = 12
+    payload["scalability"] = 15
+    payload["marketing_suitability"] = 10
+    payload["final_score"] = 8
+    core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
+    assert core.short_term_potential.score == 8
+    assert core.long_term_stability.score == 12
+    assert core.final_score == 11

@@ -93,7 +93,7 @@ def validate_inputs(data: dict) -> list[str]:
     if not resolve_api_key(data["api_key"]):
         errors.append(
             "No API key is configured on the server. Ask the site owner to set "
-            "`GROQ_API_KEY`, or paste your own key in Settings (top right)."
+            "`GEMINI_API_KEY` (or `GOOGLE_AI_API_KEY`), or paste your own key in Settings (top right)."
         )
     if not data["product_name"].strip():
         errors.append("Enter a product name.")

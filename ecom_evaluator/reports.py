@@ -99,11 +99,22 @@ def build_markdown_report(
                 lines.append(f"  {hit['snippet']}")
         lines.append("")
 
+    ue = result.unit_economics
     lines.extend(
         [
             "## Unit economics & logistics",
             "",
-            result.unit_economics_summary,
+            f"**Viability:** {ue.viability}",
+            "",
+            f"**Margin assessment:** {ue.margin_verdict}",
+            "",
+            f"**Shipping impact:** {ue.shipping_impact}",
+            "",
+            f"**Pricing vs market:** {ue.pricing_vs_market}",
+            "",
+            f"**Break-even guidance:** {ue.break_even_guidance}",
+            "",
+            f"**Max affordable CAC:** {ue.max_affordable_cac}",
             "",
             "## Shipping & logistics",
             "",

@@ -7,7 +7,7 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from ecom_evaluator.exceptions import AnalysisError
-from ecom_evaluator.groq_client import run_product_evaluation
+from ecom_evaluator.gemini_client import run_product_evaluation
 from ecom_evaluator.plans import PlanTier, get_plan_config
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.dashboard import render_dashboard
@@ -91,6 +91,10 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
             "web_research": web_research,
             "purchase_price": data["purchase_price"],
             "sales_price": data["sales_price"],
+            "weight_kg": data["weight_kg"],
+            "length_cm": data["length_cm"],
+            "width_cm": data["width_cm"],
+            "height_cm": data["height_cm"],
             "subscription_tier": tier.value,
         }
         mark_analysis_for_rate_limit(data)

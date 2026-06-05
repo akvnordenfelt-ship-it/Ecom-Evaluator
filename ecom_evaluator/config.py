@@ -5,9 +5,13 @@ from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
-GROQ_MODEL = os.getenv("GROQ_MODEL", "llama-3.3-70b-versatile")
-GROQ_VISION_MODEL = os.getenv("GROQ_VISION_MODEL", "meta-llama/llama-4-scout-17b-16e-instruct")
-GROQ_MAX_COMPLETION_TOKENS = int(os.getenv("GROQ_MAX_COMPLETION_TOKENS", "8192"))
+GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
+
+# Legacy env names still supported
+GROQ_MODEL = GEMINI_MODEL
+GROQ_VISION_MODEL = GEMINI_MODEL
+GROQ_MAX_COMPLETION_TOKENS = GEMINI_MAX_OUTPUT_TOKENS
 MAX_API_ATTEMPTS = 4
 MAX_PARSE_ATTEMPTS = 3
 RETRY_BACKOFF_SECONDS = [2, 4, 8]

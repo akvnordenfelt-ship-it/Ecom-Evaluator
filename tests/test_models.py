@@ -3,6 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
+from ecom_evaluator.llm_normalize import normalize_evaluation_payload
 from ecom_evaluator.models import ProductEvaluationResponse
 
 
@@ -106,7 +107,14 @@ def _sample_payload() -> dict:
         "marketing_suitability": {"score": 80, "motivation": "Strong visual demo potential."},
         "market_saturation": {"level": "Medium", "motivation": "Crowded but not saturated."},
         "estimated_shipping_category": "Small parcel; billable weight ~0.4 kg.",
-        "unit_economics_summary": "Healthy margin at listed prices; shipping stays in small-parcel tier.",
+        "unit_economics": {
+            "viability": "Marginal",
+            "margin_verdict": "Healthy gross margin at listed prices, but shipping and CAC headroom are tight.",
+            "shipping_impact": "Billable weight keeps this in small-parcel tiers; budget $5–8 per order domestically.",
+            "pricing_vs_market": "Sell price sits mid-range versus $15–35 competitors observed in search.",
+            "break_even_guidance": "Break even on unit economics after ~40–60 orders if CAC stays under $6.",
+            "max_affordable_cac": "$4–6 per order at target 3:1 ROAS",
+        },
         "marketing_fit_preview": "Strong TikTok demo potential — full playbook covers organic cadence, paid tests, and creatives.",
         "top_risks": ["Crowded Amazon listings compress price", "Commoditization from AliExpress clones"],
         "top_opportunities": ["UGC-friendly before/after demos", "Bundle positioning vs single SKUs"],
@@ -121,8 +129,8 @@ def _sample_payload() -> dict:
 
 
 def test_product_evaluation_response_validates():
-    result = ProductEvaluationResponse.model_validate(_sample_payload())
-    assert result.final_score == 72
+    result = ProductEvaluationResponse.model_validate(normalize_evaluation_payload(_sample_payload()))
+    assert result.final_score == 69
     assert result.market_research.demand_estimate.level == "Medium"
     assert len(result.marketing_plan.platform_recommendations) == 3
 
@@ -135,6 +143,6 @@ def test_product_evaluation_rejects_invalid_score():
 
 
 def test_product_evaluation_json_roundtrip():
-    result = ProductEvaluationResponse.model_validate(_sample_payload())
+    result = ProductEvaluationResponse.model_validate(normalize_evaluation_payload(_sample_payload()))
     restored = ProductEvaluationResponse.model_validate_json(result.model_dump_json())
     assert restored.final_score == result.final_score
