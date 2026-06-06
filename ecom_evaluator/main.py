@@ -30,7 +30,6 @@ from ecom_evaluator.ui.subscription import (
     show_paywall,
 )
 from ecom_evaluator.ui.theme import inject_custom_css
-from ecom_evaluator.web_search import run_web_market_research
 
 
 def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
@@ -42,31 +41,19 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
 
     clear_analysis_error()
     st.session_state["analysis_running"] = True
+    tier = get_subscription_tier()
+    plan = get_plan_config(tier)
 
     try:
         if image_bytes is None:
             st.warning(
-                "No product image uploaded — visual and creative scores may be less accurate."
+                "No product image uploaded — Section 1 profile and hook scores will be less accurate."
             )
 
-        with st.spinner("Searching Amazon, AliExpress, and the web (DuckDuckGo)…"):
-            plan = get_plan_config(get_subscription_tier())
-            web_research = run_web_market_research(
-                product_name=data["product_name"].strip(),
-                description=data["description"].strip(),
-                max_results=plan.web_search_max_results,
-            )
-        if not web_research:
-            st.warning(
-                "Web search returned no results — analysis will continue, but market "
-                "saturation may be less accurate. Try again in a minute if DuckDuckGo was rate-limited."
-            )
-        else:
-            st.caption(f"Found {len(web_research)} competitor/search snippets.")
+        if plan.runs_web_search:
+            st.caption("Premium/Pro: live web search runs after the free-tier AI analysis.")
 
-        tier = get_subscription_tier()
-        phase_note = "about 30 seconds" if tier == PlanTier.FREE else "30–60 seconds"
-        with st.spinner(f"Running AI analysis ({phase_note})…"):
+        with st.spinner("Running Gemini 2.5 Flash evaluation (inputs + image only on Free)…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),
@@ -79,16 +66,14 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
                 description=data["description"].strip(),
                 image_bytes=image_bytes,
                 image_mime=image_mime,
-                web_research=web_research,
+                web_research=None,
                 tier=tier,
             )
 
         st.session_state["analysis_result"] = result
-        st.session_state["market_research"] = web_research
         st.session_state["analysis_meta"] = {
             "product_name": data["product_name"].strip(),
             "analyzed_at": datetime.now(timezone.utc).isoformat(),
-            "web_research": web_research,
             "purchase_price": data["purchase_price"],
             "sales_price": data["sales_price"],
             "weight_kg": data["weight_kg"],

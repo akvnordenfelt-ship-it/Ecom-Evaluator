@@ -6,6 +6,7 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 
 GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+GEMINI_PRO_MODEL = os.getenv("GEMINI_PRO_MODEL", "gemini-2.5-pro")
 GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
 
 # Legacy env names still supported
@@ -28,8 +29,8 @@ ANALYSIS_COOLDOWN_SECONDS = 45
 # SaaS free tier (per browser session)
 DEFAULT_FREE_EVALUATIONS = 1
 
-# Set to true when Premium/Pro billing is ready
-PAID_TIERS_ENABLED = os.getenv("PAID_TIERS_ENABLED", "false").lower() in ("1", "true", "yes")
+# Set to true when Premium/Pro billing is ready (locked sections always shown for free users)
+PAID_TIERS_ENABLED = os.getenv("PAID_TIERS_ENABLED", "true").lower() in ("1", "true", "yes")
 
 # Stripe Checkout links (configure when billing is live)
 STRIPE_PREMIUM_CHECKOUT_URL = os.getenv("STRIPE_PREMIUM_CHECKOUT_URL", os.getenv("STRIPE_CHECKOUT_URL", "")).strip()

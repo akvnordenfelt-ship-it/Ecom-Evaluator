@@ -87,3 +87,57 @@ def compute_economics_snapshot(
         max_cac_20pct_margin=max(0.0, gross_margin_usd * 0.20),
         shipping_tier_label=tier_label,
     )
+
+
+@dataclass(frozen=True)
+class FinancialSummary:
+    gross_margin_usd: float
+    gross_margin_pct: float
+    roi_pct: float
+    break_even_cpa: float
+    shipping_per_unit_usd: float
+
+
+@dataclass(frozen=True)
+class ScalingMatrixRow:
+    units_per_month: int
+    gross_revenue: float
+    total_product_cost: float
+    total_shipping: float
+    net_profit: float
+    net_profit_stressed: float
+
+
+def compute_financial_summary(econ: EconomicsSnapshot) -> FinancialSummary:
+    ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
+    roi = (econ.gross_margin_usd / econ.purchase_price * 100) if econ.purchase_price > 0 else 0.0
+    break_even_cpa = max(0.0, econ.contribution_margin_usd)
+    return FinancialSummary(
+        gross_margin_usd=econ.gross_margin_usd,
+        gross_margin_pct=econ.gross_margin_pct,
+        roi_pct=roi,
+        break_even_cpa=break_even_cpa,
+        shipping_per_unit_usd=ship_mid,
+    )
+
+
+def compute_scaling_matrix(econ: EconomicsSnapshot) -> list[ScalingMatrixRow]:
+    ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
+    stressed_ship = ship_mid * 1.2
+    rows: list[ScalingMatrixRow] = []
+    for units in (100, 500, 1000):
+        gross = econ.sales_price * units
+        cogs = econ.purchase_price * units
+        shipping = ship_mid * units
+        stressed_shipping = stressed_ship * units
+        rows.append(
+            ScalingMatrixRow(
+                units_per_month=units,
+                gross_revenue=gross,
+                total_product_cost=cogs,
+                total_shipping=shipping,
+                net_profit=gross - cogs - shipping,
+                net_profit_stressed=gross - cogs - stressed_shipping,
+            )
+        )
+    return rows

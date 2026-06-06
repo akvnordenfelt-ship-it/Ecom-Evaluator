@@ -4,36 +4,59 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ecom_evaluator.config import PAID_TIERS_ENABLED
+from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
+from ecom_evaluator.ui.subscription import activate_plan, stripe_checkout_url
 
 
 def render_paywall_card() -> None:
+    premium = PLAN_CONFIG[PlanTier.PREMIUM]
+    pro = PLAN_CONFIG[PlanTier.PRO]
+
     st.markdown(
         """
         <div class="paywall-card">
             <p class="paywall-kicker">Free evaluation used</p>
-            <h2 class="paywall-title">Thanks for trying ProductScore</h2>
+            <h2 class="paywall-title">Upgrade for live intel &amp; marketing scripts</h2>
             <p class="paywall-copy">
-                You've used your free evaluation for this session. Review your report in the
-                <strong>Evaluation report</strong> tab, or download it as JSON or Markdown.
+                Your free report covered sections 1–4 — product profile, red flags, margin matrix,
+                and marketing teaser. Unlock the rest when you're ready to execute.
             </p>
-            <ul class="paywall-list">
-                <li>Clear a new session (new browser tab) to run another free eval while we're in beta</li>
-                <li>Share feedback — we're improving report quality every week</li>
-            </ul>
         </div>
         """,
         unsafe_allow_html=True,
     )
 
-    if PAID_TIERS_ENABLED:
-        st.info("Paid plans are enabled — upgrade options will appear here when Stripe is configured.")
-        return
-
-    _, center, _ = st.columns([1, 1.2, 1])
-    with center:
-        if st.button("Back to home", use_container_width=True, key="paywall_back_home"):
-            st.session_state["app_view"] = "landing"
+    col_premium, col_pro = st.columns(2)
+    with col_premium:
+        st.markdown(
+            f"""
+            <div class="pricing-card pricing-card--premium">
+                <p class="pricing-name">Premium · ${premium.price_usd_monthly}/mo</p>
+                <p class="pricing-copy">Section 5 — Live web search &amp; sourcing links</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.link_button("Upgrade Premium", stripe_checkout_url(PlanTier.PREMIUM), use_container_width=True)
+        if st.button("Simulate Premium", key="sim_premium", use_container_width=True):
+            activate_plan(PlanTier.PREMIUM)
             st.rerun()
 
-    st.caption("Paid plans coming soon. For now, focus is on making the free evaluation excellent.")
+    with col_pro:
+        st.markdown(
+            f"""
+            <div class="pricing-card pricing-card--pro">
+                <p class="pricing-name">Pro · ${pro.price_usd_monthly}/mo</p>
+                <p class="pricing-copy">Sections 5 + 6 — Web intel + marketing blueprint</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
+        st.link_button("Upgrade Pro", stripe_checkout_url(PlanTier.PRO), use_container_width=True)
+        if st.button("Simulate Pro", key="sim_pro", use_container_width=True):
+            activate_plan(PlanTier.PRO)
+            st.rerun()
+
+    if st.button("Back to home", key="paywall_home"):
+        st.session_state["app_view"] = "landing"
+        st.rerun()

@@ -538,6 +538,30 @@ div[data-testid="stTextArea"] textarea:focus {
     color: #92400E;
     margin: 0.75rem 0 1rem;
 }
+.locked-section-blur {
+    position: relative;
+    background: linear-gradient(160deg, #1e293b 0%, #0f172a 100%);
+    border-radius: var(--ps-radius);
+    padding: 2rem 1.5rem;
+    margin: 0.75rem 0 1rem;
+    min-height: 220px;
+    overflow: hidden;
+}
+.locked-section-blur::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    backdrop-filter: blur(6px);
+    opacity: 0.35;
+    pointer-events: none;
+}
+.locked-overlay {
+    position: relative;
+    z-index: 1;
+    color: #E2E8F0;
+    text-align: center;
+}
+.locked-icon { font-size: 2rem; margin: 0 0 0.5rem; }
 .locked-section-card {
     background: linear-gradient(160deg, #0F172A 0%, #1E293B 100%);
     border: 1px solid #334155;

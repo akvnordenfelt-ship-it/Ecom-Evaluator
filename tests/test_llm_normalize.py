@@ -1,71 +1,28 @@
 """Tests for LLM payload normalization."""
 
-from ecom_evaluator.llm_normalize import normalize_core_payload, normalize_evaluation_payload
-from ecom_evaluator.models import ProductCoreResponse, ProductEvaluationResponse
+from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload
+from ecom_evaluator.models import ProductEvaluationResponse
 from tests.test_models import _sample_payload
 
 
-def test_coerce_competitor_count_signal_medium_to_moderate():
+def test_string_scores_normalize_to_integers():
+    normalized = normalize_free_evaluation_payload(_sample_payload())
+    assert normalized["metric_market_saturation"] == 55
+    assert normalized["overall_score"] == 70
+
+
+def test_overall_score_tracks_metric_average():
     payload = _sample_payload()
-    payload["market_research"]["competitor_count_signal"] = "Medium"
-    normalized = normalize_core_payload(payload)
-    assert normalized["market_research"]["competitor_count_signal"] == "Moderate"
+    payload["overall_score"] = "99"
+    payload["metric_market_saturation"] = "10"
+    payload["metric_marketing_velocity"] = "10"
+    payload["metric_logistics_margin"] = "10"
+    payload["metric_seasonality"] = "10"
+    payload["metric_brandability"] = "10"
+    normalized = normalize_free_evaluation_payload(payload)
+    assert normalized["overall_score"] == 10
 
 
-def test_coerce_lowercase_competitor_count():
-    payload = _sample_payload()
-    payload["market_research"]["competitor_count_signal"] = "many"
-    normalized = normalize_core_payload(payload)
-    assert normalized["market_research"]["competitor_count_signal"] == "Many"
-
-
-def test_normalized_payload_validates():
-    payload = _sample_payload()
-    payload["market_research"]["competitor_count_signal"] = "high"
-    payload["market_research"]["demand_estimate"]["level"] = "moderate"
-    payload["market_saturation"]["level"] = "medium"
-    result = ProductEvaluationResponse.model_validate(normalize_evaluation_payload(payload))
-    assert result.market_research.competitor_count_signal == "Many"
-    assert result.market_research.demand_estimate.level == "Medium"
-
-
-def test_does_not_invent_fake_competitor_urls():
-    payload = _sample_payload()
-    payload["market_research"]["key_competitors"] = [
-        {
-            "platform": "Amazon",
-            "listing_title": "",
-            "source_url": "",
-            "price_signal": "$10",
-            "similarity_note": "Similar",
-        }
-    ]
-    normalized = normalize_core_payload(payload)
-    assert normalized["market_research"]["key_competitors"] == []
-
-
-def test_core_payload_validates_from_sample():
-    payload = _sample_payload()
-    core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
-    assert core.final_score == 69
-
-
-def test_empty_amazon_landscape_gets_honest_fallback():
-    payload = _sample_payload()
-    payload["market_research"]["amazon_landscape"] = ""
-    core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
-    assert core.market_research.amazon_landscape
-    assert "unverified" in core.market_research.amazon_landscape.lower() or "no amazon" in core.market_research.amazon_landscape.lower()
-
-
-def test_flat_dimension_scores_are_parsed():
-    payload = _sample_payload()
-    payload["short_term_potential"] = 8
-    payload["long_term_stability"] = 12
-    payload["scalability"] = 15
-    payload["marketing_suitability"] = 10
-    payload["final_score"] = 8
-    core = ProductCoreResponse.model_validate(normalize_core_payload(payload))
-    assert core.short_term_potential.score == 8
-    assert core.long_term_stability.score == 12
-    assert core.final_score == 11
+def test_validates_from_sample():
+    core = ProductEvaluationResponse.model_validate(normalize_free_evaluation_payload(_sample_payload()))
+    assert core.marketing_primary_channel == "TikTok Organic"

@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from ecom_evaluator.config import GEMINI_MODEL
+from ecom_evaluator.config import GEMINI_MODEL, GEMINI_PRO_MODEL
 
 
 class PlanTier(str, Enum):
@@ -22,11 +22,12 @@ class PlanConfig:
     monthly_evaluations: int
     ai_model_label: str
     gemini_model: str
-    includes_premium_sections: bool
-    web_search_max_results: int
+    gemini_pro_model: str
+    runs_web_search: bool
+    runs_marketing_deep_dive: bool
     core_max_tokens: int
-    marketing_max_tokens: int
-    extra_eval_note: str
+    premium_max_tokens: int
+    web_search_max_results: int
 
 
 PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
@@ -37,37 +38,40 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         monthly_evaluations=1,
         ai_model_label="Gemini 2.5 Flash",
         gemini_model=GEMINI_MODEL,
-        includes_premium_sections=False,
-        web_search_max_results=3,
-        core_max_tokens=8192,
-        marketing_max_tokens=0,
-        extra_eval_note="Upgrade for full reports",
+        gemini_pro_model=GEMINI_PRO_MODEL,
+        runs_web_search=False,
+        runs_marketing_deep_dive=False,
+        core_max_tokens=4096,
+        premium_max_tokens=0,
+        web_search_max_results=0,
     ),
     PlanTier.PREMIUM: PlanConfig(
         tier=PlanTier.PREMIUM,
         label="Premium",
         price_usd_monthly=29,
         monthly_evaluations=20,
-        ai_model_label="Gemini 2.5 Flash",
+        ai_model_label="Gemini 2.5 Flash + Live Web Search",
         gemini_model=GEMINI_MODEL,
-        includes_premium_sections=True,
+        gemini_pro_model=GEMINI_PRO_MODEL,
+        runs_web_search=True,
+        runs_marketing_deep_dive=False,
+        core_max_tokens=4096,
+        premium_max_tokens=8192,
         web_search_max_results=4,
-        core_max_tokens=8192,
-        marketing_max_tokens=8192,
-        extra_eval_note="Add-on evaluations available (pricing TBD)",
     ),
     PlanTier.PRO: PlanConfig(
         tier=PlanTier.PRO,
         label="Pro",
         price_usd_monthly=79,
         monthly_evaluations=100,
-        ai_model_label="Gemini 2.5 Flash",
+        ai_model_label="Gemini 2.5 Pro Marketing Engine",
         gemini_model=GEMINI_MODEL,
-        includes_premium_sections=True,
+        gemini_pro_model=GEMINI_PRO_MODEL,
+        runs_web_search=True,
+        runs_marketing_deep_dive=True,
+        core_max_tokens=4096,
+        premium_max_tokens=8192,
         web_search_max_results=4,
-        core_max_tokens=8192,
-        marketing_max_tokens=8192,
-        extra_eval_note="Lowest add-on eval pricing (TBD)",
     ),
 }
 
@@ -76,7 +80,3 @@ def get_plan_config(tier: PlanTier | str) -> PlanConfig:
     if isinstance(tier, str):
         tier = PlanTier(tier)
     return PLAN_CONFIG[tier]
-
-
-def includes_premium_sections(tier: PlanTier | str) -> bool:
-    return get_plan_config(tier).includes_premium_sections
