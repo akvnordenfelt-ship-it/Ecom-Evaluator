@@ -127,9 +127,9 @@ def _step_card_html(number: int, title: str, body: str) -> str:
     )
 
 
-def render_landing_page() -> None:
+def render_landing_hero() -> None:
     st.markdown(
-        """
+        f"""
         <div class="landing-wrap">
             <div class="landing-hero">
                 <p class="landing-kicker">Shark Tank-grade analysis</p>
@@ -140,9 +140,9 @@ def render_landing_page() -> None:
                 </p>
                 <div class="lp-hero-badges">
                     <span class="lp-hero-badge">~30 sec preview</span>
+                    <span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>
                     <span class="lp-hero-badge">2 sections free</span>
                     <span class="lp-hero-badge">Premium · $29/mo</span>
-                    <span class="lp-hero-badge">No credit card</span>
                 </div>
             </div>
         </div>
@@ -150,12 +150,8 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
 
-    _, hero_cta, _ = st.columns([1, 1.4, 1])
-    with hero_cta:
-        if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
-            enter_tool_view()
-            st.rerun()
 
+def render_landing_at_a_glance() -> None:
     _page_divider("At a glance")
 
     st.markdown(
@@ -186,6 +182,8 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
 
+
+def render_landing_body() -> None:
     _page_divider("Free tier", band=True)
     _section_header(
         "What you get free",
@@ -312,6 +310,8 @@ def render_landing_page() -> None:
         )
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
+
+def render_landing_final_cta(*, show_buttons: bool = True) -> None:
     st.markdown(
         f"""
         <div class="lp-final-cta">
@@ -323,13 +323,31 @@ def render_landing_page() -> None:
         unsafe_allow_html=True,
     )
 
-    _, bottom_cta, _ = st.columns([1, 1.4, 1])
-    with bottom_cta:
-        if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
-            enter_tool_view()
-            st.rerun()
+    if show_buttons:
+        _, bottom_cta, _ = st.columns([1, 1.4, 1])
+        with bottom_cta:
+            if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
+                enter_tool_view()
+                st.rerun()
 
+
+def render_landing_footnote() -> None:
     st.markdown(
         '<p class="landing-footnote">ProductScore · Built for e-commerce operators</p>',
         unsafe_allow_html=True,
     )
+
+
+def render_landing_page() -> None:
+    render_landing_hero()
+
+    _, hero_cta, _ = st.columns([1, 1.4, 1])
+    with hero_cta:
+        if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
+            enter_tool_view()
+            st.rerun()
+
+    render_landing_at_a_glance()
+    render_landing_body()
+    render_landing_final_cta()
+    render_landing_footnote()
