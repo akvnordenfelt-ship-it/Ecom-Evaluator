@@ -88,45 +88,30 @@ def _section_card_html(section: ReportSection, *, badge: str = "Free") -> str:
 
 
 def _render_free_section_cards() -> None:
-    free_sections = REPORT_SECTIONS[:3]
-    col1, col2, col3 = st.columns(3)
-    for col, section in zip((col1, col2, col3), free_sections, strict=True):
-        with col:
-            st.markdown(_section_card_html(section, badge="Free"), unsafe_allow_html=True)
+    free_sections = REPORT_SECTIONS[:2]
+    col_left, col_right = st.columns(2)
+    with col_left:
+        st.markdown(_section_card_html(free_sections[0], badge="Free"), unsafe_allow_html=True)
+    with col_right:
+        st.markdown(_section_card_html(free_sections[1], badge="Free"), unsafe_allow_html=True)
 
 
 def _premium_pricing_html() -> str:
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
     return (
-        '<div class="lp-pricing-card lp-pricing-card--premium">'
-        '<span class="lp-popular-pill">Most popular</span>'
+        '<div class="lp-pricing-card lp-pricing-card--premium lp-pricing-card--solo">'
+        '<span class="lp-popular-pill">Everything included</span>'
         '<p class="lp-pricing-tier">Premium</p>'
         f'<p class="lp-pricing-price">${premium.price_usd_monthly}<span>/mo</span></p>'
-        "<p class=\"lp-pricing-blurb\">Unlock live market intelligence when you're ready to source and price-check competitors.</p>"
+        "<p class=\"lp-pricing-blurb\">One plan. Full stack. Unlimited evaluations. "
+        "Unlock every section — financial verdict, marketing blueprint, live web intel, and 5× video scripts — "
+        "powered by our most advanced commercial AI engine.</p>"
         '<ul class="lp-pricing-features">'
-        "<li>Section 4 — Marketing Viability Teaser</li>"
-        "<li>Section 5 — Live web search and sourcing links</li>"
-        "<li>Amazon and AliExpress competitor snapshots</li>"
-        "<li>Actionable supplier URL matches</li>"
-        f"<li>{premium.monthly_evaluations} evaluations / month</li>"
-        "</ul></div>"
-    )
-
-
-def _pro_pricing_html() -> str:
-    pro = PLAN_CONFIG[PlanTier.PRO]
-    return (
-        '<div class="lp-pricing-card lp-pricing-card--pro">'
-        '<span class="lp-pro-pill">Full stack</span>'
-        '<p class="lp-pricing-tier">Pro</p>'
-        f'<p class="lp-pricing-price">${pro.price_usd_monthly}<span>/mo</span></p>'
-        "<p class=\"lp-pricing-blurb\">Everything in Premium plus the ultimate marketing engine powered by Gemini 2.5 Pro.</p>"
-        '<ul class="lp-pricing-features">'
-        "<li>All Premium features included</li>"
-        "<li>Section 6 — Ultimate marketing blueprint</li>"
-        "<li>5 TikTok/Reels ad scripts with visual cues</li>"
-        "<li>Precision Meta and TikTok targeting stacks</li>"
-        f"<li>{pro.monthly_evaluations} evaluations / month</li>"
+        "<li>Section 3 — Financial matrix &amp; GO/NO-GO verdict</li>"
+        "<li>Section 4 — Marketing viability &amp; targeting blueprint</li>"
+        "<li>Section 5 — Live web intelligence &amp; sourcing links</li>"
+        "<li>Section 6 — Ultimate 5× video content engine</li>"
+        "<li>Unlimited evaluations</li>"
         "</ul></div>"
     )
 
@@ -149,13 +134,13 @@ def render_landing_page() -> None:
                 <p class="landing-kicker">Shark Tank-grade analysis</p>
                 <h1 class="landing-title">Know if your product can win — before you spend a dollar</h1>
                 <p class="landing-lead">
-                    Upload your product, enter your numbers, and get a ceiling-quality evaluation in ~30 seconds.
-                    Free tier runs on Gemini 2.5 Flash — your inputs and image only. No web search. Near-zero cost.
+                    Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds.
+                    Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.
                 </p>
                 <div class="lp-hero-badges">
-                    <span class="lp-hero-badge">~30 sec analysis</span>
-                    <span class="lp-hero-badge">3 sections free</span>
-                    <span class="lp-hero-badge">Gemini 2.5 Flash</span>
+                    <span class="lp-hero-badge">~30 sec preview</span>
+                    <span class="lp-hero-badge">2 sections free</span>
+                    <span class="lp-hero-badge">Premium · $29/mo</span>
                     <span class="lp-hero-badge">No credit card</span>
                 </div>
             </div>
@@ -178,12 +163,12 @@ def render_landing_page() -> None:
             <div class="lp-value-tile">
                 <span class="lp-value-icon">⚡</span>
                 <p class="lp-value-title">~30 seconds</p>
-                <p class="lp-value-desc">From upload to your full 4-section free report</p>
+                <p class="lp-value-desc">From upload to your free profile + red-flag preview</p>
             </div>
             <div class="lp-value-tile">
                 <span class="lp-value-icon">📋</span>
-                <p class="lp-value-title">3 sections free</p>
-                <p class="lp-value-desc">Profile, red flags, and margin matrix with verdict</p>
+                <p class="lp-value-title">2 sections free</p>
+                <p class="lp-value-desc">Product profile, core metrics, and Shark Tank red flags</p>
             </div>
             <div class="lp-value-tile">
                 <span class="lp-value-icon">💳</span>
@@ -203,25 +188,23 @@ def render_landing_page() -> None:
     _page_divider("Free tier", band=True)
     _section_header(
         "What you get free",
-        "Three sections that show the ceiling — not the floor",
-        "We designed the free tier to feel premium. Real scores, real red flags, real math, "
-        "and a Python-calculated verdict — enough to decide if this product deserves your money.",
+        "Two sections designed to hook you — then Premium delivers the verdict",
+        "Free users get a real profile score and brutal red-flag analysis — enough to feel the opportunity "
+        "and the risk. The financial GO/NO-GO verdict and execution stack unlock on Premium.",
     )
     _render_free_section_cards()
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
-    _page_divider("Paid tiers", band=True)
+    _page_divider("Premium", band=True)
     _section_header(
-        "When you're ready to execute",
-        "Unlock marketing intel, live search, and ad firepower",
-        "Sections 4–6 are for operators who've validated the opportunity and need channel fit, "
-        "sourcing links, competitor tracking, and ready-to-film ad scripts.",
+        "Unlock the full report",
+        "One plan. Everything included. $29/month.",
+        "Sections 3–6 cover the financial verdict, marketing blueprint, live competitor intel, "
+        "and five ready-to-shoot video scripts — plus unlimited evaluations.",
     )
-    prem_col, pro_col = st.columns(2)
-    with prem_col:
+    _, premium_col, _ = st.columns([0.35, 1.3, 0.35])
+    with premium_col:
         st.markdown(_premium_pricing_html(), unsafe_allow_html=True)
-    with pro_col:
-        st.markdown(_pro_pricing_html(), unsafe_allow_html=True)
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
     _page_divider("Process", band=True)
@@ -241,7 +224,7 @@ def render_landing_page() -> None:
             _step_card_html(
                 2,
                 "AI evaluates",
-                "Gemini 2.5 Flash analyzes your inputs — profile, risks, marketing fit — with no expensive web APIs on free.",
+                "Our AI analyzes your inputs — profile and risks on free, full stack on Premium.",
             ),
             unsafe_allow_html=True,
         )
@@ -250,7 +233,7 @@ def render_landing_page() -> None:
             _step_card_html(
                 3,
                 "Decide and scale",
-                "Read your margin matrix, red flags, and overall score. Upgrade when you need live intel and ad scripts.",
+                "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and ad scripts.",
             ),
             unsafe_allow_html=True,
         )
@@ -280,7 +263,7 @@ def render_landing_page() -> None:
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
     _page_divider("Plans", band=True)
-    _section_header("Compare plans", "Pick the tier that matches your stage")
+    _section_header("Compare plans", "Free preview vs Premium full stack")
     st.markdown(
         """
         <div class="lp-compare-wrap">
@@ -290,17 +273,17 @@ def render_landing_page() -> None:
                         <th>Feature</th>
                         <th>Free</th>
                         <th>Premium</th>
-                        <th>Pro</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Sections 1–3 (profile, risks, margin + verdict)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Weighted 5-metric score (Python-calculated)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Marketing Viability Teaser (Section 4)</td><td>—</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Live web search and sourcing (Section 5)</td><td>—</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Marketing blueprint (Section 6)</td><td>—</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>Evaluations / month</td><td>1</td><td>20</td><td>100</td></tr>
-                    <tr><td>Price</td><td>$0</td><td>$29/mo</td><td>$79/mo</td></tr>
+                    <tr><td>Sections 1–2 (profile + red flags)</td><td>Yes</td><td>Yes</td></tr>
+                    <tr><td>Weighted 5-metric score</td><td>Yes</td><td>Yes</td></tr>
+                    <tr><td>Financial matrix &amp; GO/NO-GO verdict (Section 3)</td><td>—</td><td>Yes</td></tr>
+                    <tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>
+                    <tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>
+                    <tr><td>5× video script engine (Section 6)</td><td>—</td><td>Yes</td></tr>
+                    <tr><td>Evaluations</td><td>1 free</td><td>Unlimited</td></tr>
+                    <tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>
                 </tbody>
             </table>
         </div>
@@ -318,15 +301,13 @@ def render_landing_page() -> None:
         )
     with st.expander("What makes the free report 'ceiling quality'?"):
         st.markdown(
-            "Sections 1–3 use the same structured scoring framework as paid tiers: a weighted overall gauge, "
-            "five core metrics, Shark Tank red flags, and a full Python-calculated scaling matrix with verdict. "
-            "You're not getting a dumbed-down teaser — you're getting the decision layer."
+            "The free preview gives you Sections 1–2: a weighted product score and Shark Tank-grade red flags. "
+            "Premium unlocks the financial GO/NO-GO verdict plus the full execution stack."
         )
-    with st.expander("When should I upgrade to Pro?"):
+    with st.expander("When should I upgrade to Premium?"):
         st.markdown(
-            "Upgrade to **Premium** when you need sourcing links and live competitor prices. "
-            "Go **Pro** when you're ready to launch ads and need full TikTok/Reels scripts, "
-            "targeting stacks, and influencer outreach templates."
+            "Upgrade when red flags have your attention and you need the math: margin stress-tests, "
+            "final verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts."
         )
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
@@ -348,6 +329,6 @@ def render_landing_page() -> None:
             st.rerun()
 
     st.markdown(
-        '<p class="landing-footnote">ProductScore · Gemini 2.5 Flash · Built for e-commerce operators</p>',
+        '<p class="landing-footnote">ProductScore · Built for e-commerce operators</p>',
         unsafe_allow_html=True,
     )

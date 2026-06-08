@@ -303,6 +303,36 @@ div[data-testid="stTextArea"] textarea:focus {
     color: #475569;
     margin-top: 0.5rem;
 }
+.cliffhanger-banner {
+    background: linear-gradient(135deg, #1E1B4B 0%, #312E81 50%, #4338CA 100%);
+    border-radius: 16px;
+    padding: 1.5rem 1.6rem;
+    color: #F8FAFC;
+    border: 1px solid rgba(255,255,255,0.12);
+    box-shadow: 0 16px 40px rgba(49, 46, 129, 0.25);
+    margin: 0.25rem 0;
+}
+.cliffhanger-kicker {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #C4B5FD;
+    margin: 0 0 0.4rem;
+}
+.cliffhanger-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 0.45rem;
+    letter-spacing: -0.02em;
+}
+.cliffhanger-copy {
+    font-size: 0.88rem;
+    color: #CBD5E1;
+    margin: 0;
+    line-height: 1.55;
+    max-width: 720px;
+}
 .verdict-banner {
     display: flex;
     align-items: center;
@@ -694,12 +724,7 @@ div[data-testid="stTextArea"] textarea:focus {
     border: 2px solid #93C5FD;
     box-shadow: 0 16px 40px rgba(59, 130, 246, 0.12);
 }
-.lp-pricing-card--pro {
-    background: linear-gradient(160deg, #1E1B4B 0%, #312E81 45%, #4338CA 100%);
-    border: 2px solid rgba(255,255,255,0.15);
-    box-shadow: 0 16px 40px rgba(67, 56, 202, 0.25);
-    color: #F8FAFC;
-}
+.lp-pricing-card--solo { max-width: 640px; margin: 0 auto; }
 .lp-popular-pill, .lp-pro-pill {
     display: inline-block;
     font-size: 0.62rem;
@@ -1538,9 +1563,9 @@ def tool_workspace_hero(*, kicker: str, title: str, copy: str) -> str:
         f'<p class="tool-workspace-title">{html.escape(title)}</p>'
         f'<p class="tool-workspace-copy">{html.escape(copy)}</p>'
         f'<div class="tool-workspace-badges">'
-        f'<span class="tool-workspace-badge">Gemini 2.5 Flash</span>'
-        f'<span class="tool-workspace-badge">3 sections free</span>'
-        f'<span class="tool-workspace-badge">~30 sec analysis</span>'
+        f'<span class="tool-workspace-badge">2 sections free</span>'
+        f'<span class="tool-workspace-badge">~30 sec preview</span>'
+        f'<span class="tool-workspace-badge">Premium unlocks all 6</span>'
         f"</div></div>"
     )
 

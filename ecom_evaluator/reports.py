@@ -4,6 +4,8 @@ from __future__ import annotations
 
 import re
 
+from ecom_evaluator.plans import PlanTier, coerce_plan_tier
+from ecom_evaluator.report_sections import has_section_access
 from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.scoring import verdict_status
 
@@ -20,7 +22,9 @@ def build_markdown_report(
     product_name: str,
     analyzed_at: str,
     meta: dict | None = None,
+    tier: PlanTier | str = PlanTier.FREE,
 ) -> str:
+    tier = coerce_plan_tier(tier)
     verdict = verdict_status(result.overall_score)
     lines = [
         f"# ProductScore — {product_name}",
@@ -47,13 +51,19 @@ def build_markdown_report(
         f"2. {result.red_flag_2}",
         f"3. {result.red_flag_3}",
         "",
-        "## Section 3 — Verdict",
-        "",
-        f"**{verdict.emoji} {verdict.label}** — {verdict.subtitle} ({result.overall_score}/100)",
-        "",
     ]
 
-    if result.has_marketing_teaser():
+    if has_section_access("margin_matrix", tier):
+        lines.extend(
+            [
+                "## Section 3 — Verdict",
+                "",
+                f"**{verdict.emoji} {verdict.label}** — {verdict.subtitle} ({result.overall_score}/100)",
+                "",
+            ]
+        )
+
+    if result.has_marketing_teaser() and has_section_access("marketing_teaser", tier):
         lines.extend(
             [
                 "## Section 4 — Marketing teaser",

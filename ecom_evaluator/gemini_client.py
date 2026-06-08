@@ -112,7 +112,7 @@ marketing_influencer_templates: 3 copy-paste DM templates.
 marketing_positioning_matrix: 3 distinct angles vs competitors.
 """
 
-MARKETING_DEEP_SYSTEM = f"""You are a $100M DTC growth lead (Claude Opus-level depth).
+MARKETING_DEEP_SYSTEM = f"""You are a $100M DTC growth lead operating at the depth of the most advanced commercial AI engines.
 Build the ultimate marketing blueprint for this specific product.
 
 {MARKETING_DEEP_JSON}"""
@@ -355,7 +355,7 @@ def run_product_evaluation(
         used_sales_price_estimate=used_sales_price_estimate,
     )
 
-    with st.spinner("Analyzing product profile and risks (Gemini 2.5 Flash)…"):
+    with st.spinner("Analyzing product profile and risks…"):
         free_core = run_phase_with_retries(
             client,
             model=plan.gemini_model,
@@ -370,7 +370,7 @@ def run_product_evaluation(
     result = ProductEvaluationResponse.model_validate(free_core.model_dump())
 
     if plan.runs_marketing_teaser:
-        with st.spinner("Building Marketing Viability Teaser (Premium)…"):
+        with st.spinner("Building marketing blueprint (advanced AI engine)…"):
             teaser = run_phase_with_retries(
                 client,
                 model=plan.gemini_model,
@@ -395,7 +395,7 @@ def run_product_evaluation(
             max_results=plan.web_search_max_results,
         )
         web_text = format_web_research_for_prompt(hits)
-        with st.spinner("Running live web-intelligence search (Premium)…"):
+        with st.spinner("Scanning live market intelligence…"):
             web_block = run_phase_with_retries(
                 client,
                 model=plan.gemini_model,
@@ -414,7 +414,7 @@ def run_product_evaluation(
 
         if plan.runs_marketing_deep_dive:
             channel = result.marketing_primary_channel or "TikTok Organic"
-            with st.spinner("Building Ultimate Marketing Blueprint (Gemini 2.5 Pro)…"):
+            with st.spinner("Generating 5× video script engine…"):
                 marketing_block = run_phase_with_retries(
                     client,
                     model=plan.gemini_pro_model or GEMINI_PRO_MODEL,

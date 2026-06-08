@@ -18,7 +18,12 @@ from ecom_evaluator.economics import (
 )
 from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.plans import PlanTier
-from ecom_evaluator.report_sections import REPORT_SECTIONS, has_section_access, section_by_id
+from ecom_evaluator.report_sections import (
+    LOCKED_SECTION_COPY,
+    REPORT_SECTIONS,
+    has_section_access,
+    section_by_id,
+)
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
 from ecom_evaluator.scoring import score_bar_color, verdict_status
 from ecom_evaluator.ui.subscription import get_subscription_tier, stripe_checkout_url
@@ -101,30 +106,44 @@ def render_section_header(section_id: str) -> None:
     st.caption(section.subtitle)
 
 
-def render_locked_card(*, section_id: str, tier_required: PlanTier, body_html: str) -> None:
+def render_locked_card(*, section_id: str) -> None:
     section = section_by_id(section_id)
-    price = "$29/mo" if tier_required == PlanTier.PREMIUM else "$79/mo"
-    plan_label = "Premium" if tier_required == PlanTier.PREMIUM else "Pro"
+    body_html = LOCKED_SECTION_COPY[section_id]
     st.markdown(
         f"""
         <div class="locked-section-blur">
             <div class="locked-overlay">
                 <p class="locked-icon">🔒</p>
-                <p class="locked-kicker">Section {section.number} · {html.escape(plan_label)}</p>
+                <p class="locked-kicker">Section {section.number} · Premium · $29/mo</p>
                 <p class="locked-title">{html.escape(section.title)}</p>
-                <div class="locked-copy">{body_html}</div>
+                <div class="locked-copy"><p>{body_html}</p></div>
             </div>
         </div>
         """,
         unsafe_allow_html=True,
     )
-    checkout_tier = PlanTier.PREMIUM if tier_required == PlanTier.PREMIUM else PlanTier.PRO
     st.link_button(
-        f"Upgrade to {plan_label} — {price}",
-        stripe_checkout_url(checkout_tier),
+        "Upgrade to Premium — $29/mo",
+        stripe_checkout_url(PlanTier.PREMIUM),
         type="primary",
         use_container_width=True,
         key=f"upgrade_{section_id}",
+    )
+
+
+def render_cliffhanger_banner() -> None:
+    st.markdown(
+        """
+        <div class="cliffhanger-banner">
+            <p class="cliffhanger-kicker">The cliffhanger</p>
+            <p class="cliffhanger-title">You've seen the risks — now prove the opportunity</p>
+            <p class="cliffhanger-copy">
+                Red flags alone can't tell you if this product survives real logistics, ad costs, and sourcing math.
+                Premium unlocks the financial verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts.
+            </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
     )
 
 
@@ -188,8 +207,12 @@ def render_section_2(result: ProductEvaluationResponse) -> None:
         )
 
 
-def render_section_3(meta: dict | None, overall_score: int) -> None:
+def render_section_3(meta: dict | None, overall_score: int, tier: PlanTier) -> None:
     render_section_header("margin_matrix")
+    if not has_section_access("margin_matrix", tier):
+        render_locked_card(section_id="margin_matrix")
+        return
+
     if not meta:
         st.info("Financial inputs unavailable — re-run the evaluation.")
         return
@@ -260,15 +283,7 @@ def render_section_3(meta: dict | None, overall_score: int) -> None:
 def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
     render_section_header("marketing_teaser")
     if not has_section_access("marketing_teaser", tier) or not result.has_marketing_teaser():
-        render_locked_card(
-            section_id="marketing_teaser",
-            tier_required=PlanTier.PREMIUM,
-            body_html=(
-                "<p>Upgrade to <strong>Premium ($29/mo)</strong> to unlock the Marketing Viability Teaser. "
-                "Discover the primary recommended channel (TikTok Organic vs Meta Paid), the "
-                "Scroll-Stopping Visual Hook Index (1–10), and the Core Buyer Persona mapping.</p>"
-            ),
-        )
+        render_locked_card(section_id="marketing_teaser")
         return
 
     hook_pct = (result.scroll_stopping_hook_index or 5) * 10
@@ -299,21 +314,13 @@ def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
             f'<div class="insight-card insight-card--marketing"><p>{html.escape(result.marketing_teaser or "")}</p></div>',
             unsafe_allow_html=True,
         )
-    st.info("Full ad scripts, targeting stacks, and influencer DMs unlock in Section 6 (Pro).")
+    st.info("Section 6 unlocks five complete ready-to-shoot video scripts on Premium.")
 
 
 def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
     render_section_header("web_intelligence")
     if not has_section_access("web_intelligence", tier) or not result.has_web_intelligence():
-        render_locked_card(
-            section_id="web_intelligence",
-            tier_required=PlanTier.PREMIUM,
-            body_html=(
-                "<p>Upgrade to <strong>Premium ($29/mo)</strong> to unlock real-time web search, "
-                "active AliExpress/CJ sourcing supplier matches, and live competitor price tracking "
-                "across Amazon &amp; Shopify.</p>"
-            ),
-        )
+        render_locked_card(section_id="web_intelligence")
         return
 
     st.markdown(
@@ -337,17 +344,7 @@ def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
 def render_section_6(result: ProductEvaluationResponse, tier: PlanTier) -> None:
     render_section_header("marketing_deep_dive")
     if not has_section_access("marketing_deep_dive", tier) or not result.has_marketing_deep_dive():
-        render_locked_card(
-            section_id="marketing_deep_dive",
-            tier_required=PlanTier.PRO,
-            body_html="""<p>Upgrade to <strong>Pro ($79/mo)</strong> to unlock the Ultimate Marketing Blueprint powered by Claude Opus. Includes:</p>
-<ul class="locked-list">
-<li>5× Ad Script Engine (complete TikTok/Reels scripts with visual cues)</li>
-<li>Precision Targeting Blueprint (exact Facebook &amp; TikTok Ads interests and demographics)</li>
-<li>Influencer Outreach Templates (high-conversion copy-paste DMs)</li>
-<li>Multi-Angle Positioning Matrix (3 distinct marketing angles to crush competitors)</li>
-</ul>""",
-        )
+        render_locked_card(section_id="marketing_deep_dive")
         return
 
     st.markdown("#### 5× Ad Script Engine")
@@ -378,7 +375,13 @@ def render_export_buttons(result: ProductEvaluationResponse, meta: dict) -> None
     with col_md:
         st.download_button(
             label="Download Markdown report",
-            data=build_markdown_report(result, product_name=product_name, analyzed_at=analyzed_at, meta=meta),
+            data=build_markdown_report(
+                result,
+                product_name=product_name,
+                analyzed_at=analyzed_at,
+                meta=meta,
+                tier=meta.get("subscription_tier", PlanTier.FREE.value),
+            ),
             file_name=f"{slug}_analysis_{timestamp}.md",
             mime="text/markdown",
             use_container_width=True,
@@ -396,7 +399,7 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
 
     st.markdown(
         f'<div class="status-banner status-banner--success">'
-        f"Evaluation complete · {unlocked}/6 sections · Gemini 2.5 Flash</div>",
+        f"Evaluation complete · {unlocked}/6 sections unlocked</div>",
         unsafe_allow_html=True,
     )
 
@@ -414,8 +417,11 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
     render_section_1(result)
     st.divider()
     render_section_2(result)
+    if tier == PlanTier.FREE:
+        st.divider()
+        render_cliffhanger_banner()
     st.divider()
-    render_section_3(meta, result.overall_score)
+    render_section_3(meta, result.overall_score, tier)
     st.divider()
     render_section_4(result, tier)
     st.divider()

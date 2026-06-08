@@ -1,5 +1,6 @@
 """Tests for report export."""
 
+from ecom_evaluator.plans import PlanTier
 from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload, normalize_marketing_teaser_payload
 from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
@@ -20,6 +21,7 @@ def test_build_markdown_report_contains_sections():
         result,
         product_name="Test Widget",
         analyzed_at="2026-06-02T12:00:00+00:00",
+        tier=PlanTier.PREMIUM,
     )
     assert "# ProductScore — Test Widget" in md
     assert "## Section 2 — Red flags" in md

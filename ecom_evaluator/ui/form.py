@@ -249,7 +249,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             st.markdown(
                 """
                 <p class="form-run-footnote">
-                    Free tier · Gemini 2.5 Flash · Sections 1–3 unlocked instantly
+                    Free preview · Sections 1–2 · Upgrade for verdict &amp; execution stack
                 </p>
                 """,
                 unsafe_allow_html=True,
@@ -257,7 +257,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             if quota_blocked:
                 st.warning("Server quota reached. Try again later or upgrade to Premium.")
             if running:
-                st.info("Evaluation in progress — Gemini 2.5 Flash analysis.")
+                st.info("Evaluation in progress — building your report…")
 
     return {
         "api_key": api_key,

@@ -71,9 +71,9 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
             )
 
         if plan.runs_web_search:
-            st.caption("Premium/Pro: live web search runs after the core AI analysis.")
+            st.caption("Premium: full report with live web search and marketing engine.")
 
-        with st.spinner("Running Gemini 2.5 Flash evaluation (inputs + image only on Free)…"):
+        with st.spinner("Running product evaluation…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),

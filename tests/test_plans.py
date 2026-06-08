@@ -1,16 +1,14 @@
 """Tests for subscription plan configuration."""
 
-from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, get_plan_config
+from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, UNLIMITED_EVALUATIONS, coerce_plan_tier, get_plan_config, plan_has_unlimited_evaluations
 
 
 def test_plan_pricing_and_quotas():
     assert get_plan_config(PlanTier.PREMIUM).price_usd_monthly == 29
-    assert get_plan_config(PlanTier.PREMIUM).monthly_evaluations == 20
-    assert get_plan_config(PlanTier.PRO).price_usd_monthly == 79
-    assert get_plan_config(PlanTier.PRO).monthly_evaluations == 100
+    assert plan_has_unlimited_evaluations(PlanTier.PREMIUM)
 
 
-def test_free_plan_has_no_web_search():
+def test_free_plan_has_no_premium_features():
     free = PLAN_CONFIG[PlanTier.FREE]
     assert free.monthly_evaluations == 1
     assert not free.runs_web_search
@@ -18,15 +16,13 @@ def test_free_plan_has_no_web_search():
     assert not free.runs_marketing_deep_dive
 
 
-def test_premium_runs_web_search_and_teaser():
+def test_premium_runs_all_features():
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
     assert premium.runs_web_search
     assert premium.runs_marketing_teaser
-    assert not premium.runs_marketing_deep_dive
+    assert premium.runs_marketing_deep_dive
+    assert premium.monthly_evaluations == UNLIMITED_EVALUATIONS
 
 
-def test_pro_runs_all_premium_features():
-    pro = PLAN_CONFIG[PlanTier.PRO]
-    assert pro.runs_web_search
-    assert pro.runs_marketing_teaser
-    assert pro.runs_marketing_deep_dive
+def test_legacy_pro_maps_to_premium():
+    assert coerce_plan_tier("pro") == PlanTier.PREMIUM

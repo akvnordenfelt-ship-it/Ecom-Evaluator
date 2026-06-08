@@ -7,11 +7,12 @@ from enum import Enum
 
 from ecom_evaluator.config import GEMINI_MODEL, GEMINI_PRO_MODEL
 
+UNLIMITED_EVALUATIONS = 999_999
+
 
 class PlanTier(str, Enum):
     FREE = "free"
     PREMIUM = "premium"
-    PRO = "pro"
 
 
 @dataclass(frozen=True)
@@ -37,7 +38,7 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Free",
         price_usd_monthly=0,
         monthly_evaluations=1,
-        ai_model_label="Gemini 2.5 Flash",
+        ai_model_label="Fast product analysis",
         gemini_model=GEMINI_MODEL,
         gemini_pro_model=GEMINI_PRO_MODEL,
         runs_web_search=False,
@@ -51,23 +52,8 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         tier=PlanTier.PREMIUM,
         label="Premium",
         price_usd_monthly=29,
-        monthly_evaluations=20,
-        ai_model_label="Gemini 2.5 Flash + Live Web Search",
-        gemini_model=GEMINI_MODEL,
-        gemini_pro_model=GEMINI_PRO_MODEL,
-        runs_web_search=True,
-        runs_marketing_teaser=True,
-        runs_marketing_deep_dive=False,
-        core_max_tokens=4096,
-        premium_max_tokens=8192,
-        web_search_max_results=4,
-    ),
-    PlanTier.PRO: PlanConfig(
-        tier=PlanTier.PRO,
-        label="Pro",
-        price_usd_monthly=79,
-        monthly_evaluations=100,
-        ai_model_label="Gemini 2.5 Pro Marketing Engine",
+        monthly_evaluations=UNLIMITED_EVALUATIONS,
+        ai_model_label="Full platform · advanced commercial AI engine",
         gemini_model=GEMINI_MODEL,
         gemini_pro_model=GEMINI_PRO_MODEL,
         runs_web_search=True,
@@ -80,7 +66,17 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
 }
 
 
-def get_plan_config(tier: PlanTier | str) -> PlanConfig:
+def coerce_plan_tier(tier: PlanTier | str) -> PlanTier:
     if isinstance(tier, str):
-        tier = PlanTier(tier)
-    return PLAN_CONFIG[tier]
+        if tier == "pro":
+            return PlanTier.PREMIUM
+        return PlanTier(tier)
+    return tier
+
+
+def get_plan_config(tier: PlanTier | str) -> PlanConfig:
+    return PLAN_CONFIG[coerce_plan_tier(tier)]
+
+
+def plan_has_unlimited_evaluations(tier: PlanTier | str) -> bool:
+    return get_plan_config(tier).monthly_evaluations >= UNLIMITED_EVALUATIONS
