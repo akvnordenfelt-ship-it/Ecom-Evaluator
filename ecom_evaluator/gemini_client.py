@@ -26,11 +26,14 @@ from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.llm_normalize import (
     normalize_free_evaluation_payload,
     normalize_marketing_deep_dive_payload,
+    normalize_marketing_teaser_payload,
     normalize_web_intelligence_payload,
 )
 from ecom_evaluator.models import (
+    FreeCorePayload,
     MarketSearchHit,
     MarketingDeepDivePayload,
+    MarketingTeaserPayload,
     ProductEvaluationResponse,
     WebIntelligencePayload,
 )
@@ -39,25 +42,27 @@ from ecom_evaluator.web_search import format_web_research_for_prompt, run_web_ma
 
 FREE_TIER_JSON = """
 Return ONE flat JSON object. Use STRING values for all scores (e.g. "72" not 72).
-No markdown fences. Keys exactly:
+No markdown fences. Do NOT include overall_score — Python computes it from your five metrics.
 
-"overall_score", "product_profile_summary", "physical_weight_assessment", "fragility_assessment",
+Keys exactly:
+"product_profile_summary", "physical_weight_assessment", "fragility_assessment",
 "variant_complexity", "shipping_complexity",
+"metric_logistics_margin", "metric_logistics_margin_note",
 "metric_market_saturation", "metric_market_saturation_note",
 "metric_marketing_velocity", "metric_marketing_velocity_note",
-"metric_logistics_margin", "metric_logistics_margin_note",
 "metric_seasonality", "metric_seasonality_note",
 "metric_brandability", "metric_brandability_note",
-"red_flag_headline", "red_flag_analysis", "red_flag_1", "red_flag_2", "red_flag_3",
-"marketing_primary_channel", "scroll_stopping_hook_index", "buyer_persona_hint", "marketing_teaser"
+"red_flag_headline", "red_flag_analysis", "red_flag_1", "red_flag_2", "red_flag_3"
 
-Scoring rules:
-- overall_score ≈ average of the five metric_* scores (within 15 points).
-- Metrics must reflect THIS product — do NOT default all scores to 50.
-- metric_logistics_margin: high for lightweight + high markup (e.g. $0.10 cost → $10 sell).
-- scroll_stopping_hook_index: string "1" to "10".
-- red_flag_* must be brutal and product-specific (returns, compliance, fragility, sizing, etc.).
-- marketing_teaser: strategic direction only — NO full ad scripts.
+Scoring rules — output ONLY these five sub-scores (0-100 strings):
+1. metric_logistics_margin — Logistics & Margin Profile (lightweight + high markup wins)
+2. metric_market_saturation — Market Saturation (category crowding from your knowledge)
+3. metric_marketing_velocity — Marketing Velocity (TikTok organic viral vs paid ads viability)
+4. metric_brandability — Brandability & Longevity (real brand vs impulse fad)
+5. metric_seasonality — Seasonality Factor (year-round vs holiday-only spikes)
+
+Metrics must reflect THIS product — do NOT default all scores to 50.
+red_flag_* must be brutal and product-specific (returns, compliance, fragility, sizing, etc.).
 """
 
 FREE_SYSTEM = f"""You are an elite Shark Tank investor and 8-figure e-commerce operator.
@@ -65,8 +70,24 @@ Analyze ONLY the user's form inputs and product image — you have NO live web s
 
 Your job: show the CEILING, not the floor. Free-tier output must feel premium, specific, and actionable.
 Use the computed economics numbers in the prompt for logistics/margin reasoning.
+Do NOT output marketing channel recommendations or ad scripts — those are paid tiers.
 
 {FREE_TIER_JSON}"""
+
+MARKETING_TEASER_JSON = """
+Return ONE flat JSON object with STRING values only:
+"marketing_primary_channel", "scroll_stopping_hook_index", "buyer_persona_hint", "marketing_teaser"
+
+marketing_primary_channel: TikTok Organic vs Meta Paid (pick one primary recommendation).
+scroll_stopping_hook_index: string "1" to "10" for Scroll-Stopping Visual Hook Index.
+buyer_persona_hint: Core Buyer Persona mapping in 2-3 sentences.
+marketing_teaser: Strategic direction only — NO full ad scripts.
+"""
+
+MARKETING_TEASER_SYSTEM = f"""You are a DTC growth strategist.
+Based on the product profile and scores already computed, output the Marketing Viability Teaser.
+
+{MARKETING_TEASER_JSON}"""
 
 WEB_INTEL_JSON = """
 Return ONE flat JSON object with STRING values only:
@@ -110,6 +131,8 @@ def build_input_context(
     height_cm: float,
     description: str,
     has_image: bool,
+    used_physical_baseline: bool = False,
+    used_sales_price_estimate: bool = False,
     web_research_text: str = "",
 ) -> str:
     econ = compute_economics_snapshot(
@@ -126,9 +149,20 @@ def build_input_context(
         if has_image
         else "No image — infer cautiously from description; note visual uncertainty."
     )
+    baseline_note = (
+        "Physical inputs used lightweight-package baseline (0.15 kg, 15×10×5 cm) — note uncertainty in assessments."
+        if used_physical_baseline
+        else ""
+    )
+    price_note = (
+        f"Selling price was estimated at ${sales_price:.2f} (3× purchase cost) — margin metrics are directional."
+        if used_sales_price_estimate
+        else ""
+    )
     research_block = web_research_text or (
         "## Web research\nNot available for this tier — rely on category knowledge only."
     )
+    description_block = description.strip() or "No additional description provided."
 
     return f"""## Product
 - Name: {product_name}
@@ -139,12 +173,14 @@ def build_input_context(
 - Billable weight: {econ.billable_weight_kg:.3f} kg | Volume: {econ.volume_dm3:.2f} dm³
 - Est. shipping: ${ship_low:.2f}–${ship_high:.2f} ({econ.shipping_tier_label})
 - Contribution after shipping: ${econ.contribution_margin_usd:.2f}
+{baseline_note}
+{price_note}
 
 ## Dimensions & weight
 - {weight_kg:.3f} kg | {length_cm}×{width_cm}×{height_cm} cm
 
 ## Founder notes
-{description}
+{description_block}
 
 ## Visual
 {image_note}
@@ -297,6 +333,8 @@ def run_product_evaluation(
     image_mime: str | None = None,
     web_research: list[MarketSearchHit] | None = None,
     tier: PlanTier = PlanTier.FREE,
+    used_physical_baseline: bool = False,
+    used_sales_price_estimate: bool = False,
 ) -> ProductEvaluationResponse:
     if not api_key.strip():
         raise AnalysisError("API key is required.")
@@ -313,21 +351,42 @@ def run_product_evaluation(
         height_cm=height_cm,
         description=description,
         has_image=image_bytes is not None,
+        used_physical_baseline=used_physical_baseline,
+        used_sales_price_estimate=used_sales_price_estimate,
     )
 
-    with st.spinner("Analyzing product profile, risks, and marketing fit (Gemini 2.5 Flash)…"):
+    with st.spinner("Analyzing product profile and risks (Gemini 2.5 Flash)…"):
         free_core = run_phase_with_retries(
             client,
             model=plan.gemini_model,
             system_instruction=FREE_SYSTEM,
             user_parts=build_user_parts(f"{context}\n\nReturn the free-tier JSON now.", image_bytes, image_mime),
-            model_class=ProductEvaluationResponse,
+            model_class=FreeCorePayload,
             normalize_fn=normalize_free_evaluation_payload,
             phase_label="Product evaluation",
             max_output_tokens=plan.core_max_tokens,
         )
 
-    result = free_core
+    result = ProductEvaluationResponse.model_validate(free_core.model_dump())
+
+    if plan.runs_marketing_teaser:
+        with st.spinner("Building Marketing Viability Teaser (Premium)…"):
+            teaser = run_phase_with_retries(
+                client,
+                model=plan.gemini_model,
+                system_instruction=MARKETING_TEASER_SYSTEM,
+                user_parts=build_user_parts(
+                    f"{context}\n\nOverall score: {result.overall_score}/100.\n"
+                    "Return marketing teaser JSON now.",
+                    image_bytes,
+                    image_mime,
+                ),
+                model_class=MarketingTeaserPayload,
+                normalize_fn=normalize_marketing_teaser_payload,
+                phase_label="Marketing teaser",
+                max_output_tokens=plan.premium_max_tokens,
+            )
+        result = result.model_copy(update=teaser.model_dump())
 
     if plan.runs_web_search:
         hits = web_research or run_web_market_research(
@@ -354,6 +413,7 @@ def run_product_evaluation(
         result = result.model_copy(update=web_block.model_dump())
 
         if plan.runs_marketing_deep_dive:
+            channel = result.marketing_primary_channel or "TikTok Organic"
             with st.spinner("Building Ultimate Marketing Blueprint (Gemini 2.5 Pro)…"):
                 marketing_block = run_phase_with_retries(
                     client,
@@ -361,7 +421,7 @@ def run_product_evaluation(
                     system_instruction=MARKETING_DEEP_SYSTEM,
                     user_parts=build_user_parts(
                         f"{context}\n\n{web_text}\n\n"
-                        f"Overall score: {result.overall_score}. Channel: {result.marketing_primary_channel}.\n"
+                        f"Overall score: {result.overall_score}. Channel: {channel}.\n"
                         "Return marketing deep-dive JSON now.",
                         image_bytes,
                         image_mime,

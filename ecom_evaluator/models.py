@@ -7,10 +7,9 @@ from typing import TypedDict
 from pydantic import BaseModel, Field
 
 
-class ProductEvaluationResponse(BaseModel):
-    """Full evaluation report — sections 1–4 always populated; 5–6 when tier unlocks them."""
+class FreeCorePayload(BaseModel):
+    """Sections 1–2 from Gemini Flash (free tier core)."""
 
-    # --- Section 1: Product Profile & Core Metrics ---
     overall_score: int = Field(ge=0, le=100)
     product_profile_summary: str = Field(min_length=1)
     physical_weight_assessment: str = Field(min_length=1)
@@ -27,32 +26,41 @@ class ProductEvaluationResponse(BaseModel):
     metric_seasonality_note: str = Field(min_length=1)
     metric_brandability: int = Field(ge=0, le=100)
     metric_brandability_note: str = Field(min_length=1)
-
-    # --- Section 2: Red Flag & Risk Analysis ---
     red_flag_headline: str = Field(min_length=1)
     red_flag_analysis: str = Field(min_length=1)
     red_flag_1: str = Field(min_length=1)
     red_flag_2: str = Field(min_length=1)
     red_flag_3: str = Field(min_length=1)
 
-    # --- Section 4: Audience & Marketing Teaser (section 3 is Python-only) ---
+
+class MarketingTeaserPayload(BaseModel):
     marketing_primary_channel: str = Field(min_length=1)
     scroll_stopping_hook_index: int = Field(ge=1, le=10)
     buyer_persona_hint: str = Field(min_length=1)
     marketing_teaser: str = Field(min_length=1)
 
-    # --- Section 5: Web Intelligence (Premium+) ---
+
+class ProductEvaluationResponse(FreeCorePayload):
+    """Full evaluation report — sections 1–3 free; 4–6 unlock by tier."""
+
+    marketing_primary_channel: str | None = None
+    scroll_stopping_hook_index: int | None = Field(default=None, ge=1, le=10)
+    buyer_persona_hint: str | None = None
+    marketing_teaser: str | None = None
+
     web_intelligence_summary: str | None = None
     web_amazon_snapshot: str | None = None
     web_aliexpress_sourcing: str | None = None
     web_competitor_tracking: str | None = None
     web_sourcing_links: str | None = None
 
-    # --- Section 6: Marketing Deep-Dive (Pro) ---
     marketing_ad_scripts: str | None = None
     marketing_targeting_blueprint: str | None = None
     marketing_influencer_templates: str | None = None
     marketing_positioning_matrix: str | None = None
+
+    def has_marketing_teaser(self) -> bool:
+        return bool(self.marketing_primary_channel and self.marketing_teaser)
 
     def has_web_intelligence(self) -> bool:
         return bool(self.web_intelligence_summary)

@@ -14,16 +14,19 @@ def test_free_plan_has_no_web_search():
     free = PLAN_CONFIG[PlanTier.FREE]
     assert free.monthly_evaluations == 1
     assert not free.runs_web_search
+    assert not free.runs_marketing_teaser
     assert not free.runs_marketing_deep_dive
 
 
-def test_premium_runs_web_search_only():
+def test_premium_runs_web_search_and_teaser():
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
     assert premium.runs_web_search
+    assert premium.runs_marketing_teaser
     assert not premium.runs_marketing_deep_dive
 
 
-def test_pro_runs_both_premium_features():
+def test_pro_runs_all_premium_features():
     pro = PLAN_CONFIG[PlanTier.PRO]
     assert pro.runs_web_search
+    assert pro.runs_marketing_teaser
     assert pro.runs_marketing_deep_dive

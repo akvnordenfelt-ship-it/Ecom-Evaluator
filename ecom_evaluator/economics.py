@@ -4,6 +4,65 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
+LIGHTWEIGHT_BASELINE_WEIGHT_KG = 0.15
+LIGHTWEIGHT_BASELINE_LENGTH_CM = 15.0
+LIGHTWEIGHT_BASELINE_WIDTH_CM = 10.0
+LIGHTWEIGHT_BASELINE_HEIGHT_CM = 5.0
+DEFAULT_SALES_PRICE_MULTIPLIER = 3.0
+
+
+@dataclass(frozen=True)
+class ResolvedProductInputs:
+    purchase_price: float
+    sales_price: float
+    weight_kg: float
+    length_cm: float
+    width_cm: float
+    height_cm: float
+    used_physical_baseline: bool
+    used_sales_price_estimate: bool
+
+
+def resolve_product_inputs(
+    *,
+    purchase_price: float,
+    sales_price: float,
+    weight_kg: float,
+    length_cm: float,
+    width_cm: float,
+    height_cm: float,
+) -> ResolvedProductInputs:
+    """Apply lightweight-package and selling-price defaults when inputs are missing."""
+    used_physical_baseline = False
+    resolved_weight = weight_kg
+    resolved_length = length_cm
+    resolved_width = width_cm
+    resolved_height = height_cm
+
+    if weight_kg <= 0 and length_cm <= 0 and width_cm <= 0 and height_cm <= 0:
+        resolved_weight = LIGHTWEIGHT_BASELINE_WEIGHT_KG
+        resolved_length = LIGHTWEIGHT_BASELINE_LENGTH_CM
+        resolved_width = LIGHTWEIGHT_BASELINE_WIDTH_CM
+        resolved_height = LIGHTWEIGHT_BASELINE_HEIGHT_CM
+        used_physical_baseline = True
+
+    used_sales_price_estimate = False
+    resolved_sales_price = sales_price
+    if sales_price <= 0 and purchase_price > 0:
+        resolved_sales_price = round(purchase_price * DEFAULT_SALES_PRICE_MULTIPLIER, 2)
+        used_sales_price_estimate = True
+
+    return ResolvedProductInputs(
+        purchase_price=purchase_price,
+        sales_price=resolved_sales_price,
+        weight_kg=resolved_weight,
+        length_cm=resolved_length,
+        width_cm=resolved_width,
+        height_cm=resolved_height,
+        used_physical_baseline=used_physical_baseline,
+        used_sales_price_estimate=used_sales_price_estimate,
+    )
+
 
 @dataclass(frozen=True)
 class EconomicsSnapshot:
@@ -38,7 +97,7 @@ def billable_weight_kg(
 
 def estimate_shipping_band_usd(billable_kg: float, volume_dm3: float) -> tuple[float, float, str]:
     if billable_kg <= 0 and volume_dm3 <= 0:
-        return (5.0, 9.0, "Unknown — confirm with carrier")
+        return (3.5, 6.5, "Light mail / small envelope (estimated baseline)")
     if billable_kg <= 0.2 and volume_dm3 <= 1.0:
         return (3.5, 6.5, "Light mail / small envelope")
     if billable_kg <= 0.5:

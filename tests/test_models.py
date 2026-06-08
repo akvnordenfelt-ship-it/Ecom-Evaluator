@@ -3,13 +3,13 @@
 import pytest
 from pydantic import ValidationError
 
-from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload
+from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload, normalize_marketing_teaser_payload
 from ecom_evaluator.models import ProductEvaluationResponse
+from ecom_evaluator.scoring import compute_overall_score
 
 
-def _sample_payload() -> dict:
+def _sample_core_payload() -> dict:
     return {
-        "overall_score": "72",
         "product_profile_summary": "Compact kitchen gadget with strong visual demo potential.",
         "physical_weight_assessment": "Lightweight unit suitable for small-parcel shipping.",
         "fragility_assessment": "Low fragility — rigid plastic construction.",
@@ -30,6 +30,11 @@ def _sample_payload() -> dict:
         "red_flag_1": "Amazon race-to-the-bottom pricing on similar SKUs.",
         "red_flag_2": "Return risk if sizing or expectations mismatch listing copy.",
         "red_flag_3": "Paid CAC may exceed break-even if creative fatigue hits quickly.",
+    }
+
+
+def _sample_teaser_payload() -> dict:
+    return {
         "marketing_primary_channel": "TikTok Organic",
         "scroll_stopping_hook_index": "8",
         "buyer_persona_hint": "Millennial home-cook who loves compact kitchen wins.",
@@ -38,13 +43,17 @@ def _sample_payload() -> dict:
 
 
 def test_product_evaluation_validates():
-    result = ProductEvaluationResponse.model_validate(normalize_free_evaluation_payload(_sample_payload()))
-    assert result.overall_score == 70
-    assert result.scroll_stopping_hook_index == 8
+    core = normalize_free_evaluation_payload(_sample_core_payload())
+    result = ProductEvaluationResponse.model_validate(core)
+    expected = compute_overall_score(85, 55, 78, 60, 70)
+    assert result.overall_score == expected
 
 
 def test_rejects_invalid_hook_index():
-    payload = normalize_free_evaluation_payload(_sample_payload())
+    payload = {
+        **normalize_free_evaluation_payload(_sample_core_payload()),
+        **normalize_marketing_teaser_payload(_sample_teaser_payload()),
+    }
     payload["scroll_stopping_hook_index"] = 11
     with pytest.raises(ValidationError):
         ProductEvaluationResponse.model_validate(payload)

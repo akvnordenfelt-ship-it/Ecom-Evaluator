@@ -20,7 +20,7 @@ from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.plans import PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, has_section_access, section_by_id
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
-from ecom_evaluator.scoring import score_bar_color, verdict_label
+from ecom_evaluator.scoring import score_bar_color, verdict_status
 from ecom_evaluator.ui.subscription import get_subscription_tier, stripe_checkout_url
 
 
@@ -56,18 +56,18 @@ def make_overall_gauge(score: int) -> go.Figure:
 
 def make_metric_bars(result: ProductEvaluationResponse) -> go.Figure:
     labels = [
+        "Logistics & Margin",
         "Market Saturation",
         "Marketing Velocity",
-        "Logistics & Margin",
-        "Seasonality",
         "Brandability & Longevity",
+        "Seasonality",
     ]
     scores = [
+        result.metric_logistics_margin,
         result.metric_market_saturation,
         result.metric_marketing_velocity,
-        result.metric_logistics_margin,
-        result.metric_seasonality,
         result.metric_brandability,
+        result.metric_seasonality,
     ]
     colors = [score_bar_color(s) for s in scores]
     fig = go.Figure(
@@ -133,10 +133,7 @@ def render_section_1(result: ProductEvaluationResponse) -> None:
     gauge_col, bars_col = st.columns([1, 1.3])
     with gauge_col:
         st.plotly_chart(make_overall_gauge(result.overall_score), use_container_width=True, config=PLOTLY_CHART_CONFIG)
-        st.markdown(
-            f'<p class="verdict-label">{verdict_label(result.overall_score)}</p>',
-            unsafe_allow_html=True,
-        )
+        st.caption("Overall score is computed in Python from the five weighted metrics below.")
     with bars_col:
         st.plotly_chart(make_metric_bars(result), use_container_width=True, config=PLOTLY_CHART_CONFIG)
 
@@ -191,7 +188,7 @@ def render_section_2(result: ProductEvaluationResponse) -> None:
         )
 
 
-def render_section_3(meta: dict | None) -> None:
+def render_section_3(meta: dict | None, overall_score: int) -> None:
     render_section_header("margin_matrix")
     if not meta:
         st.info("Financial inputs unavailable — re-run the evaluation.")
@@ -207,6 +204,11 @@ def render_section_3(meta: dict | None) -> None:
     )
     fin = compute_financial_summary(econ)
     matrix = compute_scaling_matrix(econ)
+
+    if meta.get("used_sales_price_estimate"):
+        st.caption("Selling price was estimated at 3× purchase cost — confirm your target price before scaling.")
+    if meta.get("used_physical_baseline"):
+        st.caption("Shipping uses lightweight package baseline — add real weight/dimensions for precise logistics.")
 
     summary_df = pd.DataFrame(
         [
@@ -238,16 +240,44 @@ def render_section_3(meta: dict | None) -> None:
         "Stress-test row assumes logistics costs spike 20% — common when carriers re-rate dimensional weight."
     )
 
+    verdict = verdict_status(overall_score)
+    st.markdown(
+        f"""
+        <div class="verdict-banner verdict-banner--{verdict.css_class}">
+            <p class="verdict-banner-emoji">{verdict.emoji}</p>
+            <div class="verdict-banner-copy">
+                <p class="verdict-banner-label">{html.escape(verdict.label)}</p>
+                <p class="verdict-banner-subtitle">{html.escape(verdict.subtitle)}</p>
+            </div>
+            <p class="verdict-banner-score">{overall_score}<span>/100</span></p>
+        </div>
+        <p class="verdict-banner-context">Products scoring above 70 statistically represent healthy e-commerce foundations.</p>
+        """,
+        unsafe_allow_html=True,
+    )
 
-def render_section_4(result: ProductEvaluationResponse) -> None:
+
+def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
     render_section_header("marketing_teaser")
-    hook_pct = result.scroll_stopping_hook_index * 10
+    if not has_section_access("marketing_teaser", tier) or not result.has_marketing_teaser():
+        render_locked_card(
+            section_id="marketing_teaser",
+            tier_required=PlanTier.PREMIUM,
+            body_html=(
+                "<p>Upgrade to <strong>Premium ($29/mo)</strong> to unlock the Marketing Viability Teaser. "
+                "Discover the primary recommended channel (TikTok Organic vs Meta Paid), the "
+                "Scroll-Stopping Visual Hook Index (1–10), and the Core Buyer Persona mapping.</p>"
+            ),
+        )
+        return
+
+    hook_pct = (result.scroll_stopping_hook_index or 5) * 10
     col_a, col_b = st.columns([1, 2])
     with col_a:
         st.markdown(
             f'<div class="stat-tile">'
             f'<p class="stat-tile-label">Scroll-stopping hook index</p>'
-            f'<p class="stat-tile-value">{result.scroll_stopping_hook_index}/10</p>'
+            f'<p class="stat-tile-value">{result.scroll_stopping_hook_index or 0}/10</p>'
             f'<p class="stat-tile-body">Visual stop-power for short-form feeds</p></div>',
             unsafe_allow_html=True,
         )
@@ -255,18 +285,18 @@ def render_section_4(result: ProductEvaluationResponse) -> None:
         st.markdown(
             f'<div class="stat-tile"><p class="stat-tile-label">Primary channel</p>'
             f'<p class="stat-tile-value" style="font-size:1.1rem;">'
-            f"{html.escape(result.marketing_primary_channel)}</p></div>",
+            f"{html.escape(result.marketing_primary_channel or '')}</p></div>",
             unsafe_allow_html=True,
         )
     with col_b:
         st.markdown("#### Core buyer persona")
         st.markdown(
-            f'<div class="persona-card"><p>{html.escape(result.buyer_persona_hint)}</p></div>',
+            f'<div class="persona-card"><p>{html.escape(result.buyer_persona_hint or "")}</p></div>',
             unsafe_allow_html=True,
         )
         st.markdown("#### Strategic marketing teaser")
         st.markdown(
-            f'<div class="insight-card insight-card--marketing"><p>{html.escape(result.marketing_teaser)}</p></div>',
+            f'<div class="insight-card insight-card--marketing"><p>{html.escape(result.marketing_teaser or "")}</p></div>',
             unsafe_allow_html=True,
         )
     st.info("Full ad scripts, targeting stacks, and influencer DMs unlock in Section 6 (Pro).")
@@ -310,7 +340,7 @@ def render_section_6(result: ProductEvaluationResponse, tier: PlanTier) -> None:
         render_locked_card(
             section_id="marketing_deep_dive",
             tier_required=PlanTier.PRO,
-            body_html="""<p>Upgrade to <strong>Pro ($79/mo)</strong> to unlock the Ultimate Marketing Blueprint:</p>
+            body_html="""<p>Upgrade to <strong>Pro ($79/mo)</strong> to unlock the Ultimate Marketing Blueprint powered by Claude Opus. Includes:</p>
 <ul class="locked-list">
 <li>5× Ad Script Engine (complete TikTok/Reels scripts with visual cues)</li>
 <li>Precision Targeting Blueprint (exact Facebook &amp; TikTok Ads interests and demographics)</li>
@@ -385,9 +415,9 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
     st.divider()
     render_section_2(result)
     st.divider()
-    render_section_3(meta)
+    render_section_3(meta, result.overall_score)
     st.divider()
-    render_section_4(result)
+    render_section_4(result, tier)
     st.divider()
     render_section_5(result, tier)
     st.divider()

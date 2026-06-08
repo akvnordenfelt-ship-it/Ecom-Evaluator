@@ -1,9 +1,9 @@
 """Tests for report export."""
 
-from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload
+from ecom_evaluator.llm_normalize import normalize_free_evaluation_payload, normalize_marketing_teaser_payload
 from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.reports import build_markdown_report, slugify_filename
-from tests.test_models import _sample_payload
+from tests.test_models import _sample_core_payload, _sample_teaser_payload
 
 
 def test_slugify_filename():
@@ -11,7 +11,11 @@ def test_slugify_filename():
 
 
 def test_build_markdown_report_contains_sections():
-    result = ProductEvaluationResponse.model_validate(normalize_free_evaluation_payload(_sample_payload()))
+    payload = {
+        **normalize_free_evaluation_payload(_sample_core_payload()),
+        **normalize_marketing_teaser_payload(_sample_teaser_payload()),
+    }
+    result = ProductEvaluationResponse.model_validate(payload)
     md = build_markdown_report(
         result,
         product_name="Test Widget",
@@ -19,4 +23,5 @@ def test_build_markdown_report_contains_sections():
     )
     assert "# ProductScore — Test Widget" in md
     assert "## Section 2 — Red flags" in md
+    assert "## Section 3 — Verdict" in md
     assert "## Section 4 — Marketing teaser" in md

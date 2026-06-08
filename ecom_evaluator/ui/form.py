@@ -58,43 +58,13 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
                 st.rerun()
 
 
-def render_hero(*, compact: bool = False) -> None:
-    if compact:
-        st.markdown(
-            """
-            <div class="hero-block" style="padding:1.1rem 1.4rem;">
-                <p class="hero-kicker">Adjust & re-run</p>
-                <p class="hero-title" style="font-size:1.2rem;">Update your product inputs</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-        return
-
-    st.markdown(
-        """
-        <div class="hero-block">
-            <p class="hero-kicker">Shark Tank-grade analysis</p>
-            <p class="hero-title">Evaluate any product in minutes</p>
-            <p class="hero-copy">
-                Enter your product details once. We scan Amazon, AliExpress, and the open web,
-                then produce scores, competitor intel, a marketing playbook, and a go-to-market plan.
-            </p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def render_readiness_panel(data: dict) -> None:
     api_ok = bool(resolve_api_key(data["api_key"]))
     saas_ok = user_can_run()
     checks = [
         (saas_ok, evaluations_status_label()),
         (bool(data["product_name"].strip()), "Product name"),
-        (data["sales_price"] > 0, "Selling price"),
-        (bool(data["description"].strip()), "Description"),
-        (data["uploaded_file"] is not None, "Product image"),
+        (data["purchase_price"] > 0, "Purchase price"),
     ]
     if not has_shared_api_key():
         checks.insert(0, (api_ok, "API connected"))
@@ -128,7 +98,8 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             """
             <div class="tool-intro">
                 <p class="tool-intro-kicker">Your workspace</p>
-                <p class="tool-intro-title">Complete the steps below</p>
+                <p class="tool-intro-title">Enter your product name and cost to start</p>
+                <p class="tool-intro-copy">Only two fields are required. Add advanced details to sharpen accuracy.</p>
             </div>
             """,
             unsafe_allow_html=True,
@@ -138,49 +109,44 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
 
     with left:
         with st.container(border=True):
-            st.markdown(form_step_header("Step 1", "🏷️", "Product identity"), unsafe_allow_html=True)
+            st.markdown(form_step_header("Required", "✅", "Minimum inputs"), unsafe_allow_html=True)
             product_name = st.text_input(
-                "Product name",
+                "Product name *",
                 placeholder="e.g. Wireless earbud cleaning kit",
                 key="form_product_name",
             )
-            description = st.text_area(
-                "Description & target audience",
-                height=130,
-                placeholder="What it does, who buys it, your angle vs competitors, channels you are considering…",
-                key="form_description",
+            purchase_price = st.number_input(
+                "Purchase price ($) *",
+                min_value=0.0,
+                step=0.01,
+                format="%.2f",
+                key="form_purchase_price",
             )
 
-        with st.container(border=True):
-            st.markdown(form_step_header("Step 2", "💰", "Unit economics"), unsafe_allow_html=True)
-            econ_left, econ_right = st.columns(2)
-            with econ_left:
-                purchase_price = st.number_input(
-                    "Purchase price ($)",
-                    min_value=0.0,
-                    step=0.01,
-                    format="%.2f",
-                    key="form_purchase_price",
-                )
-            with econ_right:
-                sales_price = st.number_input(
-                    "Target selling price ($)",
-                    min_value=0.0,
-                    step=0.01,
-                    format="%.2f",
-                    key="form_sales_price",
-                )
-            if sales_price > 0:
+        with st.expander("⚙️ Advanced Profile Options (Improves accuracy)", expanded=False):
+            description = st.text_area(
+                "Description & target audience",
+                height=120,
+                placeholder="What it does, who buys it, your angle vs competitors…",
+                key="form_description",
+            )
+            sales_price = st.number_input(
+                "Target selling price ($)",
+                min_value=0.0,
+                step=0.01,
+                format="%.2f",
+                key="form_sales_price",
+                help="Leave at 0 to estimate at 3× purchase cost for margin math.",
+            )
+            if sales_price > 0 and purchase_price >= 0:
                 margin = sales_price - purchase_price
-                margin_pct = margin / sales_price * 100
+                margin_pct = margin / sales_price * 100 if sales_price else 0
                 st.markdown(
                     f'<div class="metric-hint">Estimated gross margin: <strong>${margin:.2f}</strong> '
                     f'({margin_pct:.1f}% of selling price)</div>',
                     unsafe_allow_html=True,
                 )
-
-        with st.container(border=True):
-            st.markdown(form_step_header("Step 3", "📦", "Shipping profile"), unsafe_allow_html=True)
+            st.markdown("**Shipping profile**")
             weight_kg = st.number_input(
                 "Weight (kg)", min_value=0.0, step=0.01, format="%.3f", key="form_weight_kg"
             )
@@ -191,31 +157,20 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 width_cm = st.number_input("Width (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_width")
             with dim_cols[2]:
                 height_cm = st.number_input("Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height")
-
-    with right:
-        with st.container(border=True):
-            st.markdown(form_step_header("Visual", "🖼️", "Product image"), unsafe_allow_html=True)
+            st.caption("Leave weight/dimensions at 0 to use a lightweight package baseline (0.15 kg, 15×10×5 cm).")
             uploaded_file = st.file_uploader(
-                "Upload PNG or JPG",
+                "Product image (PNG or JPG)",
                 type=["png", "jpg", "jpeg"],
                 key="form_image",
-                label_visibility="collapsed",
             )
             if uploaded_file is not None:
                 st.image(uploaded_file, use_container_width=True)
-            else:
-                st.markdown(
-                    '<div class="metric-hint">Optional but recommended — improves packaging, '
-                    "creative, and positioning scores.</div>",
-                    unsafe_allow_html=True,
-                )
 
+    with right:
         form_snapshot = {
             "api_key": api_key,
             "product_name": product_name,
-            "sales_price": sales_price,
-            "description": description,
-            "uploaded_file": uploaded_file,
+            "purchase_price": purchase_price,
         }
         render_readiness_panel(form_snapshot)
 
@@ -243,7 +198,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             if quota_blocked:
                 st.warning("Server quota reached. Try again later or upgrade to Premium.")
             if running:
-                st.info("Evaluation in progress — web search, then AI analysis.")
+                st.info("Evaluation in progress — Gemini 2.5 Flash analysis.")
 
     return {
         "api_key": api_key,

@@ -97,10 +97,8 @@ def validate_inputs(data: dict) -> list[str]:
         )
     if not data["product_name"].strip():
         errors.append("Enter a product name.")
-    if data["sales_price"] <= 0:
-        errors.append("Intended selling price must be greater than 0.")
-    if not data["description"].strip():
-        errors.append("Fill in the product description and target audience notes.")
+    if data["purchase_price"] <= 0:
+        errors.append("Purchase price must be greater than 0.")
 
     limit_error = validate_rate_limit(data)
     if limit_error:

@@ -6,9 +6,10 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
+from ecom_evaluator.economics import resolve_product_inputs
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.gemini_client import run_product_evaluation
-from ecom_evaluator.plans import PlanTier, get_plan_config
+from ecom_evaluator.plans import get_plan_config
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
@@ -39,47 +40,70 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         image_bytes = data["uploaded_file"].getvalue()
         image_mime = data["uploaded_file"].type
 
+    resolved = resolve_product_inputs(
+        purchase_price=data["purchase_price"],
+        sales_price=data["sales_price"],
+        weight_kg=data["weight_kg"],
+        length_cm=data["length_cm"],
+        width_cm=data["width_cm"],
+        height_cm=data["height_cm"],
+    )
+
     clear_analysis_error()
     st.session_state["analysis_running"] = True
     tier = get_subscription_tier()
     plan = get_plan_config(tier)
 
     try:
+        if resolved.used_physical_baseline:
+            st.info(
+                "No weight or dimensions provided — using a lightweight package baseline "
+                "(0.15 kg, 15×10×5 cm) for shipping estimates."
+            )
+        if resolved.used_sales_price_estimate:
+            st.info(
+                f"No selling price provided — estimating ${resolved.sales_price:.2f} "
+                "(3× purchase cost) for margin calculations."
+            )
         if image_bytes is None:
             st.warning(
-                "No product image uploaded — Section 1 profile and hook scores will be less accurate."
+                "No product image uploaded — profile and velocity scores may be less accurate."
             )
 
         if plan.runs_web_search:
-            st.caption("Premium/Pro: live web search runs after the free-tier AI analysis.")
+            st.caption("Premium/Pro: live web search runs after the core AI analysis.")
 
         with st.spinner("Running Gemini 2.5 Flash evaluation (inputs + image only on Free)…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
                 product_name=data["product_name"].strip(),
-                purchase_price=data["purchase_price"],
-                sales_price=data["sales_price"],
-                weight_kg=data["weight_kg"],
-                length_cm=data["length_cm"],
-                width_cm=data["width_cm"],
-                height_cm=data["height_cm"],
+                purchase_price=resolved.purchase_price,
+                sales_price=resolved.sales_price,
+                weight_kg=resolved.weight_kg,
+                length_cm=resolved.length_cm,
+                width_cm=resolved.width_cm,
+                height_cm=resolved.height_cm,
                 description=data["description"].strip(),
                 image_bytes=image_bytes,
                 image_mime=image_mime,
                 web_research=None,
                 tier=tier,
+                used_physical_baseline=resolved.used_physical_baseline,
+                used_sales_price_estimate=resolved.used_sales_price_estimate,
             )
 
         st.session_state["analysis_result"] = result
         st.session_state["analysis_meta"] = {
             "product_name": data["product_name"].strip(),
             "analyzed_at": datetime.now(timezone.utc).isoformat(),
-            "purchase_price": data["purchase_price"],
-            "sales_price": data["sales_price"],
-            "weight_kg": data["weight_kg"],
-            "length_cm": data["length_cm"],
-            "width_cm": data["width_cm"],
-            "height_cm": data["height_cm"],
+            "purchase_price": resolved.purchase_price,
+            "sales_price": resolved.sales_price,
+            "weight_kg": resolved.weight_kg,
+            "length_cm": resolved.length_cm,
+            "width_cm": resolved.width_cm,
+            "height_cm": resolved.height_cm,
+            "used_physical_baseline": resolved.used_physical_baseline,
+            "used_sales_price_estimate": resolved.used_sales_price_estimate,
             "subscription_tier": tier.value,
         }
         mark_analysis_for_rate_limit(data)

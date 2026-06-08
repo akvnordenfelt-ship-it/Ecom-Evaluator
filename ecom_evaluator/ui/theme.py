@@ -303,6 +303,55 @@ div[data-testid="stTextArea"] textarea:focus {
     color: #475569;
     margin-top: 0.5rem;
 }
+.verdict-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.25rem 1.35rem;
+    border-radius: 14px;
+    margin: 1.5rem 0 0.65rem;
+    border: 2px solid transparent;
+}
+.verdict-banner--go {
+    background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+    border-color: #6EE7B7;
+}
+.verdict-banner--caution {
+    background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+    border-color: #FCD34D;
+}
+.verdict-banner--nogo {
+    background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+    border-color: #FCA5A5;
+}
+.verdict-banner-emoji { font-size: 2rem; margin: 0; line-height: 1; }
+.verdict-banner-copy { flex: 1; }
+.verdict-banner-label {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 0.2rem;
+    color: var(--ps-text);
+    letter-spacing: 0.02em;
+}
+.verdict-banner-subtitle {
+    font-size: 0.88rem;
+    margin: 0;
+    color: var(--ps-muted);
+}
+.verdict-banner-score {
+    font-size: 2rem;
+    font-weight: 800;
+    margin: 0;
+    color: var(--ps-blue-deep);
+    line-height: 1;
+}
+.verdict-banner-score span { font-size: 0.95rem; color: var(--ps-muted); font-weight: 600; }
+.verdict-banner-context {
+    font-size: 0.82rem;
+    color: var(--ps-muted);
+    margin: 0 0 0.5rem;
+    font-style: italic;
+}
 .verdict-label {
     font-size: 1.35rem;
     font-weight: 700;
@@ -584,6 +633,17 @@ div[data-testid="stTextArea"] textarea:focus {
     background: #ECFDF5;
     color: #065F46;
     border: 1px solid #A7F3D0;
+}
+.lp-premium-pill {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 0.2rem 0.55rem;
+    border-radius: 999px;
+    background: #DBEAFE;
+    color: #1E40AF;
+    border: 1px solid #93C5FD;
 }
 .lp-section-num {
     font-size: 0.68rem;

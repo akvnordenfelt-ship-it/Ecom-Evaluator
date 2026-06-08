@@ -4,6 +4,7 @@ from ecom_evaluator.economics import (
     compute_economics_snapshot,
     compute_financial_summary,
     compute_scaling_matrix,
+    resolve_product_inputs,
 )
 
 
@@ -44,3 +45,18 @@ def test_financial_summary_break_even_cpa():
     )
     fin = compute_financial_summary(snap)
     assert fin.break_even_cpa >= 0
+
+
+def test_resolve_product_inputs_applies_baselines():
+    resolved = resolve_product_inputs(
+        purchase_price=2.0,
+        sales_price=0.0,
+        weight_kg=0.0,
+        length_cm=0.0,
+        width_cm=0.0,
+        height_cm=0.0,
+    )
+    assert resolved.used_physical_baseline
+    assert resolved.used_sales_price_estimate
+    assert resolved.sales_price == 6.0
+    assert resolved.weight_kg > 0

@@ -4,6 +4,8 @@ from __future__ import annotations
 
 from typing import Any
 
+from ecom_evaluator.scoring import compute_overall_score
+
 
 def _as_str(value: Any) -> str:
     if value is None:
@@ -41,18 +43,20 @@ def _ensure_text(value: Any, fallback: str) -> str:
 
 
 def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
+    """Sections 1–2 only. Overall score is computed in Python — never from the LLM."""
     data = dict(raw) if isinstance(raw, dict) else {}
 
-    metrics = [
-        _coerce_score(data.get("metric_market_saturation"), default=50),
-        _coerce_score(data.get("metric_marketing_velocity"), default=50),
-        _coerce_score(data.get("metric_logistics_margin"), default=50),
-        _coerce_score(data.get("metric_seasonality"), default=50),
-        _coerce_score(data.get("metric_brandability"), default=50),
-    ]
-    llm_overall = _coerce_score(data.get("overall_score"))
-    computed_overall = round(sum(metrics) / len(metrics))
-    overall = computed_overall
+    logistics = _coerce_score(data.get("metric_logistics_margin"), default=50)
+    saturation = _coerce_score(data.get("metric_market_saturation"), default=50)
+    velocity = _coerce_score(data.get("metric_marketing_velocity"), default=50)
+    brandability = _coerce_score(data.get("metric_brandability"), default=50)
+    seasonality = _coerce_score(data.get("metric_seasonality"), default=50)
+    logistics = 50 if logistics is None else logistics
+    saturation = 50 if saturation is None else saturation
+    velocity = 50 if velocity is None else velocity
+    brandability = 50 if brandability is None else brandability
+    seasonality = 50 if seasonality is None else seasonality
+    overall = compute_overall_score(logistics, saturation, velocity, brandability, seasonality)
 
     return {
         "overall_score": overall,
@@ -76,27 +80,27 @@ def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
             data.get("shipping_complexity"),
             "Shipping complexity should be validated against billable weight and carrier rules.",
         ),
-        "metric_market_saturation": metrics[0] or 50,
+        "metric_logistics_margin": logistics,
+        "metric_logistics_margin_note": _ensure_text(
+            data.get("metric_logistics_margin_note"),
+            "Lightweight, high-markup products score highest on logistics and margin.",
+        ),
+        "metric_market_saturation": saturation,
         "metric_market_saturation_note": _ensure_text(
             data.get("metric_market_saturation_note"),
             "Estimated from category knowledge — unlock Premium for live competitor data.",
         ),
-        "metric_marketing_velocity": metrics[1] or 50,
+        "metric_marketing_velocity": velocity,
         "metric_marketing_velocity_note": _ensure_text(
             data.get("metric_marketing_velocity_note"),
             "Organic viral potential vs paid viability based on product visual appeal.",
         ),
-        "metric_logistics_margin": metrics[2] or 50,
-        "metric_logistics_margin_note": _ensure_text(
-            data.get("metric_logistics_margin_note"),
-            "Lightweight, high-markup products score highest on logistics & margin.",
-        ),
-        "metric_seasonality": metrics[3] or 50,
+        "metric_seasonality": seasonality,
         "metric_seasonality_note": _ensure_text(
             data.get("metric_seasonality_note"),
             "Year-round demand scores higher than holiday-only spikes.",
         ),
-        "metric_brandability": metrics[4] or 50,
+        "metric_brandability": brandability,
         "metric_brandability_note": _ensure_text(
             data.get("metric_brandability_note"),
             "Long-term brand potential vs impulse-buy fad risk.",
@@ -112,6 +116,12 @@ def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
         "red_flag_1": _ensure_text(data.get("red_flag_1"), "Margin may not survive paid acquisition at scale."),
         "red_flag_2": _ensure_text(data.get("red_flag_2"), "Category competition could force price wars."),
         "red_flag_3": _ensure_text(data.get("red_flag_3"), "Shipping or sizing surprises can erode contribution margin."),
+    }
+
+
+def normalize_marketing_teaser_payload(raw: Any) -> dict[str, Any]:
+    data = dict(raw) if isinstance(raw, dict) else {}
+    return {
         "marketing_primary_channel": _ensure_text(
             data.get("marketing_primary_channel"),
             "TikTok Organic",

@@ -25,7 +25,7 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
         "icon": "📊",
         "accent": "#10B981",
         "accent_soft": "#ECFDF5",
-        "highlight": "Python-calculated ROI and scaling projections",
+        "highlight": "Python-calculated ROI, scaling matrix, and GO/NO-GO verdict",
     },
     "marketing_teaser": {
         "icon": "🎯",
@@ -70,13 +70,14 @@ def _section_header(kicker: str, title: str, lead: str | None = None) -> None:
     )
 
 
-def _section_card_html(section: ReportSection) -> str:
+def _section_card_html(section: ReportSection, *, badge: str = "Free") -> str:
     vis = SECTION_VISUALS[section.id]
+    badge_class = "lp-free-pill" if badge == "Free" else "lp-premium-pill"
     return (
         f'<div class="lp-section-card" style="--accent:{vis["accent"]};--accent-soft:{vis["accent_soft"]}">'
         f'<div class="lp-section-card-top">'
         f'<span class="lp-section-icon">{vis["icon"]}</span>'
-        f'<span class="lp-free-pill">Free</span>'
+        f'<span class="{badge_class}">{badge}</span>'
         f"</div>"
         f'<p class="lp-section-num">Section {section.number}</p>'
         f'<p class="lp-section-title">{section.title}</p>'
@@ -87,13 +88,11 @@ def _section_card_html(section: ReportSection) -> str:
 
 
 def _render_free_section_cards() -> None:
-    free_sections = REPORT_SECTIONS[:4]
-    for row in (free_sections[:2], free_sections[2:]):
-        col_left, col_right = st.columns(2)
-        with col_left:
-            st.markdown(_section_card_html(row[0]), unsafe_allow_html=True)
-        with col_right:
-            st.markdown(_section_card_html(row[1]), unsafe_allow_html=True)
+    free_sections = REPORT_SECTIONS[:3]
+    col1, col2, col3 = st.columns(3)
+    for col, section in zip((col1, col2, col3), free_sections, strict=True):
+        with col:
+            st.markdown(_section_card_html(section, badge="Free"), unsafe_allow_html=True)
 
 
 def _premium_pricing_html() -> str:
@@ -105,6 +104,7 @@ def _premium_pricing_html() -> str:
         f'<p class="lp-pricing-price">${premium.price_usd_monthly}<span>/mo</span></p>'
         "<p class=\"lp-pricing-blurb\">Unlock live market intelligence when you're ready to source and price-check competitors.</p>"
         '<ul class="lp-pricing-features">'
+        "<li>Section 4 — Marketing Viability Teaser</li>"
         "<li>Section 5 — Live web search and sourcing links</li>"
         "<li>Amazon and AliExpress competitor snapshots</li>"
         "<li>Actionable supplier URL matches</li>"
@@ -154,7 +154,7 @@ def render_landing_page() -> None:
                 </p>
                 <div class="lp-hero-badges">
                     <span class="lp-hero-badge">~30 sec analysis</span>
-                    <span class="lp-hero-badge">4 sections free</span>
+                    <span class="lp-hero-badge">3 sections free</span>
                     <span class="lp-hero-badge">Gemini 2.5 Flash</span>
                     <span class="lp-hero-badge">No credit card</span>
                 </div>
@@ -182,8 +182,8 @@ def render_landing_page() -> None:
             </div>
             <div class="lp-value-tile">
                 <span class="lp-value-icon">📋</span>
-                <p class="lp-value-title">4 sections included</p>
-                <p class="lp-value-desc">Profile, red flags, margin math, and marketing teaser</p>
+                <p class="lp-value-title">3 sections free</p>
+                <p class="lp-value-desc">Profile, red flags, and margin matrix with verdict</p>
             </div>
             <div class="lp-value-tile">
                 <span class="lp-value-icon">💳</span>
@@ -203,9 +203,9 @@ def render_landing_page() -> None:
     _page_divider("Free tier", band=True)
     _section_header(
         "What you get free",
-        "Four sections that show the ceiling — not the floor",
-        "We designed the free tier to feel premium. Real scores, real red flags, real math — "
-        "enough to decide if this product deserves your money.",
+        "Three sections that show the ceiling — not the floor",
+        "We designed the free tier to feel premium. Real scores, real red flags, real math, "
+        "and a Python-calculated verdict — enough to decide if this product deserves your money.",
     )
     _render_free_section_cards()
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
@@ -213,9 +213,9 @@ def render_landing_page() -> None:
     _page_divider("Paid tiers", band=True)
     _section_header(
         "When you're ready to execute",
-        "Unlock live intel and marketing firepower",
-        "Sections 5 and 6 are for operators who've validated the opportunity and need sourcing links, "
-        "competitor tracking, and ready-to-film ad scripts.",
+        "Unlock marketing intel, live search, and ad firepower",
+        "Sections 4–6 are for operators who've validated the opportunity and need channel fit, "
+        "sourcing links, competitor tracking, and ready-to-film ad scripts.",
     )
     prem_col, pro_col = st.columns(2)
     with prem_col:
@@ -294,9 +294,9 @@ def render_landing_page() -> None:
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td>Sections 1–4 (profile, risks, margin, teaser)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Gemini 2.5 Flash analysis</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Python margin and scaling matrix</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                    <tr><td>Sections 1–3 (profile, risks, margin + verdict)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                    <tr><td>Weighted 5-metric score (Python-calculated)</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+                    <tr><td>Marketing Viability Teaser (Section 4)</td><td>—</td><td>Yes</td><td>Yes</td></tr>
                     <tr><td>Live web search and sourcing (Section 5)</td><td>—</td><td>Yes</td><td>Yes</td></tr>
                     <tr><td>Marketing blueprint (Section 6)</td><td>—</td><td>—</td><td>Yes</td></tr>
                     <tr><td>Evaluations / month</td><td>1</td><td>20</td><td>100</td></tr>
@@ -318,8 +318,8 @@ def render_landing_page() -> None:
         )
     with st.expander("What makes the free report 'ceiling quality'?"):
         st.markdown(
-            "Sections 1–4 use the same structured scoring framework as paid tiers: an overall gauge, "
-            "five weighted metrics, Shark Tank red flags, and a full Python-calculated scaling matrix. "
+            "Sections 1–3 use the same structured scoring framework as paid tiers: a weighted overall gauge, "
+            "five core metrics, Shark Tank red flags, and a full Python-calculated scaling matrix with verdict. "
             "You're not getting a dumbed-down teaser — you're getting the decision layer."
         )
     with st.expander("When should I upgrade to Pro?"):
