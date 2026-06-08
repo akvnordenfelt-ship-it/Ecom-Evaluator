@@ -78,4 +78,6 @@ def remaining_analyses(state: RateLimitState, config: RateLimitConfig | None = N
 def rate_limit_status_message(state: RateLimitState, config: RateLimitConfig | None = None) -> str:
     config = config or load_rate_limit_config()
     remaining = remaining_analyses(state, config)
+    if config.max_per_session <= 1:
+        return "1 free evaluation left" if remaining >= 1 else "Free evaluation used this session"
     return f"{remaining} of {config.max_per_session} free evaluations left this session"

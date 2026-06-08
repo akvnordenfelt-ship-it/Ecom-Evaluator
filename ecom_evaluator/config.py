@@ -22,8 +22,8 @@ WEB_SEARCH_QUERY_DELAY_SECONDS = 1.0
 WEB_SEARCH_PROMPT_MAX_HITS = 14
 WEB_SEARCH_PROMPT_SNIPPET_CHARS = 400
 
-# Shared hosting: keep free-tier API usage under control
-MAX_ANALYSES_PER_SESSION = 3
+# Shared hosting: keep free-tier API usage under control (aligned with DEFAULT_FREE_EVALUATIONS)
+MAX_ANALYSES_PER_SESSION = 1
 ANALYSIS_COOLDOWN_SECONDS = 45
 
 # SaaS free tier (per browser session)

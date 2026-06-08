@@ -49,6 +49,12 @@ def test_remaining_analyses():
     assert remaining_analyses(state, RateLimitConfig(max_per_session=3)) == 1
 
 
+def test_rate_limit_status_message_single_eval():
+    state = RateLimitState(count=0)
+    msg = rate_limit_status_message(state, RateLimitConfig(max_per_session=1))
+    assert msg == "1 free evaluation left"
+
+
 def test_rate_limit_status_message():
     state = RateLimitState(count=1)
     msg = rate_limit_status_message(state, RateLimitConfig(max_per_session=3))

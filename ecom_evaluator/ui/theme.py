@@ -934,7 +934,226 @@ div[data-testid="stTextArea"] textarea:focus {
     margin: 1.5rem 0 2rem;
 }
 
-/* Tool intro (replaces in-tool hero) */
+/* Tool workspace (evaluation form) */
+.tool-workspace-hero {
+    background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    border-radius: 18px;
+    padding: 2rem 2.1rem 1.85rem;
+    color: #F8FAFC;
+    margin-bottom: 1.75rem;
+    box-shadow: 0 20px 50px rgba(30, 64, 175, 0.22);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    overflow: hidden;
+}
+.tool-workspace-hero::before {
+    content: "";
+    position: absolute;
+    top: -35%;
+    right: -10%;
+    width: 320px;
+    height: 320px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+    pointer-events: none;
+}
+.tool-workspace-kicker {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #BFDBFE;
+    margin: 0 0 0.5rem;
+    position: relative;
+}
+.tool-workspace-title {
+    font-size: clamp(1.45rem, 3vw, 1.85rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    margin: 0 0 0.55rem;
+    line-height: 1.15;
+    position: relative;
+}
+.tool-workspace-copy {
+    font-size: 0.92rem;
+    color: #CBD5E1;
+    margin: 0;
+    max-width: 640px;
+    line-height: 1.6;
+    position: relative;
+}
+.tool-workspace-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.45rem;
+    margin-top: 1rem;
+    position: relative;
+}
+.tool-workspace-badge {
+    display: inline-block;
+    padding: 0.28rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.16);
+    color: #E2E8F0;
+}
+.tool-workspace-compact {
+    background: linear-gradient(135deg, #EFF6FF 0%, #F8FAFC 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 14px;
+    padding: 1rem 1.15rem;
+    margin-bottom: 1.25rem;
+}
+.tool-workspace-compact-title {
+    font-size: 1rem;
+    font-weight: 700;
+    margin: 0 0 0.25rem;
+    color: var(--ps-text);
+}
+.tool-workspace-compact-copy {
+    font-size: 0.84rem;
+    color: var(--ps-muted);
+    margin: 0;
+}
+.form-section-header {
+    margin: 1.35rem 0 0.75rem;
+}
+.form-section-header:first-of-type { margin-top: 0; }
+.form-section-badge {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    margin-bottom: 0.45rem;
+}
+.form-section-badge--required {
+    background: #DBEAFE;
+    color: #1E40AF;
+    border: 1px solid #93C5FD;
+}
+.form-section-badge--optional {
+    background: #F1F5F9;
+    color: #475569;
+    border: 1px solid #CBD5E1;
+}
+.form-section-title {
+    font-size: 1.08rem;
+    font-weight: 700;
+    color: var(--ps-text);
+    margin: 0 0 0.25rem;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+}
+.form-section-subtitle {
+    font-size: 0.84rem;
+    color: var(--ps-muted);
+    margin: 0;
+    line-height: 1.45;
+}
+.form-subsection-label {
+    font-size: 0.78rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #64748B;
+    margin: 0.75rem 0 0.35rem;
+}
+.form-field-hint {
+    font-size: 0.78rem;
+    color: var(--ps-muted);
+    margin: 0.35rem 0 0.5rem;
+    line-height: 1.45;
+}
+.form-action-intro {
+    background: linear-gradient(160deg, #EFF6FF 0%, #FFFFFF 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 14px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 0.85rem;
+}
+.form-action-kicker {
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ps-blue);
+    margin: 0 0 0.25rem;
+}
+.form-action-title {
+    font-size: 1.05rem;
+    font-weight: 800;
+    margin: 0 0 0.25rem;
+    color: var(--ps-text);
+}
+.form-action-copy {
+    font-size: 0.82rem;
+    color: var(--ps-muted);
+    margin: 0;
+    line-height: 1.45;
+}
+.readiness-card--premium {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 14px;
+    padding: 1rem 1.05rem;
+    box-shadow: var(--ps-shadow);
+    margin-bottom: 1rem;
+}
+.readiness-quota {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0.85rem;
+    padding-top: 0.75rem;
+    border-top: 1px dashed #CBD5E1;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--ps-blue-deep);
+}
+.readiness-quota-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 999px;
+    background: var(--ps-blue);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15);
+}
+.form-run-footnote {
+    text-align: center;
+    font-size: 0.76rem;
+    color: var(--ps-muted);
+    margin: 0.65rem 0 0;
+    line-height: 1.4;
+}
+div[data-testid="stExpander"] {
+    background: var(--ps-surface) !important;
+    border: 1px solid var(--ps-border) !important;
+    border-radius: 14px !important;
+    box-shadow: var(--ps-shadow) !important;
+    overflow: hidden;
+}
+div[data-testid="stExpander"] details summary {
+    font-weight: 700 !important;
+    font-size: 0.88rem !important;
+    color: var(--ps-text) !important;
+    padding: 0.85rem 1rem !important;
+    background: linear-gradient(180deg, #FAFBFC 0%, #FFFFFF 100%) !important;
+}
+div[data-testid="stExpander"] details summary:hover {
+    color: var(--ps-blue-deep) !important;
+}
+div[data-testid="stExpander"] details[open] > summary {
+    border-bottom: 1px solid var(--ps-border) !important;
+}
+.form-workspace-marker + div[data-testid="stHorizontalBlock"] div[data-testid="stVerticalBlockBorderWrapper"] {
+    border-top: 4px solid var(--ps-blue) !important;
+}
+
+/* Tool intro (legacy) */
 .tool-intro { margin-bottom: 1.25rem; }
 .tool-intro-kicker {
     font-size: 0.72rem;
@@ -949,6 +1168,11 @@ div[data-testid="stTextArea"] textarea:focus {
     font-weight: 700;
     color: var(--ps-text);
     margin: 0.25rem 0 0;
+}
+.tool-intro-copy {
+    font-size: 0.88rem;
+    color: var(--ps-muted);
+    margin: 0.35rem 0 0;
 }
 
 /* Paywall */
@@ -1303,5 +1527,36 @@ def form_step_header(step: str, icon: str, title: str) -> str:
         f'<div class="form-card-header">'
         f'<span class="step-pill">{step}</span>'
         f'<p class="form-card-title"><span>{icon}</span> {html.escape(title)}</p>'
+        f"</div>"
+    )
+
+
+def tool_workspace_hero(*, kicker: str, title: str, copy: str) -> str:
+    return (
+        f'<div class="tool-workspace-hero">'
+        f'<p class="tool-workspace-kicker">{html.escape(kicker)}</p>'
+        f'<p class="tool-workspace-title">{html.escape(title)}</p>'
+        f'<p class="tool-workspace-copy">{html.escape(copy)}</p>'
+        f'<div class="tool-workspace-badges">'
+        f'<span class="tool-workspace-badge">Gemini 2.5 Flash</span>'
+        f'<span class="tool-workspace-badge">3 sections free</span>'
+        f'<span class="tool-workspace-badge">~30 sec analysis</span>'
+        f"</div></div>"
+    )
+
+
+def form_section_header(
+    *,
+    badge: str,
+    badge_class: str,
+    icon: str,
+    title: str,
+    subtitle: str,
+) -> str:
+    return (
+        f'<div class="form-section-header">'
+        f'<span class="form-section-badge {badge_class}">{html.escape(badge)}</span>'
+        f'<p class="form-section-title"><span>{icon}</span> {html.escape(title)}</p>'
+        f'<p class="form-section-subtitle">{html.escape(subtitle)}</p>'
         f"</div>"
     )

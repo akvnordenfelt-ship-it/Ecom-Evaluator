@@ -8,14 +8,14 @@ import streamlit as st
 
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.paywall import render_paywall_card
-from ecom_evaluator.ui.session import has_remaining_quota, rate_limit_banner_text, shared_rate_limit_applies
+from ecom_evaluator.rate_limit import load_rate_limit_config, remaining_analyses
+from ecom_evaluator.ui.session import get_rate_limit_state, has_remaining_quota, shared_rate_limit_applies
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_LANDING,
     evaluations_status_label,
     show_paywall,
-    user_can_run,
 )
-from ecom_evaluator.ui.theme import form_step_header
+from ecom_evaluator.ui.theme import form_section_header, tool_workspace_hero
 
 
 def render_app_header(*, hide_api_status: bool = False) -> None:
@@ -58,31 +58,42 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
                 st.rerun()
 
 
+def _evaluation_quota_label(data: dict) -> str:
+    left = int(st.session_state.get("evaluations_left", 0))
+    if shared_rate_limit_applies(data):
+        remaining = remaining_analyses(get_rate_limit_state(), load_rate_limit_config())
+        left = min(left, remaining)
+    if left == 1:
+        return "1 free evaluation left"
+    if left > 1:
+        return f"{left} free evaluations left"
+    return "No free evaluations remaining"
+
+
 def render_readiness_panel(data: dict) -> None:
     api_ok = bool(resolve_api_key(data["api_key"]))
-    saas_ok = user_can_run()
     checks = [
-        (saas_ok, evaluations_status_label()),
-        (bool(data["product_name"].strip()), "Product name"),
-        (data["purchase_price"] > 0, "Purchase price"),
+        (bool(data["product_name"].strip()), "Product name entered"),
+        (data["purchase_price"] > 0, "Purchase price set"),
     ]
     if not has_shared_api_key():
         checks.insert(0, (api_ok, "API connected"))
-    if shared_rate_limit_applies(data):
-        quota_ok = has_remaining_quota(data)
-        checks.append((quota_ok, "Server quota"))
     done = sum(1 for ok, _ in checks if ok)
     rows_html = "".join(
         f'<div class="check-row check-row--{"done" if ok else "pending"}">'
         f'<span class="check-dot"></span>{html.escape(label)}</div>'
         for ok, label in checks
     )
+    quota_label = _evaluation_quota_label(data)
     st.markdown(
-        f'<div class="readiness-card">'
+        f'<div class="readiness-card readiness-card--premium">'
         f'<div class="readiness-header">'
-        f'<span class="readiness-label">Readiness</span>'
+        f'<span class="readiness-label">Launch checklist</span>'
         f'<span class="readiness-score">{done}/{len(checks)}</span>'
-        f"</div>{rows_html}</div>",
+        f"</div>{rows_html}"
+        f'<div class="readiness-quota"><span class="readiness-quota-dot"></span>'
+        f"{html.escape(quota_label)}</div>"
+        f"</div>",
         unsafe_allow_html=True,
     )
 
@@ -92,24 +103,41 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
     api_key = st.session_state.get("settings_api_key", "")
 
     if compact:
-        st.caption("Change any field and run a new evaluation to refresh the report.")
-    else:
         st.markdown(
             """
-            <div class="tool-intro">
-                <p class="tool-intro-kicker">Your workspace</p>
-                <p class="tool-intro-title">Enter your product name and cost to start</p>
-                <p class="tool-intro-copy">Only two fields are required. Add advanced details to sharpen accuracy.</p>
+            <div class="tool-workspace-compact">
+                <p class="tool-workspace-compact-title">Update your product inputs</p>
+                <p class="tool-workspace-compact-copy">Change any field and run again to refresh your report.</p>
             </div>
             """,
             unsafe_allow_html=True,
         )
+    else:
+        st.markdown(
+            tool_workspace_hero(
+                kicker="Your workspace",
+                title="Evaluate your product in ~30 seconds",
+                copy="Enter your product name and purchase cost to unlock the evaluation. "
+                "Add advanced details anytime to sharpen accuracy.",
+            ),
+            unsafe_allow_html=True,
+        )
 
-    left, right = st.columns([1.45, 1], gap="large")
+    st.markdown('<div class="form-workspace-marker"></div>', unsafe_allow_html=True)
+    left, right = st.columns([1.55, 1], gap="large")
 
     with left:
+        st.markdown(
+            form_section_header(
+                badge="Required",
+                badge_class="form-section-badge--required",
+                icon="✅",
+                title="Minimum inputs",
+                subtitle="Only product name and purchase price are needed to run your free evaluation.",
+            ),
+            unsafe_allow_html=True,
+        )
         with st.container(border=True):
-            st.markdown(form_step_header("Required", "✅", "Minimum inputs"), unsafe_allow_html=True)
             product_name = st.text_input(
                 "Product name *",
                 placeholder="e.g. Wireless earbud cleaning kit",
@@ -123,7 +151,17 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 key="form_purchase_price",
             )
 
-        with st.expander("⚙️ Advanced Profile Options (Improves accuracy)", expanded=False):
+        st.markdown(
+            form_section_header(
+                badge="Optional",
+                badge_class="form-section-badge--optional",
+                icon="⚙️",
+                title="Advanced profile options",
+                subtitle="Improves scoring accuracy for profile, risks, and margin math.",
+            ),
+            unsafe_allow_html=True,
+        )
+        with st.expander("Open advanced fields", expanded=False):
             description = st.text_area(
                 "Description & target audience",
                 height=120,
@@ -146,7 +184,10 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                     f'({margin_pct:.1f}% of selling price)</div>',
                     unsafe_allow_html=True,
                 )
-            st.markdown("**Shipping profile**")
+            st.markdown(
+                '<p class="form-subsection-label">Shipping profile</p>',
+                unsafe_allow_html=True,
+            )
             weight_kg = st.number_input(
                 "Weight (kg)", min_value=0.0, step=0.01, format="%.3f", key="form_weight_kg"
             )
@@ -157,7 +198,11 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 width_cm = st.number_input("Width (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_width")
             with dim_cols[2]:
                 height_cm = st.number_input("Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height")
-            st.caption("Leave weight/dimensions at 0 to use a lightweight package baseline (0.15 kg, 15×10×5 cm).")
+            st.markdown(
+                '<p class="form-field-hint">Leave weight/dimensions at 0 to use a lightweight package baseline '
+                "(0.15 kg, 15×10×5 cm).</p>",
+                unsafe_allow_html=True,
+            )
             uploaded_file = st.file_uploader(
                 "Product image (PNG or JPG)",
                 type=["png", "jpg", "jpeg"],
@@ -167,17 +212,22 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 st.image(uploaded_file, use_container_width=True)
 
     with right:
+        st.markdown(
+            """
+            <div class="form-action-intro">
+                <p class="form-action-kicker">Launch pad</p>
+                <p class="form-action-title">Ready when you are</p>
+                <p class="form-action-copy">Complete the checklist, then run your Shark Tank-grade evaluation.</p>
+            </div>
+            """,
+            unsafe_allow_html=True,
+        )
         form_snapshot = {
             "api_key": api_key,
             "product_name": product_name,
             "purchase_price": purchase_price,
         }
         render_readiness_panel(form_snapshot)
-
-        if shared_rate_limit_applies(form_snapshot):
-            banner = rate_limit_banner_text(form_snapshot)
-            if banner:
-                st.caption(banner)
 
         running = st.session_state.get("analysis_running", False)
         paywall_active = show_paywall()
@@ -189,11 +239,19 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             run_analysis = False
         else:
             run_analysis = st.button(
-                "Run evaluation",
+                "Run evaluation →",
                 type="primary",
                 use_container_width=True,
                 disabled=blocked,
                 key="form_run_analysis",
+            )
+            st.markdown(
+                """
+                <p class="form-run-footnote">
+                    Free tier · Gemini 2.5 Flash · Sections 1–3 unlocked instantly
+                </p>
+                """,
+                unsafe_allow_html=True,
             )
             if quota_blocked:
                 st.warning("Server quota reached. Try again later or upgrade to Premium.")
