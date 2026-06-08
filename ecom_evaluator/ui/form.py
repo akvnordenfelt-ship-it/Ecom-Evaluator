@@ -14,6 +14,7 @@ from ecom_evaluator.ui.subscription import (
     APP_VIEW_LANDING,
     evaluations_status_label,
     show_paywall,
+    user_can_run,
 )
 from ecom_evaluator.ui.theme import form_section_header, tool_workspace_hero
 
