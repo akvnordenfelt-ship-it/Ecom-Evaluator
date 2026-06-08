@@ -101,6 +101,41 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .brand-tagline { font-size: 0.82rem; color: var(--ps-muted); margin: 0; }
 
+/* Site navigation */
+.site-nav-divider {
+    height: 1px;
+    background: var(--ps-border);
+    margin: 0.35rem 0 1.25rem;
+}
+.site-nav-meta {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 1rem;
+    flex-wrap: wrap;
+    margin: 0.15rem 0 0.35rem;
+}
+.site-nav-user {
+    font-size: 0.78rem;
+    color: var(--ps-muted);
+    margin: 0;
+}
+.site-nav-quota {
+    margin: 0 !important;
+    font-size: 0.78rem;
+}
+div[data-testid="stHorizontalBlock"]:has(button[kind="tertiary"]) button[kind="tertiary"] {
+    font-weight: 800 !important;
+    font-size: 1.05rem !important;
+    color: var(--ps-text) !important;
+    padding-left: 0 !important;
+}
+.auth-card--standalone {
+    max-width: 520px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* Hero banner */
 .hero-block {
     background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);

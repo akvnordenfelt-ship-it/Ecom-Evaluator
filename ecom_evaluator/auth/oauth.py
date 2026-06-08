@@ -8,7 +8,7 @@ import streamlit.components.v1 as components
 from ecom_evaluator.auth.providers.base import get_auth_settings
 from ecom_evaluator.auth.session import set_auth_error, set_auth_user
 from ecom_evaluator.exceptions import AnalysisError
-from ecom_evaluator.ui.subscription import enter_tool_view
+from ecom_evaluator.ui.subscription import complete_post_auth_navigation
 
 _OAUTH_QUERY_KEYS = (
     "code",
@@ -107,7 +107,7 @@ def handle_oauth_callback() -> bool:
             )
             set_auth_user(user)
             _clear_oauth_query_params()
-            enter_tool_view()
+            complete_post_auth_navigation()
             return True
         except AnalysisError as exc:
             set_auth_error(str(exc))
@@ -121,7 +121,7 @@ def handle_oauth_callback() -> bool:
             user = provider.complete_oauth_code(code=code)
             set_auth_user(user)
             _clear_oauth_query_params()
-            enter_tool_view()
+            complete_post_auth_navigation()
             return True
         except AnalysisError as exc:
             set_auth_error(str(exc))

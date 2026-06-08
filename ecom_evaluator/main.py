@@ -12,11 +12,12 @@ from ecom_evaluator.economics import resolve_product_inputs
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.gemini_client import run_product_evaluation
 from ecom_evaluator.plans import get_plan_config
-from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
-from ecom_evaluator.ui.auth_screen import render_auth_gate
+from ecom_evaluator.settings import resolve_api_key
+from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.dashboard import render_dashboard
-from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
+from ecom_evaluator.ui.form import render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
+from ecom_evaluator.ui.navbar import render_site_navbar
 from ecom_evaluator.ui.session import (
     clear_analysis_error,
     friendly_analysis_error,
@@ -27,6 +28,7 @@ from ecom_evaluator.ui.session import (
     validate_inputs,
 )
 from ecom_evaluator.ui.subscription import (
+    APP_VIEW_AUTH,
     APP_VIEW_TOOL,
     get_subscription_tier,
     is_tool_view,
@@ -140,12 +142,17 @@ def main() -> None:
     if handle_oauth_callback():
         st.rerun()
 
+    render_site_navbar()
+
     if auth_is_required() and not is_authenticated():
-        render_auth_gate()
+        view = st.session_state.get("app_view", "landing")
+        if view == APP_VIEW_AUTH:
+            render_auth_screen()
+        else:
+            render_landing_page()
         return
 
     sync_user_evaluation_quota()
-    render_app_header(hide_api_status=has_shared_api_key())
 
     if not is_tool_view():
         render_landing_page()

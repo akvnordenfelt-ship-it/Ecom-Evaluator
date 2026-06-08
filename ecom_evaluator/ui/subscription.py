@@ -9,6 +9,7 @@ from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT, PAID_TIERS_ENABL
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, coerce_plan_tier, get_plan_config, plan_has_unlimited_evaluations
 
 APP_VIEW_LANDING = "landing"
+APP_VIEW_AUTH = "auth"
 APP_VIEW_TOOL = "tool"
 
 
@@ -62,6 +63,39 @@ def init_subscription_state() -> None:
 
 def enter_tool_view() -> None:
     st.session_state["app_view"] = APP_VIEW_TOOL
+
+
+def go_to_landing(*, anchor: str | None = None) -> None:
+    st.session_state["app_view"] = APP_VIEW_LANDING
+    if anchor:
+        st.session_state["landing_anchor"] = anchor
+    st.rerun()
+
+
+def open_auth_screen(*, mode: str = "login", intent: str | None = None) -> None:
+    st.session_state["app_view"] = APP_VIEW_AUTH
+    st.session_state["auth_mode"] = mode
+    if intent:
+        st.session_state["auth_intent"] = intent
+    st.rerun()
+
+
+def request_free_evaluation() -> None:
+    from ecom_evaluator.auth.session import auth_is_required, is_authenticated
+
+    if auth_is_required() and not is_authenticated():
+        open_auth_screen(mode="login", intent="evaluate")
+        return
+    enter_tool_view()
+    st.rerun()
+
+
+def complete_post_auth_navigation() -> None:
+    intent = st.session_state.pop("auth_intent", None)
+    if intent == "evaluate":
+        enter_tool_view()
+    else:
+        st.session_state["app_view"] = APP_VIEW_LANDING
 
 
 def is_tool_view() -> bool:

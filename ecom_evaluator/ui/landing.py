@@ -3,11 +3,12 @@
 from __future__ import annotations
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
-from ecom_evaluator.ui.subscription import enter_tool_view
+from ecom_evaluator.ui.subscription import enter_tool_view, request_free_evaluation
 
 SECTION_VISUALS: dict[str, dict[str, str]] = {
     "product_profile": {
@@ -183,6 +184,27 @@ def render_landing_at_a_glance() -> None:
     )
 
 
+def _scroll_to_anchor_if_needed() -> None:
+    anchor = st.session_state.pop("landing_anchor", None)
+    if not anchor:
+        return
+    components.html(
+        f"""
+        <script>
+        (function () {{
+            const doc = window.parent.document;
+            const el = doc.getElementById("section-{anchor}");
+            if (el) {{
+                el.scrollIntoView({{ behavior: "smooth", block: "start" }});
+            }}
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def render_landing_body() -> None:
     _page_divider("Free tier", band=True)
     _section_header(
@@ -194,6 +216,7 @@ def render_landing_body() -> None:
     _render_free_section_cards()
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
+    st.markdown('<div id="section-pricing"></div>', unsafe_allow_html=True)
     _page_divider("Premium", band=True)
     _section_header(
         "Unlock the full report",
@@ -291,6 +314,7 @@ def render_landing_body() -> None:
     )
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
+    st.markdown('<div id="section-resources"></div>', unsafe_allow_html=True)
     _page_divider("FAQ", band=True)
     with st.expander("Why no web search on the free tier?"):
         st.markdown(
@@ -327,8 +351,7 @@ def render_landing_final_cta(*, show_buttons: bool = True) -> None:
         _, bottom_cta, _ = st.columns([1, 1.4, 1])
         with bottom_cta:
             if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
-                enter_tool_view()
-                st.rerun()
+                request_free_evaluation()
 
 
 def render_landing_footnote() -> None:
@@ -344,10 +367,10 @@ def render_landing_page() -> None:
     _, hero_cta, _ = st.columns([1, 1.4, 1])
     with hero_cta:
         if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
-            enter_tool_view()
-            st.rerun()
+            request_free_evaluation()
 
     render_landing_at_a_glance()
     render_landing_body()
     render_landing_final_cta()
     render_landing_footnote()
+    _scroll_to_anchor_if_needed()
