@@ -960,6 +960,54 @@ div[data-testid="stTextArea"] textarea:focus {
 }
 
 /* Tool workspace (evaluation form) */
+.auth-card {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    border: 1px solid #BFDBFE;
+    border-radius: 16px;
+    padding: 1.25rem 1.35rem;
+    margin: 1.5rem 0 1rem;
+    box-shadow: var(--ps-shadow);
+}
+.auth-card-kicker {
+    font-size: 0.65rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ps-blue);
+    margin: 0 0 0.35rem;
+}
+.auth-card-title {
+    font-size: 1.15rem;
+    font-weight: 800;
+    margin: 0 0 0.35rem;
+    color: var(--ps-text);
+}
+.auth-card-copy {
+    font-size: 0.88rem;
+    color: var(--ps-muted);
+    margin: 0;
+    line-height: 1.5;
+}
+.auth-gate-panel { margin-bottom: 1rem; }
+.auth-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin: 1.25rem 0 1rem;
+    color: var(--ps-muted);
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+.auth-divider::before,
+.auth-divider::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #E2E8F0;
+}
+.auth-divider span { white-space: nowrap; }
 .tool-workspace-hero {
     background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
     border-radius: 18px;

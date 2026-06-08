@@ -6,11 +6,14 @@ from datetime import datetime, timezone
 
 import streamlit as st
 
+from ecom_evaluator.auth.oauth import handle_oauth_callback, install_oauth_callback_bridge
+from ecom_evaluator.auth.session import auth_is_required, is_authenticated, sync_user_evaluation_quota
 from ecom_evaluator.economics import resolve_product_inputs
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.gemini_client import run_product_evaluation
 from ecom_evaluator.plans import get_plan_config
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
+from ecom_evaluator.ui.auth_screen import render_auth_gate
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_app_header, render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
@@ -132,6 +135,16 @@ def main() -> None:
 
     init_session_state()
     inject_custom_css(saas_mode=True)
+
+    install_oauth_callback_bridge()
+    if handle_oauth_callback():
+        st.rerun()
+
+    if auth_is_required() and not is_authenticated():
+        render_auth_gate()
+        return
+
+    sync_user_evaluation_quota()
     render_app_header(hide_api_status=has_shared_api_key())
 
     if not is_tool_view():

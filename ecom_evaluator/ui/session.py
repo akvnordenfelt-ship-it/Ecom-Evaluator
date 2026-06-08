@@ -16,6 +16,7 @@ from ecom_evaluator.rate_limit import (
     remaining_analyses,
 )
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key, uses_shared_api_key
+from ecom_evaluator.auth.session import init_auth_state
 from ecom_evaluator.ui.subscription import init_subscription_state, show_paywall
 
 
@@ -33,6 +34,7 @@ def init_session_state() -> None:
         if key not in st.session_state:
             st.session_state[key] = value
     init_subscription_state()
+    init_auth_state()
 
 
 def get_rate_limit_state() -> RateLimitState:
@@ -106,7 +108,7 @@ def validate_inputs(data: dict) -> list[str]:
 
     if show_paywall():
         errors.append(
-            "Your free evaluation has been used. Upgrade to Premium for unlimited scans."
+            "Your free evaluations are used for this account. Upgrade to Premium for unlimited runs."
         )
 
     return errors

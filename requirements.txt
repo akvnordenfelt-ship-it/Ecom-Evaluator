@@ -6,3 +6,7 @@ pandas>=2.0.0
 python-dotenv>=1.0.0
 duckduckgo-search>=6.0.0
 ddgs>=9.0.0
+
+# Optional auth backends (install when switching providers):
+# supabase>=2.0.0
+# streamlit-authenticator>=0.3.0

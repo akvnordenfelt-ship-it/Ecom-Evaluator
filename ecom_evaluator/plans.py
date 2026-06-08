@@ -5,7 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from ecom_evaluator.config import GEMINI_MODEL, GEMINI_PRO_MODEL
+from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT, GEMINI_MODEL, GEMINI_PRO_MODEL
 
 UNLIMITED_EVALUATIONS = 999_999
 
@@ -37,7 +37,7 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         tier=PlanTier.FREE,
         label="Free",
         price_usd_monthly=0,
-        monthly_evaluations=1,
+        monthly_evaluations=FREE_EVALUATIONS_PER_ACCOUNT,
         ai_model_label="Fast product analysis",
         gemini_model=GEMINI_MODEL,
         gemini_pro_model=GEMINI_PRO_MODEL,

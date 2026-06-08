@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
+from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
 from ecom_evaluator.ui.subscription import enter_tool_view
@@ -158,7 +159,7 @@ def render_landing_page() -> None:
     _page_divider("At a glance")
 
     st.markdown(
-        """
+        f"""
         <div class="lp-value-grid">
             <div class="lp-value-tile">
                 <span class="lp-value-icon">⚡</span>
@@ -173,7 +174,7 @@ def render_landing_page() -> None:
             <div class="lp-value-tile">
                 <span class="lp-value-icon">💳</span>
                 <p class="lp-value-title">$0 to start</p>
-                <p class="lp-value-desc">One free evaluation — no credit card required</p>
+                <p class="lp-value-desc">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations per account — no credit card required</p>
             </div>
             <div class="lp-value-tile">
                 <span class="lp-value-icon">📊</span>
@@ -265,7 +266,7 @@ def render_landing_page() -> None:
     _page_divider("Plans", band=True)
     _section_header("Compare plans", "Free preview vs Premium full stack")
     st.markdown(
-        """
+        f"""
         <div class="lp-compare-wrap">
             <table class="lp-compare-table">
                 <thead>
@@ -282,7 +283,7 @@ def render_landing_page() -> None:
                     <tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>
                     <tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>
                     <tr><td>5× video script engine (Section 6)</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>Evaluations</td><td>1 free</td><td>Unlimited</td></tr>
+                    <tr><td>Evaluations</td><td>{FREE_EVALUATIONS_PER_ACCOUNT} free / account</td><td>Unlimited</td></tr>
                     <tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>
                 </tbody>
             </table>
@@ -312,10 +313,10 @@ def render_landing_page() -> None:
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
     st.markdown(
-        """
+        f"""
         <div class="lp-final-cta">
             <p class="lp-final-kicker">Ready to evaluate?</p>
-            <h2 class="lp-final-title">Your first evaluation is free — no credit card required</h2>
+            <h2 class="lp-final-title">Your first {FREE_EVALUATIONS_PER_ACCOUNT} evaluations are free — no credit card required</h2>
             <p class="lp-final-lead">Upload a product image, enter your numbers, and get your score in about 30 seconds.</p>
         </div>
         """,

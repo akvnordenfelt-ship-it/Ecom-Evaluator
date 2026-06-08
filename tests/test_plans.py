@@ -1,5 +1,6 @@
 """Tests for subscription plan configuration."""
 
+from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, UNLIMITED_EVALUATIONS, coerce_plan_tier, get_plan_config, plan_has_unlimited_evaluations
 
 
@@ -10,7 +11,7 @@ def test_plan_pricing_and_quotas():
 
 def test_free_plan_has_no_premium_features():
     free = PLAN_CONFIG[PlanTier.FREE]
-    assert free.monthly_evaluations == 1
+    assert free.monthly_evaluations == FREE_EVALUATIONS_PER_ACCOUNT
     assert not free.runs_web_search
     assert not free.runs_marketing_teaser
     assert not free.runs_marketing_deep_dive

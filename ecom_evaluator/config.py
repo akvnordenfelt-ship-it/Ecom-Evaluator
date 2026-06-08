@@ -22,12 +22,18 @@ WEB_SEARCH_QUERY_DELAY_SECONDS = 1.0
 WEB_SEARCH_PROMPT_MAX_HITS = 14
 WEB_SEARCH_PROMPT_SNIPPET_CHARS = 400
 
-# Shared hosting: keep free-tier API usage under control (aligned with DEFAULT_FREE_EVALUATIONS)
-MAX_ANALYSES_PER_SESSION = 1
+# Shared hosting: secondary guardrail (aligned with FREE_EVALUATIONS_PER_ACCOUNT)
+MAX_ANALYSES_PER_SESSION = int(os.getenv("MAX_ANALYSES_PER_SESSION", "3"))
 ANALYSIS_COOLDOWN_SECONDS = 45
 
-# SaaS free tier (per browser session)
-DEFAULT_FREE_EVALUATIONS = 1
+# SaaS free tier (per authenticated account)
+FREE_EVALUATIONS_PER_ACCOUNT = int(os.getenv("FREE_EVALUATIONS_PER_ACCOUNT", "3"))
+DEFAULT_FREE_EVALUATIONS = FREE_EVALUATIONS_PER_ACCOUNT
+
+# Authentication
+AUTH_REQUIRED = os.getenv("AUTH_REQUIRED", "true").lower() in ("1", "true", "yes", "on")
+AUTH_PROVIDER = os.getenv("AUTH_PROVIDER", "dev").strip().lower()
+QUOTA_STORE_PATH = PROJECT_ROOT / ".data" / "user_quota.json"
 
 # Set to true when Premium/Pro billing is ready (locked sections always shown for free users)
 PAID_TIERS_ENABLED = os.getenv("PAID_TIERS_ENABLED", "true").lower() in ("1", "true", "yes")

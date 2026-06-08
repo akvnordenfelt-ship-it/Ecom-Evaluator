@@ -4,7 +4,8 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ecom_evaluator.config import DEFAULT_FREE_EVALUATIONS, PAID_TIERS_ENABLED, STRIPE_PREMIUM_CHECKOUT_URL
+from ecom_evaluator.auth.session import init_auth_state, persist_evaluation_consumed, sync_user_evaluation_quota
+from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT, PAID_TIERS_ENABLED, STRIPE_PREMIUM_CHECKOUT_URL
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, coerce_plan_tier, get_plan_config, plan_has_unlimited_evaluations
 
 APP_VIEW_LANDING = "landing"
@@ -39,7 +40,7 @@ def init_subscription_state() -> None:
     defaults = {
         "app_view": APP_VIEW_LANDING,
         "subscription_tier": PlanTier.FREE.value,
-        "evaluations_left": DEFAULT_FREE_EVALUATIONS,
+        "evaluations_left": FREE_EVALUATIONS_PER_ACCOUNT,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -55,6 +56,8 @@ def init_subscription_state() -> None:
 
     if st.session_state.get("analysis_result") is not None:
         st.session_state["app_view"] = APP_VIEW_TOOL
+
+    sync_user_evaluation_quota()
 
 
 def enter_tool_view() -> None:
@@ -78,10 +81,7 @@ def show_paywall() -> bool:
 
 
 def mark_evaluation_consumed() -> None:
-    st.session_state["evaluations_left"] = consume_evaluation(
-        evaluations_left=int(st.session_state.get("evaluations_left", 0)),
-        tier=get_subscription_tier(),
-    )
+    persist_evaluation_consumed()
 
 
 def activate_plan(tier: PlanTier | str) -> None:
@@ -92,16 +92,21 @@ def activate_plan(tier: PlanTier | str) -> None:
 
 
 def evaluations_status_label() -> str:
+    from ecom_evaluator.auth.session import account_quota_label, get_current_user
+
     tier = get_subscription_tier()
     plan = get_plan_config(tier)
     left = int(st.session_state.get("evaluations_left", 0))
 
     if tier == PlanTier.FREE:
+        account_label = account_quota_label()
+        if get_current_user() and account_label:
+            return account_label
         if left == 1:
-            return "Free · 1 evaluation left"
+            return f"Free · 1 of {FREE_EVALUATIONS_PER_ACCOUNT} evaluations left"
         if left > 1:
-            return f"Free · {left} evaluations left"
-        return "Free evaluation used"
+            return f"Free · {left} of {FREE_EVALUATIONS_PER_ACCOUNT} evaluations left"
+        return "Free evaluations used"
 
     if plan_has_unlimited_evaluations(tier):
         return f"{plan.label} · Unlimited evaluations"

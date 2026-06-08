@@ -6,6 +6,8 @@ import html
 
 import streamlit as st
 
+from ecom_evaluator.auth.session import account_quota_label, get_current_user, is_authenticated, logout_user
+from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.settings import has_shared_api_key, resolve_api_key
 from ecom_evaluator.ui.paywall import render_paywall_card
 from ecom_evaluator.rate_limit import load_rate_limit_config, remaining_analyses
@@ -49,25 +51,38 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
         else:
             status_label = evaluations_status_label()
             status_class = "done" if user_can_run() else "pending"
+            user = get_current_user()
+            if user:
+                st.caption(html.escape(user.email))
             st.markdown(
-                f'<div class="check-row check-row--{status_class}" style="justify-content:flex-end;margin-top:2.2rem;">'
+                f'<div class="check-row check-row--{status_class}" style="justify-content:flex-end;margin-top:0.75rem;">'
                 f'<span class="check-dot"></span>{html.escape(status_label)}</div>',
                 unsafe_allow_html=True,
             )
-            if st.button("Home", key="header_home", use_container_width=True):
-                st.session_state["app_view"] = APP_VIEW_LANDING
-                st.rerun()
+            btn_home, btn_logout = st.columns(2)
+            with btn_home:
+                if st.button("Home", key="header_home", use_container_width=True):
+                    st.session_state["app_view"] = APP_VIEW_LANDING
+                    st.rerun()
+            with btn_logout:
+                if is_authenticated() and st.button("Log out", key="header_logout", use_container_width=True):
+                    logout_user()
+                    st.rerun()
 
 
 def _evaluation_quota_label(data: dict) -> str:
+    account_label = account_quota_label()
+    if account_label:
+        return account_label
+
     left = int(st.session_state.get("evaluations_left", 0))
     if shared_rate_limit_applies(data):
         remaining = remaining_analyses(get_rate_limit_state(), load_rate_limit_config())
         left = min(left, remaining)
     if left == 1:
-        return "1 free evaluation left"
+        return f"1 of {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations left"
     if left > 1:
-        return f"{left} free evaluations left"
+        return f"{left} of {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations left"
     return "No free evaluations remaining"
 
 
