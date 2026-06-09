@@ -32,6 +32,7 @@ PREMIUM_THEME_CSS = """
 .stApp {
     background-color: var(--ps-bg) !important;
     font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    overflow-y: auto !important;
 }
 html, body, [class*="css"] {
     font-family: 'Inter', 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -42,13 +43,6 @@ section[data-testid="stMain"] > div {
     max-width: 1180px;
     margin: 0 auto;
     padding: 0 1.25rem 3rem;
-    overflow: visible !important;
-}
-section[data-testid="stMain"],
-.main .block-container,
-[data-testid="stVerticalBlock"],
-[data-testid="stMarkdownContainer"] {
-    overflow: visible !important;
 }
 header[data-testid="stHeader"] { background: transparent !important; }
 .block-container { padding-top: 0 !important; max-width: 1180px; }
@@ -150,14 +144,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     display: inline-flex;
     align-items: center;
     gap: 0.5rem;
-    text-decoration: none;
+    text-decoration: none !important;
     color: #111827;
     flex-shrink: 0;
     transition: opacity 0.15s ease;
 }
 .site-header__brand:hover {
     opacity: 0.85;
-    text-decoration: none;
+    text-decoration: none !important;
 }
 .site-header__mark {
     font-size: 1.2rem;
@@ -184,15 +178,15 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0.55rem 0.9rem;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: #111827;
-    text-decoration: none;
+    color: #000000;
+    text-decoration: none !important;
     line-height: 1.2;
     white-space: nowrap;
     transition: color 0.15s ease;
 }
 .site-header__link:hover {
-    color: #111827;
-    text-decoration: none;
+    color: var(--ps-blue-deep);
+    text-decoration: none !important;
 }
 .site-header__chevron {
     color: #6B7280;
@@ -207,11 +201,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .site-header__dropdown:hover .site-header__dropdown-trigger,
 .site-header__dropdown:focus-within .site-header__dropdown-trigger {
-    color: var(--ps-nav-accent);
+    color: var(--ps-blue-deep);
 }
 .site-header__dropdown:hover .site-header__chevron,
 .site-header__dropdown:focus-within .site-header__chevron {
-    color: var(--ps-nav-accent);
+    color: var(--ps-blue-deep);
     transform: rotate(180deg);
 }
 .site-header__dropdown-panel {
@@ -226,6 +220,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     pointer-events: none;
     transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s ease;
     z-index: 10000;
+    max-height: calc(100vh - var(--ps-nav-h));
+    overflow: visible;
 }
 .site-header__dropdown:hover .site-header__dropdown-panel,
 .site-header__dropdown:focus-within .site-header__dropdown-panel {
@@ -276,13 +272,13 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     align-items: center;
     font-size: 0.875rem;
     font-weight: 600;
-    color: var(--ps-nav-accent);
-    text-decoration: none;
+    color: var(--ps-blue-deep);
+    text-decoration: none !important;
     transition: opacity 0.15s ease;
 }
 .site-header__mega-link:hover {
     opacity: 0.82;
-    text-decoration: none;
+    text-decoration: none !important;
 }
 .site-header__mega-grid {
     display: grid;
@@ -309,19 +305,13 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     font-size: 0.9375rem;
     font-weight: 500;
     color: #111827;
-    text-decoration: none;
+    text-decoration: none !important;
     line-height: 1.4;
     transition: color 0.12s ease;
 }
 .site-header__mega-item:hover {
-    color: var(--ps-nav-accent);
-    text-decoration: none;
-}
-.site-header__mega-rule {
-    display: block;
-    height: 1px;
-    margin: 0.35rem 0;
-    background: #EEF2F6;
+    color: var(--ps-blue-deep);
+    text-decoration: none !important;
 }
 .site-header__actions {
     display: flex;
@@ -331,12 +321,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     flex-shrink: 0;
 }
 .site-header__divider {
-    display: inline-block;
-    width: 1px;
-    height: 1.5rem;
-    margin: 0 0.65rem;
-    background: #E5E7EB;
-    flex-shrink: 0;
+    display: none;
 }
 .site-header__login {
     display: inline-flex;
@@ -345,15 +330,33 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0.55rem 0.85rem;
     font-size: 0.9375rem;
     font-weight: 500;
-    color: #111827;
-    text-decoration: none;
+    color: #000000;
+    text-decoration: underline !important;
+    text-underline-offset: 3px;
     line-height: 1;
     white-space: nowrap;
-    transition: opacity 0.15s ease;
+    transition: color 0.15s ease;
 }
 .site-header__login:hover {
-    opacity: 0.72;
-    text-decoration: none;
+    color: var(--ps-blue-deep);
+    text-decoration: underline !important;
+}
+.site-header__text-action {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.55rem 0.85rem;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    color: #000000;
+    text-decoration: none !important;
+    line-height: 1;
+    white-space: nowrap;
+    transition: color 0.15s ease;
+}
+.site-header__text-action:hover {
+    color: var(--ps-blue-deep);
+    text-decoration: none !important;
 }
 .site-header__cta {
     display: inline-flex;
@@ -367,13 +370,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     text-decoration: none !important;
     line-height: 1;
     white-space: nowrap;
-    background: var(--ps-nav-cta);
-    box-shadow: none;
-    transition: background 0.15s ease, transform 0.15s ease;
+    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 52%, #4338CA 100%);
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2), 0 8px 20px rgba(37, 99, 235, 0.28);
+    transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 .site-header__cta:hover {
-    background: #1E293B;
+    filter: brightness(1.06);
     transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.22), 0 12px 28px rgba(37, 99, 235, 0.32);
     text-decoration: none !important;
 }
 .site-header__cta--compact {

@@ -83,13 +83,11 @@ def _mega_menu_html() -> str:
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Learn</p>'
         '<a class="site-header__mega-item" href="?nav_anchor=process">How it works</a>'
-        '<span class="site-header__mega-rule"></span>'
         '<a class="site-header__mega-item" href="?nav_anchor=sample">Sample report</a>'
         "</div>"
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Support</p>'
         '<a class="site-header__mega-item" href="?nav_anchor=pricing">Plans &amp; pricing</a>'
-        '<span class="site-header__mega-rule"></span>'
         '<a class="site-header__mega-item" href="?nav_anchor=resources">FAQ</a>'
         "</div>"
         "</div>"
@@ -111,7 +109,6 @@ def _resources_dropdown_html() -> str:
 
 def _guest_actions_html() -> str:
     return (
-        '<span class="site-header__divider" aria-hidden="true"></span>'
         '<a class="site-header__login" href="?nav_action=login">Log in</a>'
         '<a class="site-header__cta" href="?nav_action=signup">Get started</a>'
     )
@@ -122,9 +119,8 @@ def _authenticated_actions_html(*, email: str, status_label: str, status_class: 
         f'<span class="site-header__user">{html.escape(email)}</span>'
         f'<span class="check-row check-row--{status_class} site-header__quota">'
         f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
-        '<span class="site-header__divider" aria-hidden="true"></span>'
         '<a class="site-header__cta site-header__cta--compact" href="?nav_action=tool">Run evaluation</a>'
-        '<a class="site-header__login" href="?nav_action=logout">Log out</a>'
+        '<a class="site-header__text-action" href="?nav_action=logout">Log out</a>'
     )
 
 
