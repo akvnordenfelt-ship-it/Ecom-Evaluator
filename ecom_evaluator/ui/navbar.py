@@ -1,4 +1,4 @@
-"""Global site navigation bar."""
+"""Global site navigation bar — pure HTML/CSS SaaS header."""
 
 from __future__ import annotations
 
@@ -8,103 +8,140 @@ import streamlit as st
 
 from ecom_evaluator.auth.session import get_current_user, is_authenticated, logout_user
 from ecom_evaluator.ui.subscription import (
+    APP_VIEW_AUTH,
     APP_VIEW_LANDING,
-    enter_tool_view,
+    APP_VIEW_TOOL,
     evaluations_status_label,
-    go_to_landing,
-    open_auth_screen,
     user_can_run,
 )
 
-_RESOURCES_DROPDOWN_HTML = """
-<div class="nav-dropdown">
-  <a class="nav-text-link nav-dropdown-trigger" href="?nav_anchor=resources">
-    <span>Resources</span>
-    <span class="nav-caret" aria-hidden="true">▾</span>
-  </a>
-  <div class="nav-dropdown-panel" role="menu">
-    <a class="nav-dropdown-item" href="?nav_anchor=process">How it works</a>
-    <a class="nav-dropdown-item" href="?nav_anchor=sample">Sample report</a>
-    <a class="nav-dropdown-item" href="?nav_anchor=pricing">Plans &amp; pricing</a>
-    <a class="nav-dropdown-item" href="?nav_anchor=resources">FAQ</a>
-  </div>
-</div>
-"""
+_CHEVRON_SVG = (
+    '<svg class="site-header__chevron" width="10" height="10" viewBox="0 0 10 10" '
+    'fill="none" aria-hidden="true">'
+    '<path d="M2 3.5L5 6.5L8 3.5" stroke="currentColor" stroke-width="1.5" '
+    'stroke-linecap="round" stroke-linejoin="round"/>'
+    "</svg>"
+)
+
+_DROPDOWN_ITEMS = (
+    ("How it works", "process"),
+    ("Sample report", "sample"),
+    ("Plans & pricing", "pricing"),
+    ("FAQ", "resources"),
+)
 
 
-def handle_nav_anchor_query() -> None:
-    """Navigate to a landing section when ?nav_anchor= is present in the URL."""
+def handle_nav_query() -> None:
+    """Apply landing anchors and nav actions from URL query params."""
     anchor = st.query_params.get("nav_anchor")
-    if not anchor:
+    action = st.query_params.get("nav_action")
+    if not anchor and not action:
         return
-    st.session_state["app_view"] = APP_VIEW_LANDING
-    st.session_state["landing_anchor"] = anchor
+
+    if anchor:
+        st.session_state["app_view"] = APP_VIEW_LANDING
+        st.session_state["landing_anchor"] = anchor
+    elif action == "home":
+        st.session_state["app_view"] = APP_VIEW_LANDING
+    elif action == "login":
+        st.session_state["app_view"] = APP_VIEW_AUTH
+        st.session_state["auth_mode"] = "login"
+    elif action == "signup":
+        st.session_state["app_view"] = APP_VIEW_AUTH
+        st.session_state["auth_mode"] = "signup"
+    elif action == "tool":
+        st.session_state["app_view"] = APP_VIEW_TOOL
+    elif action == "logout":
+        logout_user()
+        st.session_state["app_view"] = APP_VIEW_LANDING
+
     try:
-        del st.query_params["nav_anchor"]
+        if anchor:
+            del st.query_params["nav_anchor"]
+        if action:
+            del st.query_params["nav_action"]
     except Exception:
         st.query_params.clear()
     st.rerun()
 
 
+def handle_nav_anchor_query() -> None:
+    """Backward-compatible alias for anchor-only handling."""
+    handle_nav_query()
+
+
+def _dropdown_html() -> str:
+    items = "\n".join(
+        f'    <a class="site-header__menu-item" href="?nav_anchor={anchor}">{label}</a>'
+        for label, anchor in _DROPDOWN_ITEMS
+    )
+    return f"""
+    <div class="site-header__dropdown">
+      <a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources">
+        <span>Resources</span>
+        {_CHEVRON_SVG}
+      </a>
+      <div class="site-header__dropdown-menu" role="menu">
+{items}
+      </div>
+    </div>
+    """
+
+
+def _guest_actions_html() -> str:
+    return """
+    <a class="site-header__ghost" href="?nav_action=login">Log in</a>
+    <a class="site-header__cta" href="?nav_action=signup">Get started</a>
+    """
+
+
+def _authenticated_actions_html(*, email: str, status_label: str, status_class: str) -> str:
+    return f"""
+    <span class="site-header__user">{html.escape(email)}</span>
+    <span class="check-row check-row--{status_class} site-header__quota">
+      <span class="check-dot"></span>{html.escape(status_label)}
+    </span>
+    <a class="site-header__cta site-header__cta--compact" href="?nav_action=tool">Run evaluation</a>
+    <a class="site-header__ghost" href="?nav_action=logout">Log out</a>
+    """
+
+
 def render_site_navbar() -> None:
-    """Sticky top bar — brand left, links center-right, actions far right."""
+    """Render a full-width premium SaaS header (Stripe / Linear style)."""
     logged_in = is_authenticated()
     user = get_current_user()
 
-    st.markdown('<div class="site-nav-outer"><div class="site-nav-inner">', unsafe_allow_html=True)
-
-    brand_col, links_col, actions_col = st.columns([1.15, 1.55, 1.3], vertical_alignment="center")
-
-    with brand_col:
-        if st.button("🦈  ProductScore", key="nav_brand_home", type="tertiary"):
-            go_to_landing()
-
-    with links_col:
-        if logged_in:
-            pricing_col, resources_col = st.columns([0.55, 1.45], vertical_alignment="center")
-        else:
-            pricing_col, resources_col, login_col = st.columns([0.55, 1.25, 0.65], vertical_alignment="center")
-
-        with pricing_col:
-            if st.button("Pricing", key="nav_pricing", use_container_width=True):
-                go_to_landing(anchor="pricing")
-
-        with resources_col:
-            st.markdown(_RESOURCES_DROPDOWN_HTML, unsafe_allow_html=True)
-
-        if not logged_in:
-            with login_col:
-                if st.button("Log in", key="nav_login", use_container_width=True):
-                    open_auth_screen(mode="login")
-
-    with actions_col:
-        if logged_in:
-            run_col, logout_col = st.columns([1.15, 0.85], vertical_alignment="center")
-            with run_col:
-                if st.button("Run evaluation", key="nav_run_eval", type="primary", use_container_width=True):
-                    enter_tool_view()
-                    st.rerun()
-            with logout_col:
-                if st.button("Log out", key="nav_logout", use_container_width=True):
-                    logout_user()
-                    st.session_state["app_view"] = APP_VIEW_LANDING
-                    st.rerun()
-        else:
-            _, cta_col, _ = st.columns([0.15, 1, 0.15], vertical_alignment="center")
-            with cta_col:
-                if st.button("Get started", key="nav_signup", type="primary", use_container_width=True):
-                    open_auth_screen(mode="signup")
-
-    if logged_in and user:
-        status_label = evaluations_status_label()
-        status_class = "done" if user_can_run() else "pending"
-        st.markdown(
-            f'<div class="site-nav-meta">'
-            f'<span class="site-nav-user">{html.escape(user.email)}</span>'
-            f'<span class="check-row check-row--{status_class} site-nav-quota">'
-            f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
-            f"</div>",
-            unsafe_allow_html=True,
+    actions = (
+        _authenticated_actions_html(
+            email=user.email,
+            status_label=evaluations_status_label(),
+            status_class="done" if user_can_run() else "pending",
         )
+        if logged_in and user
+        else _guest_actions_html()
+    )
 
-    st.markdown("</div></div>", unsafe_allow_html=True)
+    st.markdown(
+        f"""
+<header class="site-header">
+  <div class="site-header__bar">
+    <div class="site-header__inner">
+      <div class="site-header__left">
+        <a class="site-header__brand" href="?nav_action=home">
+          <span class="site-header__mark" aria-hidden="true">🦈</span>
+          <span class="site-header__name">ProductScore</span>
+        </a>
+        <nav class="site-header__nav" aria-label="Primary">
+          <a class="site-header__link" href="?nav_anchor=pricing">Pricing</a>
+          {_dropdown_html()}
+        </nav>
+      </div>
+      <div class="site-header__actions">
+        {actions}
+      </div>
+    </div>
+  </div>
+</header>
+        """,
+        unsafe_allow_html=True,
+    )
