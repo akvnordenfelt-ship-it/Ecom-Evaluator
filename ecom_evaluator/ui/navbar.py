@@ -18,11 +18,13 @@ from ecom_evaluator.ui.subscription import (
 
 
 def render_site_navbar() -> None:
-    """Top bar: brand left, links right."""
+    """Sticky top bar — brand left, links right."""
     logged_in = is_authenticated()
     user = get_current_user()
 
-    nav_left, nav_right = st.columns([1.1, 2.9], vertical_alignment="center")
+    st.markdown('<div class="site-nav-shell">', unsafe_allow_html=True)
+
+    nav_left, nav_right = st.columns([1.15, 2.85], vertical_alignment="center")
     with nav_left:
         if st.button("🦈  ProductScore", key="nav_brand_home", type="tertiary"):
             go_to_landing()
@@ -66,4 +68,4 @@ def render_site_navbar() -> None:
             unsafe_allow_html=True,
         )
 
-    st.markdown('<div class="site-nav-divider"></div>', unsafe_allow_html=True)
+    st.markdown("</div>", unsafe_allow_html=True)
