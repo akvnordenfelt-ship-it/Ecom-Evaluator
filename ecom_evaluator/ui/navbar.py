@@ -70,40 +70,61 @@ def handle_nav_anchor_query() -> None:
     handle_nav_query()
 
 
-def _dropdown_html() -> str:
-    items = "\n".join(
-        f'    <a class="site-header__menu-item" href="?nav_anchor={anchor}">{label}</a>'
-        for label, anchor in _DROPDOWN_ITEMS
-    )
-    return f"""
-    <div class="site-header__dropdown">
-      <a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources">
-        <span>Resources</span>
-        {_CHEVRON_SVG}
-      </a>
-      <div class="site-header__dropdown-menu" role="menu">
-{items}
-      </div>
-    </div>
-    """
+def _render_header_html(markup: str) -> None:
+    """Render header markup (single compact block — blank lines break st.markdown HTML)."""
+    st.markdown(markup, unsafe_allow_html=True)
 
 
 def _guest_actions_html() -> str:
-    return """
-    <a class="site-header__ghost" href="?nav_action=login">Log in</a>
-    <a class="site-header__cta" href="?nav_action=signup">Get started</a>
-    """
+    return (
+        '<a class="site-header__ghost" href="?nav_action=login">Log in</a>'
+        '<a class="site-header__cta" href="?nav_action=signup">Get started</a>'
+    )
 
 
 def _authenticated_actions_html(*, email: str, status_label: str, status_class: str) -> str:
-    return f"""
-    <span class="site-header__user">{html.escape(email)}</span>
-    <span class="check-row check-row--{status_class} site-header__quota">
-      <span class="check-dot"></span>{html.escape(status_label)}
-    </span>
-    <a class="site-header__cta site-header__cta--compact" href="?nav_action=tool">Run evaluation</a>
-    <a class="site-header__ghost" href="?nav_action=logout">Log out</a>
-    """
+    return (
+        f'<span class="site-header__user">{html.escape(email)}</span>'
+        f'<span class="check-row check-row--{status_class} site-header__quota">'
+        f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
+        f'<a class="site-header__cta site-header__cta--compact" href="?nav_action=tool">Run evaluation</a>'
+        f'<a class="site-header__ghost" href="?nav_action=logout">Log out</a>'
+    )
+
+
+def _build_site_header_html(*, actions_html: str) -> str:
+    menu_items = "".join(
+        f'<a class="site-header__menu-item" href="?nav_anchor={anchor}">{html.escape(label)}</a>'
+        for label, anchor in _DROPDOWN_ITEMS
+    )
+    dropdown = (
+        '<div class="site-header__dropdown">'
+        '<a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources">'
+        "<span>Resources</span>"
+        f"{_CHEVRON_SVG}"
+        "</a>"
+        f'<div class="site-header__dropdown-menu" role="menu">{menu_items}</div>'
+        "</div>"
+    )
+    return (
+        '<header class="site-header">'
+        '<div class="site-header__bar">'
+        '<div class="site-header__inner">'
+        '<div class="site-header__left">'
+        '<a class="site-header__brand" href="?nav_action=home">'
+        '<span class="site-header__mark" aria-hidden="true">🦈</span>'
+        '<span class="site-header__name">ProductScore</span>'
+        "</a>"
+        '<nav class="site-header__nav" aria-label="Primary">'
+        '<a class="site-header__link" href="?nav_anchor=pricing">Pricing</a>'
+        f"{dropdown}"
+        "</nav>"
+        "</div>"
+        f'<div class="site-header__actions">{actions_html}</div>'
+        "</div>"
+        "</div>"
+        "</header>"
+    )
 
 
 def render_site_navbar() -> None:
@@ -121,27 +142,4 @@ def render_site_navbar() -> None:
         else _guest_actions_html()
     )
 
-    st.markdown(
-        f"""
-<header class="site-header">
-  <div class="site-header__bar">
-    <div class="site-header__inner">
-      <div class="site-header__left">
-        <a class="site-header__brand" href="?nav_action=home">
-          <span class="site-header__mark" aria-hidden="true">🦈</span>
-          <span class="site-header__name">ProductScore</span>
-        </a>
-        <nav class="site-header__nav" aria-label="Primary">
-          <a class="site-header__link" href="?nav_anchor=pricing">Pricing</a>
-          {_dropdown_html()}
-        </nav>
-      </div>
-      <div class="site-header__actions">
-        {actions}
-      </div>
-    </div>
-  </div>
-</header>
-        """,
-        unsafe_allow_html=True,
-    )
+    _render_header_html(_build_site_header_html(actions_html=actions))
