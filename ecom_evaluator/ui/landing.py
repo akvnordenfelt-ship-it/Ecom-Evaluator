@@ -229,6 +229,7 @@ def render_landing_body() -> None:
         st.markdown(_premium_pricing_html(), unsafe_allow_html=True)
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
+    st.markdown('<div id="section-process"></div>', unsafe_allow_html=True)
     _page_divider("Process", band=True)
     _section_header("How it works", "From product photo to go/no-go in three steps")
     step1, step2, step3 = st.columns(3)
@@ -261,6 +262,7 @@ def render_landing_body() -> None:
         )
     st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
+    st.markdown('<div id="section-sample"></div>', unsafe_allow_html=True)
     _page_divider("Sample output", band=True)
     _section_header("Inside your report", "A snapshot of what you'll see")
     st.markdown(

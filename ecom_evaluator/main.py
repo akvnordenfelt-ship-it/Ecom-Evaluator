@@ -17,7 +17,7 @@ from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
-from ecom_evaluator.ui.navbar import render_site_navbar
+from ecom_evaluator.ui.navbar import handle_nav_anchor_query, render_site_navbar
 from ecom_evaluator.ui.session import (
     clear_analysis_error,
     friendly_analysis_error,
@@ -142,6 +142,7 @@ def main() -> None:
     if handle_oauth_callback():
         st.rerun()
 
+    handle_nav_anchor_query()
     render_site_navbar()
 
     if auth_is_required() and not is_authenticated():
