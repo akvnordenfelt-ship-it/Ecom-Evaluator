@@ -73,7 +73,11 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
 
 def _band_open(band: str, *, section_id: str | None = None) -> str:
     id_attr = f' id="{section_id}"' if section_id else ""
-    return f'<section class="lp-band lp-band--{band}"{id_attr}><div class="lp-band-bg" aria-hidden="true"></div><div class="lp-band-inner">'
+    return (
+        f'<section class="lp-band lp-band--{band} lp-page-flow"{id_attr}>'
+        f'<div class="lp-band-bg" aria-hidden="true"></div>'
+        f'<div class="lp-band-inner">'
+    )
 
 
 def _band_close() -> str:
