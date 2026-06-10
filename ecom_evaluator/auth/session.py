@@ -94,6 +94,7 @@ def logout_user() -> None:
     st.session_state["auth_error"] = None
     st.session_state["auth_access_token"] = None
     st.session_state["auth_refresh_token"] = None
+    st.session_state["auth_browser_clear"] = True
     st.session_state["analysis_result"] = None
     st.session_state["analysis_meta"] = None
     st.session_state["app_view"] = "landing"

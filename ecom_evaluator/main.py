@@ -11,6 +11,7 @@ from ecom_evaluator.auth.persistence import (
     handle_auth_logout_sync,
     handle_auth_restore,
     install_auth_sync_bridge,
+    restore_auth_from_browser_cookie,
 )
 from ecom_evaluator.auth.session import auth_is_required, is_authenticated, sync_user_evaluation_quota
 from ecom_evaluator.economics import resolve_product_inputs
@@ -141,6 +142,8 @@ def main() -> None:
     )
 
     init_session_state()
+    if restore_auth_from_browser_cookie():
+        st.rerun()
     inject_custom_css(saas_mode=True)
 
     install_oauth_callback_bridge()

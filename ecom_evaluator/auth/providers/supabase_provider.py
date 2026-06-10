@@ -131,6 +131,25 @@ class SupabaseAuthProvider:
             refresh_token=str(refresh_token) if refresh_token else None,
         )
 
+    def refresh_session(self, *, refresh_token: str) -> AuthLoginResult:
+        client = self._get_client()
+        try:
+            response = client.auth.refresh_session(refresh_token)
+        except Exception as exc:
+            raise AnalysisError("Your session expired. Log in again.") from exc
+
+        session = getattr(response, "session", None)
+        user = getattr(response, "user", None)
+        if user is None and session is not None:
+            user = getattr(session, "user", None)
+        access_token = getattr(session, "access_token", None) if session else None
+        new_refresh = getattr(session, "refresh_token", None) if session else None
+        return AuthLoginResult(
+            user=user_from_supabase_record(user),
+            access_token=str(access_token) if access_token else None,
+            refresh_token=str(new_refresh or refresh_token),
+        )
+
     def sign_up(self, request: SignUpRequest) -> AuthUser:
         client = self._get_client()
         if len(request.password) < 8:
