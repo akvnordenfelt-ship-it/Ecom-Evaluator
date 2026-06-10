@@ -168,24 +168,25 @@ def _install_scroll_reveal() -> None:
             if (doc.documentElement.dataset.lpRevealReady) return;
             doc.documentElement.dataset.lpRevealReady = "1";
 
-            const observe = () => {
-                const nodes = doc.querySelectorAll(".lp-reveal:not(.is-visible)");
-                if (!nodes.length) return;
-                const io = new IntersectionObserver(
-                    (entries) => {
-                        entries.forEach((entry) => {
-                            if (!entry.isIntersecting) return;
-                            entry.target.classList.add("is-visible");
-                            io.unobserve(entry.target);
-                        });
-                    },
-                    { threshold: 0.14, rootMargin: "0px 0px -6% 0px" }
-                );
-                nodes.forEach((node) => io.observe(node));
+            const io = new IntersectionObserver(
+                (entries) => {
+                    entries.forEach((entry) => {
+                        entry.target.classList.toggle("is-visible", entry.isIntersecting);
+                    });
+                },
+                { threshold: 0.12, rootMargin: "0px 0px -5% 0px" }
+            );
+
+            const bindRevealNodes = () => {
+                doc.querySelectorAll(".lp-reveal").forEach((node) => {
+                    if (node.dataset.lpObserved) return;
+                    node.dataset.lpObserved = "1";
+                    io.observe(node);
+                });
             };
 
-            observe();
-            const mo = new MutationObserver(() => observe());
+            bindRevealNodes();
+            const mo = new MutationObserver(() => bindRevealNodes());
             mo.observe(doc.body, { childList: true, subtree: true });
         })();
         </script>
@@ -391,6 +392,7 @@ def render_landing_footnote() -> None:
 def render_landing_page() -> None:
     render_landing_hero()
 
+    st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
     _, hero_cta, _ = st.columns([1, 1.4, 1])
     with hero_cta:
         if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):

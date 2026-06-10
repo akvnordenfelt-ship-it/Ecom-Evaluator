@@ -921,6 +921,10 @@ div[data-testid="stTextArea"] textarea:focus {
 
 /* Landing page */
 .landing-wrap { margin: 0.5rem 0 0; }
+.lp-hero-cta-gap {
+    height: 1.85rem;
+    width: 100%;
+}
 .landing-hero {
     background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
     border-radius: 20px;
@@ -999,18 +1003,18 @@ div[data-testid="stTextArea"] textarea:focus {
     backdrop-filter: blur(4px);
 }
 
-/* Scroll reveal animations */
+/* Scroll reveal animations — replay whenever elements re-enter view */
 .lp-reveal {
     opacity: 0;
     transform: translateY(28px);
     transition:
-        opacity 0.7s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: opacity, transform;
 }
-.lp-reveal-left { transform: translateX(-36px); }
-.lp-reveal-right { transform: translateX(36px); }
-.lp-reveal-scale { transform: translateY(24px) scale(0.96); }
+.lp-reveal-left { transform: translateX(-32px); }
+.lp-reveal-right { transform: translateX(32px); }
+.lp-reveal-scale { transform: translateY(20px) scale(0.97); }
 .lp-reveal.is-visible,
 .lp-reveal-left.is-visible,
 .lp-reveal-right.is-visible,
@@ -1034,14 +1038,25 @@ div[data-testid="stTextArea"] textarea:focus {
 .landing-hero .lp-reveal-hero.lp-reveal-delay-2 { animation-delay: 0.2s; }
 .landing-hero .lp-reveal-hero.lp-reveal-delay-3 { animation-delay: 0.3s; }
 
-/* Full-bleed landing bands */
+/* Full-bleed landing bands — muted, layered, professional */
 .lp-band {
     position: relative;
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    padding: 4.5rem 0;
+    padding: 4.75rem 0;
     overflow: hidden;
+    background: #FAFBFC;
+}
+.lp-band::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(15, 23, 42, 0.06), transparent);
+    pointer-events: none;
 }
 .lp-band-inner {
     position: relative;
@@ -1059,148 +1074,146 @@ div[data-testid="stTextArea"] textarea:focus {
 .lp-band-label {
     display: inline-block;
     margin-bottom: 0.85rem;
-    padding: 0.3rem 0.75rem;
+    padding: 0.28rem 0.7rem;
     border-radius: 999px;
-    font-size: 0.68rem;
-    font-weight: 800;
-    letter-spacing: 0.12em;
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
     text-transform: uppercase;
+    background: rgba(255, 255, 255, 0.72);
+    color: #475569;
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    backdrop-filter: blur(6px);
 }
 .lp-band--glance {
-    padding-top: 3rem;
-    background: #F8FAFC;
+    padding-top: 3.25rem;
+    background: #FAFBFC;
 }
 .lp-band--glance .lp-band-bg {
     background:
-        radial-gradient(circle at 12% 20%, rgba(59, 130, 246, 0.08) 0%, transparent 42%),
-        radial-gradient(circle at 88% 70%, rgba(99, 102, 241, 0.07) 0%, transparent 40%),
-        linear-gradient(180deg, #F8FAFC 0%, #EEF2FF 100%);
+        radial-gradient(ellipse 70% 55% at 15% 10%, rgba(59, 130, 246, 0.045) 0%, transparent 68%),
+        radial-gradient(ellipse 60% 50% at 88% 85%, rgba(99, 102, 241, 0.035) 0%, transparent 65%),
+        linear-gradient(180deg, #FAFBFC 0%, #F4F6FA 100%);
 }
-.lp-band--glance .lp-band-label {
-    background: #FFFFFF;
-    color: #4338CA;
-    border: 1px solid #C7D2FE;
+.lp-band--glance .lp-band-label { color: #334155; }
+.lp-band--glance .lp-value-tile {
+    background: rgba(255, 255, 255, 0.88);
+    border-color: rgba(226, 232, 240, 0.9);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 .lp-band--free {
-    background: #ECFDF5;
+    background: #F9FAFB;
 }
 .lp-band--free .lp-band-bg {
     background:
-        radial-gradient(circle at 85% 15%, rgba(16, 185, 129, 0.16) 0%, transparent 38%),
-        radial-gradient(circle at 10% 85%, rgba(52, 211, 153, 0.12) 0%, transparent 35%),
-        linear-gradient(165deg, #ECFDF5 0%, #D1FAE5 45%, #F0FDF4 100%);
+        radial-gradient(ellipse 55% 45% at 92% 8%, rgba(16, 185, 129, 0.05) 0%, transparent 70%),
+        radial-gradient(ellipse 50% 40% at 8% 92%, rgba(59, 130, 246, 0.04) 0%, transparent 68%),
+        linear-gradient(180deg, #F9FAFB 0%, #F5F7FA 100%);
 }
-.lp-band--free .lp-band-label {
-    background: rgba(255, 255, 255, 0.75);
-    color: #047857;
-    border: 1px solid #A7F3D0;
-}
+.lp-band--free .lp-band-label { color: #047857; border-color: rgba(167, 243, 208, 0.55); }
 .lp-band--free .lp-section-card {
-    background: rgba(255, 255, 255, 0.92);
-    backdrop-filter: blur(6px);
-    box-shadow: 0 12px 32px rgba(6, 95, 70, 0.08);
+    background: rgba(255, 255, 255, 0.94);
+    border-color: rgba(226, 232, 240, 0.95);
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.05);
 }
 .lp-band--premium {
-    background: #0F172A;
-    color: #E2E8F0;
+    background: #F3F4F6;
+    color: inherit;
 }
 .lp-band--premium .lp-band-bg {
     background:
-        radial-gradient(circle at 20% 0%, rgba(59, 130, 246, 0.35) 0%, transparent 45%),
-        radial-gradient(circle at 90% 100%, rgba(245, 158, 11, 0.18) 0%, transparent 40%),
-        linear-gradient(160deg, #0B1F4B 0%, #1E293B 55%, #312E81 100%);
+        radial-gradient(ellipse 90% 70% at 50% -10%, rgba(30, 64, 175, 0.07) 0%, transparent 72%),
+        radial-gradient(ellipse 45% 40% at 100% 100%, rgba(79, 70, 229, 0.05) 0%, transparent 70%),
+        linear-gradient(180deg, #F8FAFC 0%, #EEF1F6 100%);
 }
 .lp-band--premium .lp-band-label {
-    background: rgba(255, 255, 255, 0.08);
-    color: #FDE68A;
-    border: 1px solid rgba(253, 224, 71, 0.25);
+    color: #1E40AF;
+    border-color: rgba(191, 219, 254, 0.85);
 }
-.lp-band--premium .lp-section-header-title { color: #FFFFFF; }
-.lp-band--premium .lp-section-header-lead { color: #CBD5E1; }
+.lp-band--premium .lp-section-header-title { color: var(--ps-text); }
+.lp-band--premium .lp-section-header-lead { color: var(--ps-muted); }
 .lp-band--premium .lp-pricing-card--premium {
-    background: linear-gradient(160deg, #FFFFFF 0%, #F8FAFC 100%);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.35);
-    color: var(--ps-text);
+    background: linear-gradient(155deg, #0F172A 0%, #1E3A8A 52%, #312E81 100%);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+    box-shadow: 0 22px 55px rgba(15, 23, 42, 0.22);
+    color: #F8FAFC;
+}
+.lp-band--premium .lp-pricing-tier,
+.lp-band--premium .lp-pricing-blurb,
+.lp-band--premium .lp-pricing-features li {
+    color: #E2E8F0;
+}
+.lp-band--premium .lp-pricing-price { color: #FFFFFF; }
+.lp-band--premium .lp-pricing-features li { border-top-color: rgba(255, 255, 255, 0.1); }
+.lp-band--premium .lp-popular-pill {
+    background: rgba(255, 255, 255, 0.14);
+    color: #E0E7FF;
+    border: 1px solid rgba(255, 255, 255, 0.18);
 }
 .lp-band--process {
-    background: #FFFBEB;
+    background: #FAFAFA;
 }
 .lp-band--process .lp-band-bg {
     background:
         repeating-linear-gradient(
-            90deg,
-            rgba(245, 158, 11, 0.04) 0,
-            rgba(245, 158, 11, 0.04) 1px,
+            -12deg,
+            rgba(15, 23, 42, 0.012) 0,
+            rgba(15, 23, 42, 0.012) 1px,
             transparent 1px,
-            transparent 48px
+            transparent 14px
         ),
-        linear-gradient(180deg, #FFFBEB 0%, #FEF3C7 50%, #FFFBEB 100%);
+        radial-gradient(ellipse 60% 50% at 0% 50%, rgba(245, 158, 11, 0.035) 0%, transparent 70%),
+        linear-gradient(180deg, #FAFAFA 0%, #F5F5F4 100%);
 }
-.lp-band--process .lp-band-label {
-    background: #FFFFFF;
-    color: #B45309;
-    border: 1px solid #FDE68A;
-}
+.lp-band--process .lp-band-label { color: #78716C; border-color: rgba(231, 229, 228, 0.95); }
 .lp-band--process .lp-step-card {
-    background: rgba(255, 255, 255, 0.9);
-    border-color: #FDE68A;
-    box-shadow: 0 10px 28px rgba(180, 83, 9, 0.08);
+    background: rgba(255, 255, 255, 0.92);
+    border-color: rgba(231, 229, 228, 0.95);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
 }
 .lp-band--process .lp-step-num {
-    background: linear-gradient(135deg, #F59E0B, #D97706);
+    background: linear-gradient(135deg, #64748B, #334155);
 }
 .lp-band--sample {
-    background: #EEF2FF;
+    background: #F8F9FB;
 }
 .lp-band--sample .lp-band-bg {
     background:
-        radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.15) 0%, transparent 50%),
-        linear-gradient(180deg, #EEF2FF 0%, #E0E7FF 100%);
+        radial-gradient(ellipse 65% 55% at 50% 0%, rgba(99, 102, 241, 0.045) 0%, transparent 72%),
+        linear-gradient(180deg, #F8F9FB 0%, #F1F3F9 100%);
 }
-.lp-band--sample .lp-band-label {
-    background: #FFFFFF;
-    color: #4338CA;
-    border: 1px solid #C7D2FE;
-}
+.lp-band--sample .lp-band-label { color: #4338CA; border-color: rgba(199, 210, 254, 0.65); }
 .lp-band--sample .lp-preview-card {
-    background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%);
-    border: 1px solid #C7D2FE;
-    box-shadow: 0 20px 50px rgba(67, 56, 202, 0.12);
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
 }
 .lp-band--compare {
     background: #FFFFFF;
 }
 .lp-band--compare .lp-band-bg {
     background:
-        linear-gradient(rgba(226, 232, 240, 0.45) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(226, 232, 240, 0.45) 1px, transparent 1px);
-    background-size: 28px 28px;
-    opacity: 0.55;
+        linear-gradient(rgba(241, 245, 249, 0.85) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(241, 245, 249, 0.85) 1px, transparent 1px);
+    background-size: 32px 32px;
+    opacity: 0.35;
 }
-.lp-band--compare .lp-band-label {
-    background: #F8FAFC;
-    color: #475569;
-    border: 1px solid #E2E8F0;
-}
+.lp-band--compare .lp-band-label { color: #64748B; }
 .lp-band--compare .lp-compare-wrap {
-    border: 1px solid #E2E8F0;
-    box-shadow: 0 16px 40px rgba(15, 23, 42, 0.06);
+    border: 1px solid rgba(226, 232, 240, 0.95);
+    box-shadow: 0 12px 32px rgba(15, 23, 42, 0.04);
+    background: rgba(255, 255, 255, 0.92);
 }
 .lp-band--faq {
-    background: #FAF5FF;
+    background: #FAFAFA;
 }
 .lp-band--faq .lp-band-bg {
     background:
-        radial-gradient(circle at 15% 80%, rgba(167, 139, 250, 0.14) 0%, transparent 40%),
-        radial-gradient(circle at 85% 20%, rgba(192, 132, 252, 0.12) 0%, transparent 38%),
-        linear-gradient(180deg, #FAF5FF 0%, #F3E8FF 100%);
+        radial-gradient(ellipse 50% 45% at 12% 88%, rgba(124, 58, 237, 0.035) 0%, transparent 70%),
+        radial-gradient(ellipse 45% 40% at 92% 12%, rgba(59, 130, 246, 0.03) 0%, transparent 68%),
+        linear-gradient(180deg, #FAFAFA 0%, #F5F5F5 100%);
 }
-.lp-band--faq .lp-band-label {
-    background: #FFFFFF;
-    color: #7C3AED;
-    border: 1px solid #DDD6FE;
-}
+.lp-band--faq .lp-band-label { color: #6D28D9; border-color: rgba(221, 214, 254, 0.65); }
 .lp-band--final {
     padding: 0;
     background: transparent;
@@ -1209,6 +1222,7 @@ div[data-testid="stTextArea"] textarea:focus {
     padding: 0 1.25rem;
 }
 .lp-band--final .lp-band-bg { display: none; }
+.lp-band--final::after { display: none; }
 .lp-faq-list {
     display: flex;
     flex-direction: column;
@@ -1217,11 +1231,11 @@ div[data-testid="stTextArea"] textarea:focus {
     margin: 0 auto;
 }
 .lp-faq-item {
-    background: rgba(255, 255, 255, 0.88);
-    border: 1px solid #DDD6FE;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(226, 232, 240, 0.95);
     border-radius: 14px;
     padding: 0.15rem 1rem;
-    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.06);
+    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.04);
 }
 .lp-faq-item summary {
     cursor: pointer;
@@ -1236,15 +1250,15 @@ div[data-testid="stTextArea"] textarea:focus {
     content: "+";
     float: right;
     font-weight: 400;
-    color: #7C3AED;
+    color: #64748B;
 }
 .lp-faq-item[open] summary::after { content: "−"; }
 .lp-faq-answer {
     margin: 0 0 1rem;
     font-size: 0.88rem;
     line-height: 1.6;
-    color: #475569;
-    border-top: 1px solid #EDE9FE;
+    color: #64748B;
+    border-top: 1px solid #F1F5F9;
     padding-top: 0.75rem;
 }
 
