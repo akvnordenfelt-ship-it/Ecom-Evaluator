@@ -417,6 +417,156 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     margin: 1rem auto 2rem;
 }
 
+/* Auth screen — centered Superhuman-style layout */
+.auth-screen {
+    max-width: 400px;
+    margin: 2.5rem auto 2rem;
+    padding: 0 0.25rem;
+}
+.auth-screen-header {
+    text-align: center;
+    margin-bottom: 1.75rem;
+}
+.auth-screen-logo {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 3rem;
+    height: 3rem;
+    margin: 0 auto 1.1rem;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
+    font-size: 1.45rem;
+    line-height: 1;
+    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
+}
+.auth-screen-title {
+    margin: 0;
+    font-size: 1.35rem;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    color: #000000;
+    line-height: 1.25;
+}
+.auth-oauth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.7rem 1rem;
+    border: 1px solid #E5E7EB;
+    border-radius: 10px;
+    background: #FFFFFF;
+    color: #111827;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    text-decoration: none !important;
+    transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+.auth-oauth-btn:hover {
+    background: #F9FAFB;
+    border-color: #D1D5DB;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+    text-decoration: none !important;
+}
+.auth-oauth-icon {
+    flex-shrink: 0;
+}
+.auth-screen-divider {
+    border: none;
+    border-top: 1px solid #E5E7EB;
+    margin: 1.35rem 0 1.25rem;
+}
+.auth-field-label {
+    margin: 0 0 0.4rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: #6B7280;
+}
+.auth-field-optional {
+    font-weight: 400;
+    color: #9CA3AF;
+}
+.auth-screen [data-testid="stForm"] {
+    margin: 0;
+    padding: 0;
+    border: none;
+    background: transparent;
+}
+.auth-screen [data-testid="stForm"] [data-testid="InputInstructions"],
+.auth-screen [data-testid="stForm"] [data-testid="stCaptionContainer"] {
+    display: none;
+}
+.auth-screen [data-testid="stForm"] [data-testid="stTextInput"] {
+    margin-bottom: 0.85rem;
+}
+.auth-screen [data-testid="stForm"] input {
+    min-height: 3rem;
+    border: 1px solid #E5E7EB !important;
+    border-radius: 10px !important;
+    font-size: 0.9375rem !important;
+    color: #111827 !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+}
+.auth-screen [data-testid="stForm"] input:focus {
+    border-color: #93C5FD !important;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.15) !important;
+}
+.auth-screen [data-testid="stForm"] .stButton {
+    margin-top: 0.35rem;
+}
+.auth-screen [data-testid="stForm"] .stButton > button[kind="primary"] {
+    min-height: 3rem;
+    border-radius: 10px !important;
+    font-size: 0.9375rem !important;
+    font-weight: 600 !important;
+    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 52%, #4338CA 100%) !important;
+    border: none !important;
+    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2), 0 8px 20px rgba(37, 99, 235, 0.22) !important;
+}
+.auth-screen [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
+    filter: brightness(1.05);
+    transform: translateY(-1px);
+}
+.auth-screen > .stButton > button,
+.auth-screen .stButton:not([data-testid="stForm"] .stButton) > button {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    color: #374151 !important;
+    font-size: 0.875rem !important;
+    font-weight: 500 !important;
+    padding: 0.5rem 0 !important;
+    margin-top: 0.75rem;
+}
+.auth-screen > .stButton > button:hover,
+.auth-screen .stButton:not([data-testid="stForm"] .stButton) > button:hover {
+    color: var(--ps-blue-deep) !important;
+    background: transparent !important;
+}
+.auth-screen-footer {
+    margin-top: 1.75rem;
+    text-align: center;
+}
+.auth-screen-footer p {
+    margin: 0 0 0.45rem;
+    font-size: 0.75rem;
+    line-height: 1.55;
+    color: #6B7280;
+}
+.auth-screen-footer-muted {
+    color: #9CA3AF !important;
+    font-size: 0.72rem !important;
+}
+.auth-screen [data-testid="stAlert"] {
+    margin: 0 0 1rem;
+    border-radius: 10px;
+}
+
 /* Hero banner */
 .hero-block {
     background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);

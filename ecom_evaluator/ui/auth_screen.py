@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 
 from ecom_evaluator.auth.oauth import (
@@ -18,9 +20,17 @@ from ecom_evaluator.auth.session import (
     set_auth_user,
     sign_up_account,
 )
-from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.ui.subscription import complete_post_auth_navigation, go_to_landing, open_auth_screen
+
+_GOOGLE_ICON_SVG = (
+    '<svg class="auth-oauth-icon" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
+    '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
+    '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
+    '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>'
+    '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
+    "</svg>"
+)
 
 
 def _finish_auth() -> None:
@@ -28,30 +38,51 @@ def _finish_auth() -> None:
     st.rerun()
 
 
-def _auth_headline() -> tuple[str, str]:
-    intent = st.session_state.get("auth_intent")
+def _auth_title() -> str:
     mode = st.session_state.get("auth_mode", "login")
-    if intent == "evaluate":
-        return (
-            "Sign in to run your free evaluation",
-            f"Log in or create an account — {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations included.",
-        )
     if mode == "signup":
-        return (
-            "Create your free account",
-            f"Get {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations and preview Sections 1–2.",
-        )
+        return "Create your ProductScore account"
+    return "Continue to ProductScore"
+
+
+def _google_oauth_button_html(oauth_url: str) -> str:
+    safe_url = html.escape(oauth_url, quote=True)
     return (
-        "Welcome back",
-        "Log in to access your evaluations and saved quota.",
+        f'<a class="auth-oauth-btn" href="{safe_url}">'
+        f"{_GOOGLE_ICON_SVG}"
+        "<span>Google</span>"
+        "</a>"
+    )
+
+
+def _render_auth_header() -> None:
+    title = html.escape(_auth_title())
+    st.markdown(
+        f'<div class="auth-screen-header"><div class="auth-screen-logo" aria-hidden="true">🦈</div>'
+        f'<h1 class="auth-screen-title">{title}</h1></div>',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_auth_divider() -> None:
+    st.markdown('<hr class="auth-screen-divider" />', unsafe_allow_html=True)
+
+
+def _render_auth_footer() -> None:
+    st.markdown(
+        '<div class="auth-screen-footer"><p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>'
+        '<p class="auth-screen-footer-muted">Your data is used only to run evaluations and manage your account.</p></div>',
+        unsafe_allow_html=True,
     )
 
 
 def _render_login_form() -> None:
     with st.form("auth_login_form", clear_on_submit=False):
-        email = st.text_input("Email", placeholder="you@company.com", key="auth_login_email")
-        password = st.text_input("Password", type="password", key="auth_login_password")
-        submitted = st.form_submit_button("Log in", type="primary", use_container_width=True)
+        st.markdown('<p class="auth-field-label">Your email</p>', unsafe_allow_html=True)
+        email = st.text_input("Your email", placeholder="you@company.com", key="auth_login_email", label_visibility="collapsed")
+        st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
+        password = st.text_input("Password", type="password", key="auth_login_password", label_visibility="collapsed")
+        submitted = st.form_submit_button("Continue with email", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
         try:
@@ -63,10 +94,14 @@ def _render_login_form() -> None:
 
 def _render_signup_form() -> None:
     with st.form("auth_signup_form", clear_on_submit=False):
-        name = st.text_input("Display name (optional)", key="auth_signup_name")
-        email = st.text_input("Email", placeholder="you@company.com", key="auth_signup_email")
-        password = st.text_input("Password", type="password", help="Minimum 8 characters", key="auth_signup_password")
-        confirm = st.text_input("Confirm password", type="password", key="auth_signup_confirm")
+        st.markdown('<p class="auth-field-label">Your email</p>', unsafe_allow_html=True)
+        email = st.text_input("Your email", placeholder="you@company.com", key="auth_signup_email", label_visibility="collapsed")
+        st.markdown('<p class="auth-field-label">Display name <span class="auth-field-optional">(optional)</span></p>', unsafe_allow_html=True)
+        name = st.text_input("Display name", placeholder="Alex", key="auth_signup_name", label_visibility="collapsed")
+        st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
+        password = st.text_input("Password", type="password", key="auth_signup_password", label_visibility="collapsed")
+        st.markdown('<p class="auth-field-label">Confirm password</p>', unsafe_allow_html=True)
+        confirm = st.text_input("Confirm password", type="password", key="auth_signup_confirm", label_visibility="collapsed")
         submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
@@ -92,20 +127,6 @@ def _render_email_password_auth() -> None:
             open_auth_screen(mode="signup", intent=st.session_state.get("auth_intent"))
 
 
-def _render_auth_panel() -> None:
-    title, copy = _auth_headline()
-    st.markdown(
-        f"""
-        <div class="auth-card auth-card--standalone">
-            <p class="auth-card-kicker">Your account</p>
-            <p class="auth-card-title">{title}</p>
-            <p class="auth-card-copy">{copy}</p>
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
 def _render_google_sign_in() -> bool:
     settings = get_auth_settings()
     if not settings.google_oauth_enabled or settings.provider != "supabase":
@@ -116,14 +137,8 @@ def _render_google_sign_in() -> bool:
     except (AnalysisError, RuntimeError):
         return False
 
-    st.link_button(
-        "Continue with Google",
-        oauth_url,
-        use_container_width=True,
-        type="primary",
-    )
-    st.caption("Works for new and returning accounts.")
-    st.markdown('<p class="auth-divider"><span>or use email</span></p>', unsafe_allow_html=True)
+    st.markdown(_google_oauth_button_html(oauth_url), unsafe_allow_html=True)
+    _render_auth_divider()
     return True
 
 
@@ -150,11 +165,12 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Compact auth screen — only shown when user clicks Log in, Get started, or Run evaluation."""
-    _, center, _ = st.columns([0.15, 1.7, 0.15])
+    """Centered Superhuman-style auth screen."""
+    _, center, _ = st.columns([1, 1.05, 1])
     with center:
+        st.markdown('<div class="auth-screen">', unsafe_allow_html=True)
+        _render_auth_header()
         render_auth_error()
-        _render_auth_panel()
 
         settings = get_auth_settings()
         if settings.provider == "streamlit_authenticator":
@@ -164,5 +180,7 @@ def render_auth_screen() -> None:
         else:
             _render_dev_auth()
 
+        _render_auth_footer()
         if st.button("← Back to home", key="auth_back_home"):
             go_to_landing()
+        st.markdown("</div>", unsafe_allow_html=True)
