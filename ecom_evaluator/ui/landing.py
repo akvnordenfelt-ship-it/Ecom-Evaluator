@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
+import html
+
 import streamlit as st
 import streamlit.components.v1 as components
 
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
-from ecom_evaluator.ui.subscription import enter_tool_view, request_free_evaluation
+from ecom_evaluator.ui.subscription import request_free_evaluation
 
 SECTION_VISUALS: dict[str, dict[str, str]] = {
     "product_profile": {
@@ -49,131 +51,147 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
     },
 }
 
+_FAQ_ITEMS: tuple[tuple[str, str], ...] = (
+    (
+        "Why no web search on the free tier?",
+        "Web search APIs cost money on every evaluation. We keep the free tier input-only so "
+        "you still get a premium-quality profile, risk analysis, and margin math — without us "
+        "burning budget on tire-kickers. When you're serious, Premium unlocks live competitor intel.",
+    ),
+    (
+        "What makes the free report 'ceiling quality'?",
+        "The free preview gives you Sections 1–2: a weighted product score and Shark Tank-grade red flags. "
+        "Premium unlocks the financial GO/NO-GO verdict plus the full execution stack.",
+    ),
+    (
+        "When should I upgrade to Premium?",
+        "Upgrade when red flags have your attention and you need the math: margin stress-tests, "
+        "final verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts.",
+    ),
+)
 
-def _page_divider(label: str, *, band: bool = False) -> None:
-    band_class = " lp-page-divider--band" if band else ""
-    st.markdown(
-        f'<div class="lp-page-divider{band_class}"><span>{label}</span></div>',
-        unsafe_allow_html=True,
+
+def _band_open(band: str, *, section_id: str | None = None) -> str:
+    id_attr = f' id="{section_id}"' if section_id else ""
+    return f'<section class="lp-band lp-band--{band}"{id_attr}><div class="lp-band-bg" aria-hidden="true"></div><div class="lp-band-inner">'
+
+
+def _band_close() -> str:
+    return "</div></section>"
+
+
+def _section_header_html(
+    kicker: str,
+    title: str,
+    lead: str | None = None,
+    *,
+    reveal_class: str = "lp-reveal",
+) -> str:
+    lead_html = (
+        f'<p class="lp-section-header-lead">{html.escape(lead)}</p>' if lead else ""
+    )
+    return (
+        f'<div class="lp-section-header {reveal_class}">'
+        f'<span class="lp-band-label">{html.escape(kicker)}</span>'
+        f'<h2 class="lp-section-header-title">{html.escape(title)}</h2>'
+        f"{lead_html}"
+        f"</div>"
     )
 
 
-def _section_header(kicker: str, title: str, lead: str | None = None) -> None:
-    lead_html = f'<p class="lp-section-header-lead">{lead}</p>' if lead else ""
-    st.markdown(
-        f"""
-        <div class="lp-section-header">
-            <p class="lp-section-header-kicker">{kicker}</p>
-            <h2 class="lp-section-header-title">{title}</h2>
-            {lead_html}
-        </div>
-        """,
-        unsafe_allow_html=True,
-    )
-
-
-def _section_card_html(section: ReportSection, *, badge: str = "Free") -> str:
+def _section_card_html(section: ReportSection, *, badge: str = "Free", reveal: str = "lp-reveal") -> str:
     vis = SECTION_VISUALS[section.id]
     badge_class = "lp-free-pill" if badge == "Free" else "lp-premium-pill"
     return (
-        f'<div class="lp-section-card" style="--accent:{vis["accent"]};--accent-soft:{vis["accent_soft"]}">'
+        f'<div class="lp-section-card {reveal}" style="--accent:{vis["accent"]};--accent-soft:{vis["accent_soft"]}">'
         f'<div class="lp-section-card-top">'
         f'<span class="lp-section-icon">{vis["icon"]}</span>'
         f'<span class="{badge_class}">{badge}</span>'
         f"</div>"
         f'<p class="lp-section-num">Section {section.number}</p>'
-        f'<p class="lp-section-title">{section.title}</p>'
-        f'<p class="lp-section-body">{section.subtitle}</p>'
-        f'<p class="lp-section-highlight">{vis["highlight"]}</p>'
+        f'<p class="lp-section-title">{html.escape(section.title)}</p>'
+        f'<p class="lp-section-body">{html.escape(section.subtitle)}</p>'
+        f'<p class="lp-section-highlight">{html.escape(vis["highlight"])}</p>'
         f"</div>"
     )
 
 
-def _render_free_section_cards() -> None:
-    free_sections = REPORT_SECTIONS[:2]
-    col_left, col_right = st.columns(2)
-    with col_left:
-        st.markdown(_section_card_html(free_sections[0], badge="Free"), unsafe_allow_html=True)
-    with col_right:
-        st.markdown(_section_card_html(free_sections[1], badge="Free"), unsafe_allow_html=True)
-
-
-def _premium_pricing_html() -> str:
+def _premium_pricing_html(*, reveal: str = "lp-reveal lp-reveal-scale") -> str:
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
     return (
-        '<div class="lp-pricing-card lp-pricing-card--premium lp-pricing-card--solo">'
-        '<span class="lp-popular-pill">Everything included</span>'
-        '<p class="lp-pricing-tier">Premium</p>'
+        f'<div class="lp-pricing-card lp-pricing-card--premium lp-pricing-card--solo {reveal}">'
+        f'<span class="lp-popular-pill">Everything included</span>'
+        f'<p class="lp-pricing-tier">Premium</p>'
         f'<p class="lp-pricing-price">${premium.price_usd_monthly}<span>/mo</span></p>'
-        "<p class=\"lp-pricing-blurb\">One plan. Full stack. Unlimited evaluations. "
-        "Unlock every section — financial verdict, marketing blueprint, live web intel, and 5× video scripts — "
-        "powered by our most advanced commercial AI engine.</p>"
-        '<ul class="lp-pricing-features">'
-        "<li>Section 3 — Financial matrix &amp; GO/NO-GO verdict</li>"
-        "<li>Section 4 — Marketing viability &amp; targeting blueprint</li>"
-        "<li>Section 5 — Live web intelligence &amp; sourcing links</li>"
-        "<li>Section 6 — Ultimate 5× video content engine</li>"
-        "<li>Unlimited evaluations</li>"
-        "</ul></div>"
+        f'<p class="lp-pricing-blurb">One plan. Full stack. Unlimited evaluations. '
+        f"Unlock every section — financial verdict, marketing blueprint, live web intel, and 5× video scripts — "
+        f'powered by our most advanced commercial AI engine.</p>'
+        f'<ul class="lp-pricing-features">'
+        f"<li>Section 3 — Financial matrix &amp; GO/NO-GO verdict</li>"
+        f"<li>Section 4 — Marketing viability &amp; targeting blueprint</li>"
+        f"<li>Section 5 — Live web intelligence &amp; sourcing links</li>"
+        f"<li>Section 6 — Ultimate 5× video content engine</li>"
+        f"<li>Unlimited evaluations</li>"
+        f"</ul></div>"
     )
 
 
-def _step_card_html(number: int, title: str, body: str) -> str:
+def _step_card_html(number: int, title: str, body: str, *, reveal: str) -> str:
     return (
-        f'<div class="lp-step-card">'
+        f'<div class="lp-step-card {reveal}">'
         f'<span class="lp-step-num">{number}</span>'
-        f'<p class="lp-step-title">{title}</p>'
-        f'<p class="lp-step-body">{body}</p>'
+        f'<p class="lp-step-title">{html.escape(title)}</p>'
+        f'<p class="lp-step-body">{html.escape(body)}</p>'
         f"</div>"
     )
 
 
-def render_landing_hero() -> None:
-    st.markdown(
-        f'<div class="landing-wrap"><div class="landing-hero">'
-        f'<p class="landing-kicker">Shark Tank-grade analysis</p>'
-        f'<h1 class="landing-title">Know if your product can win — before you spend a dollar</h1>'
-        f'<p class="landing-lead">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
-        f"Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.</p>"
-        f'<div class="lp-hero-badges">'
-        f'<span class="lp-hero-badge">~30 sec preview</span>'
-        f'<span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>'
-        f'<span class="lp-hero-badge">2 sections free</span>'
-        f'<span class="lp-hero-badge">Premium · $29/mo</span>'
-        f"</div></div></div>",
-        unsafe_allow_html=True,
-    )
+def _faq_html() -> str:
+    items = []
+    for index, (question, answer) in enumerate(_FAQ_ITEMS):
+        delay = f" lp-reveal-delay-{min(index + 1, 4)}"
+        items.append(
+            f'<details class="lp-faq-item lp-reveal{delay}">'
+            f"<summary>{html.escape(question)}</summary>"
+            f'<p class="lp-faq-answer">{html.escape(answer)}</p>'
+            f"</details>"
+        )
+    return f'<div class="lp-faq-list">{"".join(items)}</div>'
 
 
-def render_landing_at_a_glance() -> None:
-    _page_divider("At a glance")
+def _install_scroll_reveal() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const doc = window.parent.document;
+            if (doc.documentElement.dataset.lpRevealReady) return;
+            doc.documentElement.dataset.lpRevealReady = "1";
 
-    st.markdown(
-        f"""
-        <div class="lp-value-grid">
-            <div class="lp-value-tile">
-                <span class="lp-value-icon">⚡</span>
-                <p class="lp-value-title">~30 seconds</p>
-                <p class="lp-value-desc">From upload to your free profile + red-flag preview</p>
-            </div>
-            <div class="lp-value-tile">
-                <span class="lp-value-icon">📋</span>
-                <p class="lp-value-title">2 sections free</p>
-                <p class="lp-value-desc">Product profile, core metrics, and Shark Tank red flags</p>
-            </div>
-            <div class="lp-value-tile">
-                <span class="lp-value-icon">💳</span>
-                <p class="lp-value-title">$0 to start</p>
-                <p class="lp-value-desc">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations per account — no credit card required</p>
-            </div>
-            <div class="lp-value-tile">
-                <span class="lp-value-icon">📊</span>
-                <p class="lp-value-title">5 scored metrics</p>
-                <p class="lp-value-desc">Saturation, velocity, logistics, seasonality, and brandability</p>
-            </div>
-        </div>
+            const observe = () => {
+                const nodes = doc.querySelectorAll(".lp-reveal:not(.is-visible)");
+                if (!nodes.length) return;
+                const io = new IntersectionObserver(
+                    (entries) => {
+                        entries.forEach((entry) => {
+                            if (!entry.isIntersecting) return;
+                            entry.target.classList.add("is-visible");
+                            io.unobserve(entry.target);
+                        });
+                    },
+                    { threshold: 0.14, rootMargin: "0px 0px -6% 0px" }
+                );
+                nodes.forEach((node) => io.observe(node));
+            };
+
+            observe();
+            const mo = new MutationObserver(() => observe());
+            mo.observe(doc.body, { childList: true, subtree: true });
+        })();
+        </script>
         """,
-        unsafe_allow_html=True,
+        height=0,
+        width=0,
     )
 
 
@@ -198,147 +216,161 @@ def _scroll_to_anchor_if_needed() -> None:
     )
 
 
+def render_landing_hero() -> None:
+    st.markdown(
+        f'<div class="landing-wrap lp-reveal-hero-wrap"><div class="landing-hero">'
+        f'<p class="landing-kicker lp-reveal lp-reveal-hero">Shark Tank-grade analysis</p>'
+        f'<h1 class="landing-title lp-reveal lp-reveal-hero lp-reveal-delay-1">Know if your product can win — before you spend a dollar</h1>'
+        f'<p class="landing-lead lp-reveal lp-reveal-hero lp-reveal-delay-2">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
+        f"Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.</p>"
+        f'<div class="lp-hero-badges lp-reveal lp-reveal-hero lp-reveal-delay-3">'
+        f'<span class="lp-hero-badge">~30 sec preview</span>'
+        f'<span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>'
+        f'<span class="lp-hero-badge">2 sections free</span>'
+        f'<span class="lp-hero-badge">Premium · $29/mo</span>'
+        f"</div></div></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_landing_at_a_glance() -> None:
+    st.markdown(
+        _band_open("glance")
+        + '<div class="lp-section-header lp-reveal"><span class="lp-band-label">At a glance</span>'
+        + '<h2 class="lp-section-header-title">Everything you need to decide fast</h2></div>'
+        + '<div class="lp-value-grid">'
+        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-1"><span class="lp-value-icon">⚡</span>'
+        + '<p class="lp-value-title">~30 seconds</p>'
+        + '<p class="lp-value-desc">From upload to your free profile + red-flag preview</p></div>'
+        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-2"><span class="lp-value-icon">📋</span>'
+        + '<p class="lp-value-title">2 sections free</p>'
+        + '<p class="lp-value-desc">Product profile, core metrics, and Shark Tank red flags</p></div>'
+        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-3"><span class="lp-value-icon">💳</span>'
+        + '<p class="lp-value-title">$0 to start</p>'
+        + f'<p class="lp-value-desc">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations per account — no credit card required</p></div>'
+        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-4"><span class="lp-value-icon">📊</span>'
+        + '<p class="lp-value-title">5 scored metrics</p>'
+        + '<p class="lp-value-desc">Saturation, velocity, logistics, seasonality, and brandability</p></div>'
+        + "</div>"
+        + _band_close(),
+        unsafe_allow_html=True,
+    )
+
+
 def render_landing_body() -> None:
-    _page_divider("Free tier", band=True)
-    _section_header(
-        "What you get free",
-        "Two sections designed to hook you — then Premium delivers the verdict",
-        "Free users get a real profile score and brutal red-flag analysis — enough to feel the opportunity "
-        "and the risk. The financial GO/NO-GO verdict and execution stack unlock on Premium.",
-    )
-    _render_free_section_cards()
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div id="section-pricing"></div>', unsafe_allow_html=True)
-    _page_divider("Premium", band=True)
-    _section_header(
-        "Unlock the full report",
-        "One plan. Everything included. $29/month.",
-        "Sections 3–6 cover the financial verdict, marketing blueprint, live competitor intel, "
-        "and five ready-to-shoot video scripts — plus unlimited evaluations.",
-    )
-    _, premium_col, _ = st.columns([0.35, 1.3, 0.35])
-    with premium_col:
-        st.markdown(_premium_pricing_html(), unsafe_allow_html=True)
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div id="section-process"></div>', unsafe_allow_html=True)
-    _page_divider("Process", band=True)
-    _section_header("How it works", "From product photo to go/no-go in three steps")
-    step1, step2, step3 = st.columns(3)
-    with step1:
-        st.markdown(
-            _step_card_html(
-                1,
-                "Upload and input",
-                "Add your product image, cost, sell price, dimensions, and a short description. Takes 60 seconds.",
-            ),
-            unsafe_allow_html=True,
-        )
-    with step2:
-        st.markdown(
-            _step_card_html(
-                2,
-                "AI evaluates",
-                "Our AI analyzes your inputs — profile and risks on free, full stack on Premium.",
-            ),
-            unsafe_allow_html=True,
-        )
-    with step3:
-        st.markdown(
-            _step_card_html(
-                3,
-                "Decide and scale",
-                "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and ad scripts.",
-            ),
-            unsafe_allow_html=True,
-        )
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div id="section-sample"></div>', unsafe_allow_html=True)
-    _page_divider("Sample output", band=True)
-    _section_header("Inside your report", "A snapshot of what you'll see")
+    free_sections = REPORT_SECTIONS[:2]
     st.markdown(
-        """
-        <div class="lp-preview-card">
-            <div class="lp-preview-left">
-                <p class="lp-preview-label">Overall product score</p>
-                <p class="lp-preview-score">74<span>/100</span></p>
-                <p class="lp-preview-verdict">Proceed with caution</p>
-            </div>
-            <div class="lp-preview-right">
-                <p class="lp-preview-metric"><span>Market saturation</span><span class="lp-bar"><i style="width:62%"></i></span><strong>62</strong></p>
-                <p class="lp-preview-metric"><span>Marketing velocity</span><span class="lp-bar"><i style="width:81%"></i></span><strong>81</strong></p>
-                <p class="lp-preview-metric"><span>Logistics and margin</span><span class="lp-bar"><i style="width:88%"></i></span><strong>88</strong></p>
-                <p class="lp-preview-metric"><span>Seasonality</span><span class="lp-bar"><i style="width:55%"></i></span><strong>55</strong></p>
-                <p class="lp-preview-metric"><span>Brandability</span><span class="lp-bar"><i style="width:70%"></i></span><strong>70</strong></p>
-            </div>
-        </div>
-        """,
+        _band_open("free")
+        + _section_header_html(
+            "What you get free",
+            "Two sections designed to hook you — then Premium delivers the verdict",
+            "Free users get a real profile score and brutal red-flag analysis — enough to feel the opportunity "
+            "and the risk. The financial GO/NO-GO verdict and execution stack unlock on Premium.",
+        )
+        + '<div class="lp-section-grid">'
+        + _section_card_html(free_sections[0], reveal="lp-reveal lp-reveal-left lp-reveal-delay-1")
+        + _section_card_html(free_sections[1], reveal="lp-reveal lp-reveal-right lp-reveal-delay-2")
+        + "</div>"
+        + _band_close(),
         unsafe_allow_html=True,
     )
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
-    _page_divider("Plans", band=True)
-    _section_header("Compare plans", "Free preview vs Premium full stack")
     st.markdown(
-        f"""
-        <div class="lp-compare-wrap">
-            <table class="lp-compare-table">
-                <thead>
-                    <tr>
-                        <th>Feature</th>
-                        <th>Free</th>
-                        <th>Premium</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr><td>Sections 1–2 (profile + red flags)</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Weighted 5-metric score</td><td>Yes</td><td>Yes</td></tr>
-                    <tr><td>Financial matrix &amp; GO/NO-GO verdict (Section 3)</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>5× video script engine (Section 6)</td><td>—</td><td>Yes</td></tr>
-                    <tr><td>Evaluations</td><td>{FREE_EVALUATIONS_PER_ACCOUNT} free / account</td><td>Unlimited</td></tr>
-                    <tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>
-                </tbody>
-            </table>
-        </div>
-        """,
+        _band_open("premium", section_id="section-pricing")
+        + _section_header_html(
+            "Unlock the full report",
+            "One plan. Everything included. $29/month.",
+            "Sections 3–6 cover the financial verdict, marketing blueprint, live competitor intel, "
+            "and five ready-to-shoot video scripts — plus unlimited evaluations.",
+        )
+        + _premium_pricing_html()
+        + _band_close(),
         unsafe_allow_html=True,
     )
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
 
-    st.markdown('<div id="section-resources"></div>', unsafe_allow_html=True)
-    _page_divider("FAQ", band=True)
-    with st.expander("Why no web search on the free tier?"):
-        st.markdown(
-            "Web search APIs cost money on every evaluation. We keep the free tier input-only so "
-            "you still get a **premium-quality** profile, risk analysis, and margin math — without us "
-            "burning budget on tire-kickers. When you're serious, Premium unlocks live competitor intel."
+    st.markdown(
+        _band_open("process", section_id="section-process")
+        + _section_header_html("How it works", "From product photo to go/no-go in three steps")
+        + '<div class="lp-steps-grid">'
+        + _step_card_html(
+            1,
+            "Upload and input",
+            "Add your product image, cost, sell price, dimensions, and a short description. Takes 60 seconds.",
+            reveal="lp-reveal lp-reveal-delay-1",
         )
-    with st.expander("What makes the free report 'ceiling quality'?"):
-        st.markdown(
-            "The free preview gives you Sections 1–2: a weighted product score and Shark Tank-grade red flags. "
-            "Premium unlocks the financial GO/NO-GO verdict plus the full execution stack."
+        + _step_card_html(
+            2,
+            "AI evaluates",
+            "Our AI analyzes your inputs — profile and risks on free, full stack on Premium.",
+            reveal="lp-reveal lp-reveal-delay-2",
         )
-    with st.expander("When should I upgrade to Premium?"):
-        st.markdown(
-            "Upgrade when red flags have your attention and you need the math: margin stress-tests, "
-            "final verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts."
+        + _step_card_html(
+            3,
+            "Decide and scale",
+            "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and ad scripts.",
+            reveal="lp-reveal lp-reveal-delay-3",
         )
-    st.markdown('<div class="lp-band-end"></div>', unsafe_allow_html=True)
+        + "</div>"
+        + _band_close(),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        _band_open("sample", section_id="section-sample")
+        + _section_header_html("Inside your report", "A snapshot of what you'll see")
+        + '<div class="lp-preview-card lp-reveal lp-reveal-scale">'
+        + '<div class="lp-preview-left">'
+        + '<p class="lp-preview-label">Overall product score</p>'
+        + '<p class="lp-preview-score">74<span>/100</span></p>'
+        + '<p class="lp-preview-verdict">Proceed with caution</p>'
+        + "</div>"
+        + '<div class="lp-preview-right">'
+        + '<p class="lp-preview-metric"><span>Market saturation</span><span class="lp-bar"><i style="width:62%"></i></span><strong>62</strong></p>'
+        + '<p class="lp-preview-metric"><span>Marketing velocity</span><span class="lp-bar"><i style="width:81%"></i></span><strong>81</strong></p>'
+        + '<p class="lp-preview-metric"><span>Logistics and margin</span><span class="lp-bar"><i style="width:88%"></i></span><strong>88</strong></p>'
+        + '<p class="lp-preview-metric"><span>Seasonality</span><span class="lp-bar"><i style="width:55%"></i></span><strong>55</strong></p>'
+        + '<p class="lp-preview-metric"><span>Brandability</span><span class="lp-bar"><i style="width:70%"></i></span><strong>70</strong></p>'
+        + "</div></div>"
+        + _band_close(),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        _band_open("compare")
+        + _section_header_html("Compare plans", "Free preview vs Premium full stack")
+        + f'<div class="lp-compare-wrap lp-reveal lp-reveal-scale"><table class="lp-compare-table">'
+        f"<thead><tr><th>Feature</th><th>Free</th><th>Premium</th></tr></thead><tbody>"
+        f"<tr><td>Sections 1–2 (profile + red flags)</td><td>Yes</td><td>Yes</td></tr>"
+        f"<tr><td>Weighted 5-metric score</td><td>Yes</td><td>Yes</td></tr>"
+        f"<tr><td>Financial matrix &amp; GO/NO-GO verdict (Section 3)</td><td>—</td><td>Yes</td></tr>"
+        f"<tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>"
+        f"<tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>"
+        f"<tr><td>5× video script engine (Section 6)</td><td>—</td><td>Yes</td></tr>"
+        f"<tr><td>Evaluations</td><td>{FREE_EVALUATIONS_PER_ACCOUNT} free / account</td><td>Unlimited</td></tr>"
+        f"<tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>"
+        f"</tbody></table></div>"
+        + _band_close(),
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        _band_open("faq", section_id="section-resources")
+        + _section_header_html("FAQ", "Common questions before you evaluate")
+        + _faq_html()
+        + _band_close(),
+        unsafe_allow_html=True,
+    )
 
 
 def render_landing_final_cta(*, show_buttons: bool = True) -> None:
     st.markdown(
-        f"""
-        <div class="lp-final-cta">
-            <p class="lp-final-kicker">Ready to evaluate?</p>
-            <h2 class="lp-final-title">Your first {FREE_EVALUATIONS_PER_ACCOUNT} evaluations are free — no credit card required</h2>
-            <p class="lp-final-lead">Upload a product image, enter your numbers, and get your score in about 30 seconds.</p>
-        </div>
-        """,
+        _band_open("final")
+        + f'<div class="lp-final-cta lp-reveal">'
+        f'<p class="lp-final-kicker">Ready to evaluate?</p>'
+        f'<h2 class="lp-final-title">Your first {FREE_EVALUATIONS_PER_ACCOUNT} evaluations are free — no credit card required</h2>'
+        f'<p class="lp-final-lead">Upload a product image, enter your numbers, and get your score in about 30 seconds.</p>'
+        f"</div>"
+        + _band_close(),
         unsafe_allow_html=True,
     )
 
@@ -351,7 +383,7 @@ def render_landing_final_cta(*, show_buttons: bool = True) -> None:
 
 def render_landing_footnote() -> None:
     st.markdown(
-        '<p class="landing-footnote">ProductScore · Built for e-commerce operators</p>',
+        '<p class="landing-footnote lp-reveal">ProductScore · Built for e-commerce operators</p>',
         unsafe_allow_html=True,
     )
 
@@ -368,4 +400,5 @@ def render_landing_page() -> None:
     render_landing_body()
     render_landing_final_cta()
     render_landing_footnote()
+    _install_scroll_reveal()
     _scroll_to_anchor_if_needed()
