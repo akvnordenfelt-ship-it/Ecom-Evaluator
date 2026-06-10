@@ -130,24 +130,17 @@ def _step_card_html(number: int, title: str, body: str) -> str:
 
 def render_landing_hero() -> None:
     st.markdown(
-        f"""
-        <div class="landing-wrap">
-            <div class="landing-hero">
-                <p class="landing-kicker">Shark Tank-grade analysis</p>
-                <h1 class="landing-title">Know if your product can win — before you spend a dollar</h1>
-                <p class="landing-lead">
-                    Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds.
-                    Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.
-                </p>
-                <div class="lp-hero-badges">
-                    <span class="lp-hero-badge">~30 sec preview</span>
-                    <span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>
-                    <span class="lp-hero-badge">2 sections free</span>
-                    <span class="lp-hero-badge">Premium · $29/mo</span>
-                </div>
-            </div>
-        </div>
-        """,
+        f'<div class="landing-wrap"><div class="landing-hero">'
+        f'<p class="landing-kicker">Shark Tank-grade analysis</p>'
+        f'<h1 class="landing-title">Know if your product can win — before you spend a dollar</h1>'
+        f'<p class="landing-lead">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
+        f"Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.</p>"
+        f'<div class="lp-hero-badges">'
+        f'<span class="lp-hero-badge">~30 sec preview</span>'
+        f'<span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>'
+        f'<span class="lp-hero-badge">2 sections free</span>'
+        f'<span class="lp-hero-badge">Premium · $29/mo</span>'
+        f"</div></div></div>",
         unsafe_allow_html=True,
     )
 
