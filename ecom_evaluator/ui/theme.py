@@ -1003,22 +1003,35 @@ div[data-testid="stTextArea"] textarea:focus {
     backdrop-filter: blur(4px);
 }
 
-/* Scroll reveal animations — replay whenever elements re-enter view */
+/* Scroll reveal — visible by default; hide only after JS is ready */
 .lp-reveal {
-    opacity: 0;
-    transform: translateY(28px);
+    opacity: 1;
+    transform: none;
     transition:
         opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
         transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
+}
+html.lp-reveal-ready .lp-reveal:not(.lp-reveal-hero):not(.is-visible) {
+    opacity: 0;
+    transform: translateY(28px);
     will-change: opacity, transform;
 }
-.lp-reveal-left { transform: translateX(-32px); }
-.lp-reveal-right { transform: translateX(32px); }
-.lp-reveal-scale { transform: translateY(20px) scale(0.97); }
-.lp-reveal.is-visible,
-.lp-reveal-left.is-visible,
-.lp-reveal-right.is-visible,
-.lp-reveal-scale.is-visible {
+html.lp-reveal-ready .lp-reveal-left:not(.is-visible) {
+    opacity: 0;
+    transform: translateX(-32px);
+}
+html.lp-reveal-ready .lp-reveal-right:not(.is-visible) {
+    opacity: 0;
+    transform: translateX(32px);
+}
+html.lp-reveal-ready .lp-reveal-scale:not(.is-visible) {
+    opacity: 0;
+    transform: translateY(20px) scale(0.97);
+}
+html.lp-reveal-ready .lp-reveal.is-visible,
+html.lp-reveal-ready .lp-reveal-left.is-visible,
+html.lp-reveal-ready .lp-reveal-right.is-visible,
+html.lp-reveal-ready .lp-reveal-scale.is-visible {
     opacity: 1;
     transform: none;
 }

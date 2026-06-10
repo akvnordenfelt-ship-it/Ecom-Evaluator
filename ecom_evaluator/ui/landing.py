@@ -164,28 +164,41 @@ def _install_scroll_reveal() -> None:
         """
         <script>
         (function () {
-            const doc = window.parent.document;
+            const win = window.parent;
+            const doc = win.document;
             if (doc.documentElement.dataset.lpRevealReady) return;
             doc.documentElement.dataset.lpRevealReady = "1";
+            doc.documentElement.classList.add("lp-reveal-ready");
 
             const io = new IntersectionObserver(
                 (entries) => {
                     entries.forEach((entry) => {
-                        entry.target.classList.toggle("is-visible", entry.isIntersecting);
+                        if (!entry.isIntersecting) return;
+                        entry.target.classList.add("is-visible");
                     });
                 },
-                { threshold: 0.12, rootMargin: "0px 0px -5% 0px" }
+                { threshold: 0.08, rootMargin: "0px 0px -2% 0px" }
             );
 
+            const markIfInView = (node) => {
+                const rect = node.getBoundingClientRect();
+                if (rect.top < win.innerHeight * 0.94 && rect.bottom > 0) {
+                    node.classList.add("is-visible");
+                }
+            };
+
             const bindRevealNodes = () => {
-                doc.querySelectorAll(".lp-reveal").forEach((node) => {
+                doc.querySelectorAll(".lp-reveal:not(.lp-reveal-hero)").forEach((node) => {
                     if (node.dataset.lpObserved) return;
                     node.dataset.lpObserved = "1";
+                    markIfInView(node);
                     io.observe(node);
                 });
             };
 
             bindRevealNodes();
+            win.addEventListener("load", bindRevealNodes, { once: true });
+            win.addEventListener("resize", bindRevealNodes);
             const mo = new MutationObserver(() => bindRevealNodes());
             mo.observe(doc.body, { childList: true, subtree: true });
         })();
@@ -219,12 +232,12 @@ def _scroll_to_anchor_if_needed() -> None:
 
 def render_landing_hero() -> None:
     st.markdown(
-        f'<div class="landing-wrap lp-reveal-hero-wrap"><div class="landing-hero">'
-        f'<p class="landing-kicker lp-reveal lp-reveal-hero">Shark Tank-grade analysis</p>'
-        f'<h1 class="landing-title lp-reveal lp-reveal-hero lp-reveal-delay-1">Know if your product can win — before you spend a dollar</h1>'
-        f'<p class="landing-lead lp-reveal lp-reveal-hero lp-reveal-delay-2">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
+        f'<div class="landing-wrap"><div class="landing-hero">'
+        f'<p class="landing-kicker lp-reveal-hero">Shark Tank-grade analysis</p>'
+        f'<h1 class="landing-title lp-reveal-hero lp-reveal-delay-1">Know if your product can win — before you spend a dollar</h1>'
+        f'<p class="landing-lead lp-reveal-hero lp-reveal-delay-2">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
         f"Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.</p>"
-        f'<div class="lp-hero-badges lp-reveal lp-reveal-hero lp-reveal-delay-3">'
+        f'<div class="lp-hero-badges lp-reveal-hero lp-reveal-delay-3">'
         f'<span class="lp-hero-badge">~30 sec preview</span>'
         f'<span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>'
         f'<span class="lp-hero-badge">2 sections free</span>'
@@ -390,6 +403,7 @@ def render_landing_footnote() -> None:
 
 
 def render_landing_page() -> None:
+    _install_scroll_reveal()
     render_landing_hero()
 
     st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
@@ -402,5 +416,4 @@ def render_landing_page() -> None:
     render_landing_body()
     render_landing_final_cta()
     render_landing_footnote()
-    _install_scroll_reveal()
     _scroll_to_anchor_if_needed()
