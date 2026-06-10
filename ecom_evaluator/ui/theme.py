@@ -26,6 +26,7 @@ PREMIUM_THEME_CSS = """
     --ps-nav-h: 72px;
     --ps-nav-accent: #7C3AED;
     --ps-nav-cta: #0F172A;
+    --lp-panel-gradient: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
 }
 
 /* Global canvas */
@@ -941,7 +942,7 @@ div[data-testid="stTextArea"] textarea:focus {
     background: linear-gradient(180deg, rgba(30, 64, 175, 0.07) 0%, rgba(99, 102, 241, 0.03) 55%, transparent 100%);
 }
 .landing-hero {
-    background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    background: var(--lp-panel-gradient);
     border-radius: 20px;
     padding: 3.25rem 2.5rem 2.75rem;
     text-align: center;
@@ -1140,7 +1141,7 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     padding-top: 2.5rem;
 }
 .lp-band--glance .lp-band-bg,
-.lp-band--free .lp-band-bg,
+.lp-band--premium .lp-band-bg,
 .lp-band--process .lp-band-bg,
 .lp-band--sample .lp-band-bg,
 .lp-band--compare .lp-band-bg,
@@ -1148,7 +1149,6 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     display: none;
 }
 .lp-band--glance .lp-value-tile,
-.lp-band--free .lp-section-card,
 .lp-band--process .lp-step-card,
 .lp-band--sample .lp-preview-card,
 .lp-band--compare .lp-compare-wrap {
@@ -1159,9 +1159,6 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
 .lp-band--glance .lp-value-tile {
     border-color: rgba(191, 219, 254, 0.7);
     border-left-color: #3B82F6;
-}
-.lp-band--free .lp-section-card {
-    border-color: rgba(226, 232, 240, 0.9);
 }
 .lp-band--process .lp-step-card {
     border-color: rgba(226, 232, 240, 0.9);
@@ -1179,44 +1176,44 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
 .lp-band--process .lp-step-num {
     background: linear-gradient(135deg, #2563EB 0%, #4338CA 100%);
 }
-/* Section 3 — full-bleed hero blue with subtle checkered overlay */
-.lp-band--premium {
+/* Section 2 — full-bleed panel blue (same as Premium pricing box) */
+.lp-band--free {
     padding: 4.5rem 0;
 }
-.lp-band--premium .lp-band-bg {
-    background:
-        linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, transparent 14%),
-        linear-gradient(0deg, rgba(255, 255, 255, 0.92) 0%, transparent 14%),
-        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-        linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
-    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px, 100% 100%;
+.lp-band--free .lp-band-bg {
+    background: var(--lp-panel-gradient);
 }
-.lp-band--premium .lp-band-label {
+.lp-band--free .lp-band-label {
     background: rgba(255, 255, 255, 0.12);
     color: #BFDBFE;
     border-color: rgba(255, 255, 255, 0.22);
 }
-.lp-band--premium .lp-section-header-title { color: #F8FAFC; }
-.lp-band--premium .lp-section-header-lead { color: #CBD5E1; }
-.lp-band--premium .lp-pricing-card--premium {
+.lp-band--free .lp-section-header-title { color: #F8FAFC; }
+.lp-band--free .lp-section-header-lead { color: #CBD5E1; }
+.lp-band--free .lp-section-card {
     background: rgba(255, 255, 255, 0.97);
-    border: 1px solid rgba(255, 255, 255, 0.35);
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-    color: var(--ps-text);
+    border-color: rgba(255, 255, 255, 0.35);
+    box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
-.lp-band--premium .lp-pricing-tier { color: #1E3A8A; }
-.lp-band--premium .lp-pricing-price { color: #0F172A; }
+/* Section 3 — pricing box keeps the panel blue; band stays on checkered canvas */
+.lp-band--premium .lp-pricing-card--premium {
+    background: var(--lp-panel-gradient);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    box-shadow: 0 22px 55px rgba(30, 58, 138, 0.24);
+    color: #F8FAFC;
+}
+.lp-band--premium .lp-pricing-tier,
 .lp-band--premium .lp-pricing-blurb,
 .lp-band--premium .lp-pricing-features li {
-    color: #475569;
-    border-top-color: rgba(15, 23, 42, 0.08);
+    color: #E2E8F0;
+    border-top-color: rgba(255, 255, 255, 0.12);
 }
+.lp-band--premium .lp-pricing-price { color: #FFFFFF; }
 .lp-band--premium .lp-popular-pill {
-    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 52%, #4338CA 100%);
-    color: #FFFFFF;
-    border: none;
-    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
+    background: rgba(255, 255, 255, 0.16);
+    color: #E0E7FF;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: none;
 }
 .lp-band--final {
     padding: 0.5rem 0 0;
@@ -1676,7 +1673,7 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     margin: 0;
     padding: 3.25rem 2rem;
     text-align: center;
-    background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 50%, #4338CA 100%);
+    background: var(--lp-panel-gradient);
     border-radius: 20px;
     color: #F8FAFC;
     box-shadow: 0 24px 60px rgba(30, 64, 175, 0.28);
