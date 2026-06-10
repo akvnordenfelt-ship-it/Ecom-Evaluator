@@ -921,25 +921,18 @@ div[data-testid="stTextArea"] textarea:focus {
 
 /* Landing page */
 .landing-wrap { margin: 0.5rem 0 0; }
-/* Landing page — one continuous flowing background */
+/* Landing page — unified checkered canvas */
 .block-container:has(.landing-hero) {
-    background: linear-gradient(
-        180deg,
-        #FFFFFF 0%,
-        #FAFCFF 8%,
-        #F4F8FF 16%,
-        #EFF6FF 24%,
-        #EBF0FF 32%,
-        #E8EEFF 40%,
-        #EEF2FF 48%,
-        #EDE9FE 56%,
-        #F0F1FF 64%,
-        #F4F7FF 72%,
-        #F8FAFF 82%,
-        #FCFCFF 92%,
-        #FFFFFF 100%
-    );
+    background-color: #FFFFFF;
+    background-image:
+        linear-gradient(rgba(191, 219, 254, 0.42) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(191, 219, 254, 0.42) 1px, transparent 1px),
+        linear-gradient(180deg, #FAFCFF 0%, #FFFFFF 100%);
+    background-size: 30px 30px, 30px 30px, 100% 100%;
     background-attachment: local;
+}
+.stApp:has(.landing-hero) {
+    background-color: #FFFFFF !important;
 }
 .lp-hero-cta-gap {
     height: 2rem;
@@ -1138,7 +1131,7 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     font-weight: 700;
     letter-spacing: 0.11em;
     text-transform: uppercase;
-    background: rgba(255, 255, 255, 0.78);
+    background: rgba(255, 255, 255, 0.88);
     color: #1E40AF;
     border: 1px solid rgba(147, 197, 253, 0.55);
     backdrop-filter: blur(8px);
@@ -1146,93 +1139,85 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
 .lp-band--glance {
     padding-top: 2.5rem;
 }
-.lp-band--glance .lp-band-bg {
-    background: radial-gradient(ellipse 90% 55% at 20% 15%, rgba(59, 130, 246, 0.08) 0%, transparent 68%);
+.lp-band--glance .lp-band-bg,
+.lp-band--free .lp-band-bg,
+.lp-band--process .lp-band-bg,
+.lp-band--sample .lp-band-bg,
+.lp-band--compare .lp-band-bg,
+.lp-band--faq .lp-band-bg {
+    display: none;
 }
-.lp-band--glance .lp-section-header-title { color: #1E3A8A; }
+.lp-band--glance .lp-value-tile,
+.lp-band--free .lp-section-card,
+.lp-band--process .lp-step-card,
+.lp-band--sample .lp-preview-card,
+.lp-band--compare .lp-compare-wrap {
+    background: rgba(255, 255, 255, 0.9);
+    backdrop-filter: blur(6px);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
+}
 .lp-band--glance .lp-value-tile {
-    background: rgba(255, 255, 255, 0.82);
     border-color: rgba(191, 219, 254, 0.7);
     border-left-color: #3B82F6;
-    box-shadow: 0 8px 24px rgba(30, 64, 175, 0.06);
-    backdrop-filter: blur(6px);
 }
-.lp-band--free .lp-band-bg {
-    background: radial-gradient(ellipse 80% 50% at 85% 30%, rgba(16, 185, 129, 0.06) 0%, transparent 68%);
-}
-.lp-band--free .lp-band-label { color: #047857; border-color: rgba(110, 231, 183, 0.45); }
-.lp-band--free .lp-section-header-title { color: #1E3A8A; }
 .lp-band--free .lp-section-card {
-    background: rgba(255, 255, 255, 0.82);
-    border-color: rgba(191, 219, 254, 0.65);
-    box-shadow: 0 10px 28px rgba(30, 64, 175, 0.06);
-    backdrop-filter: blur(6px);
+    border-color: rgba(226, 232, 240, 0.9);
 }
-.lp-band--premium .lp-band-bg {
-    background:
-        radial-gradient(ellipse 100% 60% at 50% 20%, rgba(30, 64, 175, 0.1) 0%, transparent 62%),
-        radial-gradient(ellipse 60% 45% at 90% 70%, rgba(67, 56, 202, 0.07) 0%, transparent 65%);
-}
-.lp-band--premium .lp-section-header-title { color: #1E3A8A; }
-.lp-band--premium .lp-pricing-card--premium {
-    background: linear-gradient(155deg, #0F172A 0%, #1E3A8A 52%, #4338CA 100%);
-    border: 1px solid rgba(255, 255, 255, 0.14);
-    box-shadow: 0 22px 55px rgba(30, 58, 138, 0.24);
-    color: #F8FAFC;
-}
-.lp-band--premium .lp-pricing-tier,
-.lp-band--premium .lp-pricing-blurb,
-.lp-band--premium .lp-pricing-features li { color: #E2E8F0; }
-.lp-band--premium .lp-pricing-price { color: #FFFFFF; }
-.lp-band--premium .lp-pricing-features li { border-top-color: rgba(255, 255, 255, 0.12); }
-.lp-band--premium .lp-popular-pill {
-    background: rgba(255, 255, 255, 0.16);
-    color: #E0E7FF;
-    border: 1px solid rgba(255, 255, 255, 0.2);
-}
-.lp-band--process .lp-band-bg {
-    background: radial-gradient(ellipse 75% 50% at 15% 60%, rgba(99, 102, 241, 0.07) 0%, transparent 68%);
-}
-.lp-band--process .lp-section-header-title { color: #312E81; }
 .lp-band--process .lp-step-card {
-    background: rgba(255, 255, 255, 0.82);
-    border-color: rgba(199, 210, 254, 0.65);
-    box-shadow: 0 8px 24px rgba(67, 56, 202, 0.06);
-    backdrop-filter: blur(6px);
+    border-color: rgba(226, 232, 240, 0.9);
+}
+.lp-band--sample .lp-preview-card {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+.lp-band--compare .lp-compare-wrap {
+    border: 1px solid rgba(226, 232, 240, 0.9);
+}
+.lp-band--compare .lp-compare-table th {
+    background: rgba(248, 250, 252, 0.95);
+    color: var(--ps-text);
 }
 .lp-band--process .lp-step-num {
     background: linear-gradient(135deg, #2563EB 0%, #4338CA 100%);
 }
-.lp-band--sample .lp-band-bg {
-    background: radial-gradient(ellipse 85% 55% at 50% 10%, rgba(67, 56, 202, 0.08) 0%, transparent 65%);
+/* Section 3 — full-bleed hero blue with subtle checkered overlay */
+.lp-band--premium {
+    padding: 4.5rem 0;
 }
-.lp-band--sample .lp-section-header-title { color: #312E81; }
-.lp-band--sample .lp-preview-card {
-    background: rgba(255, 255, 255, 0.86);
-    border: 1px solid rgba(165, 180, 252, 0.6);
-    box-shadow: 0 14px 36px rgba(67, 56, 202, 0.08);
-    backdrop-filter: blur(6px);
+.lp-band--premium .lp-band-bg {
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.92) 0%, transparent 14%),
+        linear-gradient(0deg, rgba(255, 255, 255, 0.92) 0%, transparent 14%),
+        linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px),
+        linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    background-size: 100% 100%, 100% 100%, 30px 30px, 30px 30px, 100% 100%;
 }
-.lp-band--sample .lp-preview-score { color: #1E40AF; }
-.lp-band--compare .lp-band-bg {
-    background: radial-gradient(ellipse 70% 45% at 80% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+.lp-band--premium .lp-band-label {
+    background: rgba(255, 255, 255, 0.12);
+    color: #BFDBFE;
+    border-color: rgba(255, 255, 255, 0.22);
 }
-.lp-band--compare .lp-section-header-title { color: #1E3A8A; }
-.lp-band--compare .lp-compare-wrap {
-    border: 1px solid rgba(165, 180, 252, 0.55);
-    box-shadow: 0 10px 28px rgba(30, 64, 175, 0.06);
-    background: rgba(255, 255, 255, 0.84);
-    backdrop-filter: blur(6px);
+.lp-band--premium .lp-section-header-title { color: #F8FAFC; }
+.lp-band--premium .lp-section-header-lead { color: #CBD5E1; }
+.lp-band--premium .lp-pricing-card--premium {
+    background: rgba(255, 255, 255, 0.97);
+    border: 1px solid rgba(255, 255, 255, 0.35);
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    color: var(--ps-text);
 }
-.lp-band--compare .lp-compare-table th {
-    background: rgba(239, 246, 255, 0.75);
-    color: #1E3A8A;
+.lp-band--premium .lp-pricing-tier { color: #1E3A8A; }
+.lp-band--premium .lp-pricing-price { color: #0F172A; }
+.lp-band--premium .lp-pricing-blurb,
+.lp-band--premium .lp-pricing-features li {
+    color: #475569;
+    border-top-color: rgba(15, 23, 42, 0.08);
 }
-.lp-band--faq .lp-band-bg {
-    background: radial-gradient(ellipse 65% 50% at 25% 80%, rgba(124, 58, 237, 0.06) 0%, transparent 68%);
+.lp-band--premium .lp-popular-pill {
+    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 52%, #4338CA 100%);
+    color: #FFFFFF;
+    border: none;
+    box-shadow: 0 4px 14px rgba(37, 99, 235, 0.35);
 }
-.lp-band--faq .lp-band-label { color: #5B21B6; border-color: rgba(196, 181, 253, 0.5); }
-.lp-band--faq .lp-section-header-title { color: #3730A3; }
 .lp-band--final {
     padding: 0.5rem 0 0;
     background: transparent;
@@ -1249,11 +1234,11 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     margin: 0 auto;
 }
 .lp-faq-item {
-    background: rgba(255, 255, 255, 0.82);
-    border: 1px solid rgba(199, 210, 254, 0.55);
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid rgba(226, 232, 240, 0.9);
     border-radius: 14px;
     padding: 0.15rem 1rem;
-    box-shadow: 0 6px 20px rgba(67, 56, 202, 0.05);
+    box-shadow: 0 8px 24px rgba(15, 23, 42, 0.06);
     backdrop-filter: blur(6px);
 }
 .lp-faq-item summary {
