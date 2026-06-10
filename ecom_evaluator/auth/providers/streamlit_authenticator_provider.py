@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ecom_evaluator.auth.models import AuthCredentials, AuthUser, SignUpRequest
+from ecom_evaluator.auth.models import AuthCredentials, AuthLoginResult, AuthUser, SignUpRequest
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.auth.providers.base import _secret
 
@@ -52,7 +52,7 @@ class StreamlitAuthenticatorProvider:
             cookie_expiry_days=int(config.get("cookie_expiry_days", 30)),
         )
 
-    def login(self, credentials: AuthCredentials) -> AuthUser:
+    def login(self, credentials: AuthCredentials) -> AuthLoginResult:
         raise AnalysisError(
             "Streamlit Authenticator handles login in the UI layer. "
             "Use render_authenticator_widget() from the auth screen."

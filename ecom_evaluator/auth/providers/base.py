@@ -8,7 +8,7 @@ from typing import Protocol
 
 import streamlit as st
 
-from ecom_evaluator.auth.models import AuthCredentials, AuthUser, SignUpRequest
+from ecom_evaluator.auth.models import AuthCredentials, AuthLoginResult, AuthUser, SignUpRequest
 from ecom_evaluator.config import AUTH_PROVIDER, PROJECT_ROOT, QUOTA_STORE_PATH
 
 
@@ -25,7 +25,7 @@ class AuthSettings:
 
 
 class AuthProvider(Protocol):
-    def login(self, credentials: AuthCredentials) -> AuthUser: ...
+    def login(self, credentials: AuthCredentials) -> AuthLoginResult: ...
 
     def sign_up(self, request: SignUpRequest) -> AuthUser: ...
 

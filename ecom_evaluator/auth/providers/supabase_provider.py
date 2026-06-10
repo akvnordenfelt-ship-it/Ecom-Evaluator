@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from ecom_evaluator.auth.models import AuthCredentials, AuthUser, SignUpRequest
+from ecom_evaluator.auth.models import AuthCredentials, AuthLoginResult, AuthUser, SignUpRequest
 from ecom_evaluator.exceptions import AnalysisError
 
 
@@ -88,7 +88,7 @@ class SupabaseAuthProvider:
 
         return user_from_supabase_record(user)
 
-    def complete_oauth_code(self, *, code: str) -> AuthUser:
+    def complete_oauth_code(self, *, code: str) -> AuthLoginResult:
         client = self._get_client()
         try:
             response = client.auth.exchange_code_for_session({"auth_code": code})
@@ -102,9 +102,18 @@ class SupabaseAuthProvider:
         user = getattr(response, "user", None)
         if user is None and isinstance(response, dict):
             user = response.get("user")
-        return user_from_supabase_record(user)
+        session = getattr(response, "session", None)
+        if session is None and isinstance(response, dict):
+            session = response.get("session")
+        access_token = getattr(session, "access_token", None) if session else None
+        refresh_token = getattr(session, "refresh_token", None) if session else None
+        return AuthLoginResult(
+            user=user_from_supabase_record(user),
+            access_token=str(access_token) if access_token else None,
+            refresh_token=str(refresh_token) if refresh_token else None,
+        )
 
-    def login(self, credentials: AuthCredentials) -> AuthUser:
+    def login(self, credentials: AuthCredentials) -> AuthLoginResult:
         client = self._get_client()
         try:
             response = client.auth.sign_in_with_password(
@@ -113,7 +122,14 @@ class SupabaseAuthProvider:
         except Exception as exc:
             raise AnalysisError("Incorrect email or password.") from exc
 
-        return user_from_supabase_record(response.user)
+        session = getattr(response, "session", None)
+        access_token = getattr(session, "access_token", None) if session else None
+        refresh_token = getattr(session, "refresh_token", None) if session else None
+        return AuthLoginResult(
+            user=user_from_supabase_record(response.user),
+            access_token=str(access_token) if access_token else None,
+            refresh_token=str(refresh_token) if refresh_token else None,
+        )
 
     def sign_up(self, request: SignUpRequest) -> AuthUser:
         client = self._get_client()

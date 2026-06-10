@@ -105,7 +105,11 @@ def handle_oauth_callback() -> bool:
                 access_token=access_token,
                 refresh_token=refresh_token,
             )
-            set_auth_user(user)
+            set_auth_user(
+                user,
+                access_token=str(access_token),
+                refresh_token=str(refresh_token),
+            )
             _clear_oauth_query_params()
             complete_post_auth_navigation()
             return True
@@ -118,8 +122,12 @@ def handle_oauth_callback() -> bool:
     if code:
         try:
             provider = _get_supabase_provider()
-            user = provider.complete_oauth_code(code=code)
-            set_auth_user(user)
+            result = provider.complete_oauth_code(code=code)
+            set_auth_user(
+                result.user,
+                access_token=result.access_token,
+                refresh_token=result.refresh_token,
+            )
             _clear_oauth_query_params()
             complete_post_auth_navigation()
             return True

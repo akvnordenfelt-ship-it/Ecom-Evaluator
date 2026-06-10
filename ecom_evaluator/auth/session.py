@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import streamlit as st
 
-from ecom_evaluator.auth.models import AuthCredentials, AuthUser, SignUpRequest
+from ecom_evaluator.auth.models import AuthCredentials, AuthLoginResult, AuthUser, SignUpRequest
 from ecom_evaluator.auth.providers.base import get_auth_provider, get_auth_settings
 from ecom_evaluator.auth.quota import evaluations_remaining, get_quota_store
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
@@ -16,6 +16,8 @@ def init_auth_state() -> None:
     defaults = {
         "auth_user": None,
         "auth_error": None,
+        "auth_access_token": None,
+        "auth_refresh_token": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -44,9 +46,16 @@ def require_authenticated_user() -> AuthUser:
     return user
 
 
-def set_auth_user(user: AuthUser) -> None:
+def set_auth_user(
+    user: AuthUser,
+    *,
+    access_token: str | None = None,
+    refresh_token: str | None = None,
+) -> None:
     st.session_state["auth_user"] = user
     st.session_state["auth_error"] = None
+    st.session_state["auth_access_token"] = access_token
+    st.session_state["auth_refresh_token"] = refresh_token
     sync_user_evaluation_quota()
 
 
@@ -66,8 +75,12 @@ def render_auth_error() -> None:
 
 def login_with_credentials(*, email: str, password: str) -> None:
     provider = get_auth_provider()
-    user = provider.login(AuthCredentials(email=email, password=password))
-    set_auth_user(user)
+    result = provider.login(AuthCredentials(email=email, password=password))
+    set_auth_user(
+        result.user,
+        access_token=result.access_token,
+        refresh_token=result.refresh_token,
+    )
 
 
 def sign_up_account(*, email: str, password: str, display_name: str | None = None) -> None:
@@ -79,6 +92,8 @@ def sign_up_account(*, email: str, password: str, display_name: str | None = Non
 def logout_user() -> None:
     st.session_state["auth_user"] = None
     st.session_state["auth_error"] = None
+    st.session_state["auth_access_token"] = None
+    st.session_state["auth_refresh_token"] = None
     st.session_state["analysis_result"] = None
     st.session_state["analysis_meta"] = None
     st.session_state["app_view"] = "landing"

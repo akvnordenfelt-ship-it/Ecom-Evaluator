@@ -7,6 +7,11 @@ from datetime import datetime, timezone
 import streamlit as st
 
 from ecom_evaluator.auth.oauth import handle_oauth_callback, install_oauth_callback_bridge
+from ecom_evaluator.auth.persistence import (
+    handle_auth_logout_sync,
+    handle_auth_restore,
+    install_auth_sync_bridge,
+)
 from ecom_evaluator.auth.session import auth_is_required, is_authenticated, sync_user_evaluation_quota
 from ecom_evaluator.economics import resolve_product_inputs
 from ecom_evaluator.exceptions import AnalysisError
@@ -139,6 +144,11 @@ def main() -> None:
     inject_custom_css(saas_mode=True)
 
     install_oauth_callback_bridge()
+    install_auth_sync_bridge()
+    if handle_auth_logout_sync():
+        st.rerun()
+    if handle_auth_restore():
+        st.rerun()
     if handle_oauth_callback():
         st.rerun()
 

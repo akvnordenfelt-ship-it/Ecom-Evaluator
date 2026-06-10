@@ -8,7 +8,7 @@ import re
 import secrets
 from pathlib import Path
 
-from ecom_evaluator.auth.models import AuthCredentials, AuthUser, SignUpRequest
+from ecom_evaluator.auth.models import AuthCredentials, AuthLoginResult, AuthUser, SignUpRequest
 from ecom_evaluator.exceptions import AnalysisError
 
 
@@ -70,7 +70,7 @@ class DevAuthProvider:
         self._save_users(users)
         return AuthUser(user_id=user_id, email=email, display_name=users[email]["display_name"])
 
-    def login(self, credentials: AuthCredentials) -> AuthUser:
+    def login(self, credentials: AuthCredentials) -> AuthLoginResult:
         email = _normalize_email(credentials.email)
         users = self._load_users()
         record = users.get(email)
@@ -81,8 +81,10 @@ class DevAuthProvider:
         if _hash_password(credentials.password, salt) != expected:
             raise AnalysisError("Incorrect email or password.")
 
-        return AuthUser(
-            user_id=record["user_id"],
-            email=record["email"],
-            display_name=record.get("display_name"),
+        return AuthLoginResult(
+            user=AuthUser(
+                user_id=record["user_id"],
+                email=record["email"],
+                display_name=record.get("display_name"),
+            )
         )

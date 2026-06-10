@@ -15,6 +15,13 @@ class AuthUser:
 
 
 @dataclass(frozen=True)
+class AuthLoginResult:
+    user: AuthUser
+    access_token: str | None = None
+    refresh_token: str | None = None
+
+
+@dataclass(frozen=True)
 class AuthCredentials:
     email: str
     password: str
