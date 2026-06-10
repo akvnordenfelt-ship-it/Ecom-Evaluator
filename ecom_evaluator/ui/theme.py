@@ -922,15 +922,9 @@ div[data-testid="stTextArea"] textarea:focus {
 
 /* Landing page */
 .landing-wrap { margin: 0.5rem 0 0; }
-/* Landing page — unified checkered canvas */
+/* Landing page — clean white canvas; checkered pattern only on Compare band */
 .block-container:has(.landing-hero) {
     background-color: #FFFFFF;
-    background-image:
-        linear-gradient(rgba(191, 219, 254, 0.42) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(191, 219, 254, 0.42) 1px, transparent 1px),
-        linear-gradient(180deg, #FAFCFF 0%, #FFFFFF 100%);
-    background-size: 30px 30px, 30px 30px, 100% 100%;
-    background-attachment: local;
 }
 .stApp:has(.landing-hero) {
     background-color: #FFFFFF !important;
@@ -939,7 +933,6 @@ div[data-testid="stTextArea"] textarea:focus {
     height: 2rem;
     width: 100%;
     margin-bottom: 0.35rem;
-    background: linear-gradient(180deg, rgba(30, 64, 175, 0.07) 0%, rgba(99, 102, 241, 0.03) 55%, transparent 100%);
 }
 .landing-hero {
     background: var(--lp-panel-gradient);
@@ -1144,7 +1137,6 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
 .lp-band--premium .lp-band-bg,
 .lp-band--process .lp-band-bg,
 .lp-band--sample .lp-band-bg,
-.lp-band--compare .lp-band-bg,
 .lp-band--faq .lp-band-bg {
     display: none;
 }
@@ -1168,6 +1160,13 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
 }
 .lp-band--compare .lp-compare-wrap {
     border: 1px solid rgba(226, 232, 240, 0.9);
+}
+.lp-band--compare .lp-band-bg {
+    background:
+        linear-gradient(rgba(191, 219, 254, 0.42) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(191, 219, 254, 0.42) 1px, transparent 1px),
+        #FFFFFF;
+    background-size: 30px 30px, 30px 30px, 100% 100%;
 }
 .lp-band--compare .lp-compare-table th {
     background: rgba(248, 250, 252, 0.95);
@@ -1195,7 +1194,7 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     border-color: rgba(255, 255, 255, 0.35);
     box-shadow: 0 16px 40px rgba(0, 0, 0, 0.18);
 }
-/* Section 3 — pricing box keeps the panel blue; band stays on checkered canvas */
+/* Section 3 — pricing box keeps the panel blue; band stays on clean white canvas */
 .lp-band--premium .lp-pricing-card--premium {
     background: var(--lp-panel-gradient);
     border: 1px solid rgba(255, 255, 255, 0.14);
