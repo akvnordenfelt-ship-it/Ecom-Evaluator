@@ -1003,18 +1003,14 @@ div[data-testid="stTextArea"] textarea:focus {
     backdrop-filter: blur(4px);
 }
 
-/* Scroll reveal — visible by default; hide only after JS is ready */
+/* Scroll reveal — visible by default; animate in after JS binds observers */
 .lp-reveal {
     opacity: 1;
     transform: none;
-    transition:
-        opacity 0.65s cubic-bezier(0.22, 1, 0.36, 1),
-        transform 0.65s cubic-bezier(0.22, 1, 0.36, 1);
 }
 html.lp-reveal-ready .lp-reveal:not(.lp-reveal-hero):not(.is-visible) {
     opacity: 0;
     transform: translateY(28px);
-    will-change: opacity, transform;
 }
 html.lp-reveal-ready .lp-reveal-left:not(.is-visible) {
     opacity: 0;
@@ -1028,17 +1024,50 @@ html.lp-reveal-ready .lp-reveal-scale:not(.is-visible) {
     opacity: 0;
     transform: translateY(20px) scale(0.97);
 }
-html.lp-reveal-ready .lp-reveal.is-visible,
-html.lp-reveal-ready .lp-reveal-left.is-visible,
-html.lp-reveal-ready .lp-reveal-right.is-visible,
-html.lp-reveal-ready .lp-reveal-scale.is-visible {
-    opacity: 1;
-    transform: none;
+@keyframes lp-rise {
+    from { opacity: 0; transform: translateY(28px); }
+    to { opacity: 1; transform: none; }
 }
-.lp-reveal-delay-1 { transition-delay: 0.08s; }
-.lp-reveal-delay-2 { transition-delay: 0.16s; }
-.lp-reveal-delay-3 { transition-delay: 0.24s; }
-.lp-reveal-delay-4 { transition-delay: 0.32s; }
+@keyframes lp-rise-left {
+    from { opacity: 0; transform: translateX(-32px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes lp-rise-right {
+    from { opacity: 0; transform: translateX(32px); }
+    to { opacity: 1; transform: none; }
+}
+@keyframes lp-rise-scale {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+}
+html.lp-reveal-ready .lp-reveal.is-visible {
+    animation: lp-rise 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html.lp-reveal-ready .lp-reveal-left.is-visible {
+    animation: lp-rise-left 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html.lp-reveal-ready .lp-reveal-right.is-visible {
+    animation: lp-rise-right 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html.lp-reveal-ready .lp-reveal-scale.is-visible {
+    animation: lp-rise-scale 0.7s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+html.lp-reveal-ready .lp-reveal.is-visible.lp-reveal-delay-1,
+html.lp-reveal-ready .lp-reveal-left.is-visible.lp-reveal-delay-1,
+html.lp-reveal-ready .lp-reveal-right.is-visible.lp-reveal-delay-1,
+html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-1 { animation-delay: 0.08s; }
+html.lp-reveal-ready .lp-reveal.is-visible.lp-reveal-delay-2,
+html.lp-reveal-ready .lp-reveal-left.is-visible.lp-reveal-delay-2,
+html.lp-reveal-ready .lp-reveal-right.is-visible.lp-reveal-delay-2,
+html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-2 { animation-delay: 0.16s; }
+html.lp-reveal-ready .lp-reveal.is-visible.lp-reveal-delay-3,
+html.lp-reveal-ready .lp-reveal-left.is-visible.lp-reveal-delay-3,
+html.lp-reveal-ready .lp-reveal-right.is-visible.lp-reveal-delay-3,
+html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-3 { animation-delay: 0.24s; }
+html.lp-reveal-ready .lp-reveal.is-visible.lp-reveal-delay-4,
+html.lp-reveal-ready .lp-reveal-left.is-visible.lp-reveal-delay-4,
+html.lp-reveal-ready .lp-reveal-right.is-visible.lp-reveal-delay-4,
+html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-delay: 0.32s; }
 @keyframes lp-hero-rise {
     from { opacity: 0; transform: translateY(22px); }
     to { opacity: 1; transform: none; }

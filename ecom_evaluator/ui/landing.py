@@ -166,41 +166,37 @@ def _install_scroll_reveal() -> None:
         (function () {
             const win = window.parent;
             const doc = win.document;
-            if (doc.documentElement.dataset.lpRevealReady) return;
-            doc.documentElement.dataset.lpRevealReady = "1";
-            doc.documentElement.classList.add("lp-reveal-ready");
 
-            const io = new IntersectionObserver(
-                (entries) => {
-                    entries.forEach((entry) => {
-                        if (!entry.isIntersecting) return;
-                        entry.target.classList.add("is-visible");
+            if (!win.__lpReveal) {
+                win.__lpReveal = {
+                    io: new IntersectionObserver(
+                        (entries) => {
+                            entries.forEach((entry) => {
+                                if (!entry.isIntersecting) return;
+                                entry.target.classList.add("is-visible");
+                            });
+                        },
+                        { threshold: 0.1, rootMargin: "0px 0px -3% 0px" }
+                    ),
+                };
+                win.__lpReveal.mo = new MutationObserver(() => win.__lpReveal.scan());
+                win.__lpReveal.mo.observe(doc.body, { childList: true, subtree: true });
+            }
+
+            win.__lpReveal.scan = function scan() {
+                doc.documentElement.classList.add("lp-reveal-ready");
+                requestAnimationFrame(() => {
+                    requestAnimationFrame(() => {
+                        doc.querySelectorAll(".lp-reveal:not(.lp-reveal-hero)").forEach((node) => {
+                            if (node.dataset.lpObserved) return;
+                            node.dataset.lpObserved = "1";
+                            win.__lpReveal.io.observe(node);
+                        });
                     });
-                },
-                { threshold: 0.08, rootMargin: "0px 0px -2% 0px" }
-            );
-
-            const markIfInView = (node) => {
-                const rect = node.getBoundingClientRect();
-                if (rect.top < win.innerHeight * 0.94 && rect.bottom > 0) {
-                    node.classList.add("is-visible");
-                }
-            };
-
-            const bindRevealNodes = () => {
-                doc.querySelectorAll(".lp-reveal:not(.lp-reveal-hero)").forEach((node) => {
-                    if (node.dataset.lpObserved) return;
-                    node.dataset.lpObserved = "1";
-                    markIfInView(node);
-                    io.observe(node);
                 });
             };
 
-            bindRevealNodes();
-            win.addEventListener("load", bindRevealNodes, { once: true });
-            win.addEventListener("resize", bindRevealNodes);
-            const mo = new MutationObserver(() => bindRevealNodes());
-            mo.observe(doc.body, { childList: true, subtree: true });
+            win.__lpReveal.scan();
         })();
         </script>
         """,
@@ -403,7 +399,6 @@ def render_landing_footnote() -> None:
 
 
 def render_landing_page() -> None:
-    _install_scroll_reveal()
     render_landing_hero()
 
     st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
@@ -416,4 +411,5 @@ def render_landing_page() -> None:
     render_landing_body()
     render_landing_final_cta()
     render_landing_footnote()
+    _install_scroll_reveal()
     _scroll_to_anchor_if_needed()
