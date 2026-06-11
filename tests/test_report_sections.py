@@ -15,7 +15,7 @@ def test_free_gets_two_sections():
     assert not has_section_access("margin_matrix", PlanTier.FREE)
     assert not has_section_access("marketing_teaser", PlanTier.FREE)
     assert not has_section_access("web_intelligence", PlanTier.FREE)
-    assert not has_section_access("marketing_deep_dive", PlanTier.FREE)
+    assert not has_section_access("competitor_sentiment", PlanTier.FREE)
 
 
 def test_premium_unlocks_all_sections():
@@ -23,4 +23,4 @@ def test_premium_unlocks_all_sections():
     assert has_section_access("margin_matrix", PlanTier.PREMIUM)
     assert has_section_access("marketing_teaser", PlanTier.PREMIUM)
     assert has_section_access("web_intelligence", PlanTier.PREMIUM)
-    assert has_section_access("marketing_deep_dive", PlanTier.PREMIUM)
+    assert has_section_access("competitor_sentiment", PlanTier.PREMIUM)

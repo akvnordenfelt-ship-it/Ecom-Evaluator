@@ -16,7 +16,7 @@ from ecom_evaluator.economics import (
     compute_financial_summary,
     compute_scaling_matrix,
 )
-from ecom_evaluator.models import ProductEvaluationResponse
+from ecom_evaluator.models import ProductEvaluationResponse, SentimentImprovement, SentimentPainPoint, SentimentShopifyHook
 from ecom_evaluator.plans import PlanTier
 from ecom_evaluator.report_sections import (
     LOCKED_SECTION_COPY,
@@ -139,7 +139,7 @@ def render_cliffhanger_banner() -> None:
             <p class="cliffhanger-title">You've seen the risks — now prove the opportunity</p>
             <p class="cliffhanger-copy">
                 Red flags alone can't tell you if this product survives real logistics, ad costs, and sourcing math.
-                Premium unlocks the financial verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts.
+                Premium unlocks the financial verdict, marketing blueprint, live competitor intel, and review sentiment analysis.
             </p>
         </div>
         """,
@@ -314,7 +314,7 @@ def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
             f'<div class="insight-card insight-card--marketing"><p>{html.escape(result.marketing_teaser or "")}</p></div>',
             unsafe_allow_html=True,
         )
-    st.info("Section 6 unlocks five complete ready-to-shoot video scripts on Premium.")
+    st.info("Section 6 unlocks competitor review sentiment analysis and product improvement directives on Premium.")
 
 
 def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
@@ -341,20 +341,100 @@ def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
         st.markdown(result.web_sourcing_links or "")
 
 
+def _anger_bar_html(score: int) -> str:
+    width = max(0, min(100, score))
+    return (
+        f'<div class="s6-anger-track" aria-hidden="true">'
+        f'<div class="s6-anger-fill" style="width:{width}%;"></div>'
+        f"</div>"
+        f'<p class="s6-anger-label">Anger / Frustration Index · <strong>{width}/100</strong></p>'
+    )
+
+
+def _render_pain_point_card(point: SentimentPainPoint) -> str:
+    return (
+        f'<div class="s6-pain-row">'
+        f'<div class="s6-pain-row-head">'
+        f'<p class="s6-pain-category">{html.escape(point.category)}</p>'
+        f"{_anger_bar_html(point.anger_frustration_index)}"
+        f"</div>"
+        f'<p class="s6-pain-trend">{html.escape(point.negative_trend)}</p>'
+        f'<p class="s6-pain-evidence"><span>Review signal:</span> {html.escape(point.review_evidence)}</p>'
+        f"</div>"
+    )
+
+
+def _render_improvement_row(item: SentimentImprovement) -> str:
+    badge_class = (
+        "s6-roi-badge--high"
+        if item.roi_badge == "High ROI Improvement"
+        else "s6-roi-badge--low"
+    )
+    return (
+        f'<div class="s6-win-row">'
+        f'<div class="s6-win-row-head">'
+        f'<p class="s6-win-category">{html.escape(item.linked_category)}</p>'
+        f'<span class="s6-roi-badge {badge_class}">{html.escape(item.roi_badge)}</span>'
+        f"</div>"
+        f'<p class="s6-win-directive">{html.escape(item.engineering_directive)}</p>'
+        f"</div>"
+    )
+
+
+def _render_shopify_hook_card(hook: SentimentShopifyHook) -> str:
+    return (
+        f'<div class="s6-hook-card">'
+        f'<p class="s6-hook-angle">{html.escape(hook.angle)}</p>'
+        f'<p class="s6-hook-copy">{html.escape(hook.copy_block)}</p>'
+        f"</div>"
+    )
+
+
 def render_section_6(result: ProductEvaluationResponse, tier: PlanTier) -> None:
-    render_section_header("marketing_deep_dive")
-    if not has_section_access("marketing_deep_dive", tier) or not result.has_marketing_deep_dive():
-        render_locked_card(section_id="marketing_deep_dive")
+    render_section_header("competitor_sentiment")
+    if not has_section_access("competitor_sentiment", tier) or not result.has_competitor_sentiment():
+        render_locked_card(section_id="competitor_sentiment")
         return
 
-    st.markdown("#### 5× Ad Script Engine")
-    st.markdown(result.marketing_ad_scripts or "")
-    st.markdown("#### Precision targeting blueprint")
-    st.markdown(result.marketing_targeting_blueprint or "")
-    st.markdown("#### Influencer outreach templates")
-    st.markdown(result.marketing_influencer_templates or "")
-    st.markdown("#### Multi-angle positioning matrix")
-    st.markdown(result.marketing_positioning_matrix or "")
+    pain_points = result.sentiment_pain_points or []
+    improvements = result.sentiment_improvement_directives or []
+    hooks = result.sentiment_shopify_hooks or []
+
+    pain_html = "".join(_render_pain_point_card(point) for point in pain_points)
+    win_html = "".join(_render_improvement_row(item) for item in improvements)
+    hooks_html = "".join(_render_shopify_hook_card(hook) for hook in hooks)
+
+    st.markdown(
+        f"""
+        <div class="s6-dashboard">
+            <div class="s6-header">
+                <p class="s6-kicker">Section 6 · Premium Analysis</p>
+                <h4 class="s6-title">Competitor Review Sentiment Analysis</h4>
+                <p class="s6-subtitle">AI-driven extraction of competitor weaknesses, negative review trends, and engineering solutions.</p>
+                <p class="s6-summary">{html.escape(result.sentiment_executive_summary or "")}</p>
+            </div>
+
+            <div class="s6-card s6-card--pain">
+                <p class="s6-card-title">The Critical Pain Points</p>
+                <p class="s6-card-lead">What customers hate in competing products</p>
+                <div class="s6-pain-grid">{pain_html}</div>
+            </div>
+
+            <div class="s6-card s6-card--win">
+                <p class="s6-card-title">Strategic Engineering &amp; Manufacturing Directives</p>
+                <p class="s6-card-lead">How to win against the weaknesses above</p>
+                <div class="s6-win-grid">{win_html}</div>
+            </div>
+
+            <div class="s6-card s6-card--hooks">
+                <p class="s6-card-title">Unfair Advantage Copywriting Hooks</p>
+                <p class="s6-card-lead">Shopify-ready angles that call out competitor failures</p>
+                <div class="s6-hook-grid">{hooks_html}</div>
+            </div>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
 
 
 def render_export_buttons(result: ProductEvaluationResponse, meta: dict) -> None:

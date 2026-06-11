@@ -59,11 +59,11 @@ REPORT_SECTIONS: tuple[ReportSection, ...] = (
         min_tier=PlanTier.PREMIUM,
     ),
     ReportSection(
-        id="marketing_deep_dive",
+        id="competitor_sentiment",
         number=6,
-        title="Ultimate 5x Video Content Engine",
+        title="Competitor Review Sentiment Analysis",
         eyebrow="Section 6 · Premium",
-        subtitle="Five ready-to-shoot short-form scripts with hooks and angles",
+        subtitle="AI-driven extraction of competitor weaknesses, negative review trends, and engineering solutions",
         min_tier=PlanTier.PREMIUM,
     ),
 )
@@ -86,10 +86,10 @@ LOCKED_SECTION_COPY: dict[str, str] = {
         "active competitors on Amazon/Shopify and pull direct AliExpress/CJ Sourcing supplier "
         "price-matches."
     ),
-    "marketing_deep_dive": (
-        "Upgrade to <strong>Premium</strong> to unlock the 5x High-Conversion Ad Script Engine. "
-        "Get 5 complete, ready-to-shoot short-form video scripts (TikTok/Reels) with precise "
-        "visual hooks and copywriting angles."
+    "competitor_sentiment": (
+        "Upgrade to <strong>Premium</strong> to unlock Competitor Review Sentiment Analysis. "
+        "See what buyers hate about competing products in your niche and get concrete manufacturing "
+        "directives plus Shopify-ready positioning copy."
     ),
 }
 

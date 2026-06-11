@@ -2236,6 +2236,194 @@ div[data-testid="stExpander"] details[open] > summary {
 /* Dashboard visuals */
 .insight-card--hero { border-left: 4px solid var(--ps-blue); }
 .insight-card--marketing { border-left: 4px solid var(--ps-indigo); }
+
+/* Section 6 — Competitor Review Sentiment dashboard */
+.s6-dashboard {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+    margin-top: 0.5rem;
+}
+.s6-header {
+    background: linear-gradient(180deg, #FFFFFF 0%, #F8FAFC 100%);
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 1.35rem 1.4rem;
+    box-shadow: var(--ps-shadow);
+}
+.s6-kicker {
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 0.11em;
+    text-transform: uppercase;
+    color: #64748B;
+    margin: 0 0 0.35rem;
+}
+.s6-title {
+    font-size: 1.35rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 0.35rem;
+    letter-spacing: -0.02em;
+}
+.s6-subtitle {
+    font-size: 0.92rem;
+    color: #475569;
+    margin: 0 0 0.85rem;
+    line-height: 1.55;
+}
+.s6-summary {
+    font-size: 0.9rem;
+    color: #334155;
+    margin: 0;
+    line-height: 1.6;
+    padding-top: 0.85rem;
+    border-top: 1px solid #E2E8F0;
+}
+.s6-card {
+    border-radius: 16px;
+    border: 1px solid transparent;
+    padding: 1.25rem 1.3rem;
+    box-shadow: var(--ps-shadow);
+}
+.s6-card-title {
+    font-size: 1rem;
+    font-weight: 800;
+    color: #0F172A;
+    margin: 0 0 0.25rem;
+}
+.s6-card-lead {
+    font-size: 0.82rem;
+    color: #64748B;
+    margin: 0 0 1rem;
+}
+.s6-card--pain {
+    background: rgba(254, 242, 242, 0.5);
+    border-color: #FECACA;
+}
+.s6-card--win {
+    background: rgba(236, 253, 245, 0.5);
+    border-color: #A7F3D0;
+}
+.s6-card--hooks {
+    background: #FFFFFF;
+    border-color: #E2E8F0;
+}
+.s6-pain-grid,
+.s6-win-grid,
+.s6-hook-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 0.85rem;
+}
+.s6-pain-row,
+.s6-win-row,
+.s6-hook-card {
+    background: rgba(255, 255, 255, 0.88);
+    border-radius: 12px;
+    padding: 1rem 1.05rem;
+    border: 1px solid rgba(255, 255, 255, 0.7);
+}
+.s6-pain-row {
+    border-color: #FECACA;
+}
+.s6-win-row {
+    border-color: #BBF7D0;
+}
+.s6-hook-card {
+    border-color: #E2E8F0;
+}
+.s6-pain-row-head,
+.s6-win-row-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-bottom: 0.55rem;
+}
+.s6-pain-category,
+.s6-win-category {
+    font-size: 0.92rem;
+    font-weight: 800;
+    color: #991B1B;
+    margin: 0;
+}
+.s6-win-category { color: #065F46; }
+.s6-pain-trend,
+.s6-win-directive,
+.s6-hook-copy {
+    font-size: 0.88rem;
+    color: #334155;
+    line-height: 1.55;
+    margin: 0;
+}
+.s6-pain-evidence {
+    font-size: 0.8rem;
+    color: #64748B;
+    margin: 0.65rem 0 0;
+    line-height: 1.5;
+}
+.s6-pain-evidence span {
+    font-weight: 700;
+    color: #B91C1C;
+}
+.s6-anger-track {
+    width: 140px;
+    height: 8px;
+    background: #FEE2E2;
+    border-radius: 999px;
+    overflow: hidden;
+    margin-top: 0.35rem;
+}
+.s6-anger-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #F87171 0%, #DC2626 100%);
+    border-radius: 999px;
+}
+.s6-anger-label {
+    font-size: 0.72rem;
+    color: #991B1B;
+    margin: 0.35rem 0 0;
+    white-space: nowrap;
+}
+.s6-roi-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.22rem 0.55rem;
+    border-radius: 999px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+.s6-roi-badge--high {
+    background: #DCFCE7;
+    color: #166534;
+    border: 1px solid #86EFAC;
+}
+.s6-roi-badge--low {
+    background: #EFF6FF;
+    color: #1D4ED8;
+    border: 1px solid #BFDBFE;
+}
+.s6-hook-angle {
+    font-size: 0.78rem;
+    font-weight: 800;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #4338CA;
+    margin: 0 0 0.45rem;
+}
+@media (max-width: 768px) {
+    .s6-pain-row-head,
+    .s6-win-row-head {
+        flex-direction: column;
+        gap: 0.35rem;
+    }
+    .s6-anger-track { width: 100%; }
+}
+
 .card-kicker {
     font-size: 0.68rem;
     font-weight: 700;

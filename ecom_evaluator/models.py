@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TypedDict
+from typing import Literal, TypedDict
 
 from pydantic import BaseModel, Field
 
@@ -40,6 +40,24 @@ class MarketingTeaserPayload(BaseModel):
     marketing_teaser: str = Field(min_length=1)
 
 
+class SentimentPainPoint(BaseModel):
+    category: str = Field(min_length=1)
+    negative_trend: str = Field(min_length=1)
+    anger_frustration_index: int = Field(ge=0, le=100)
+    review_evidence: str = Field(min_length=1)
+
+
+class SentimentImprovement(BaseModel):
+    linked_category: str = Field(min_length=1)
+    engineering_directive: str = Field(min_length=1)
+    roi_badge: Literal["High ROI Improvement", "Low-Cost / High-Value"]
+
+
+class SentimentShopifyHook(BaseModel):
+    angle: str = Field(min_length=1)
+    copy_block: str = Field(min_length=1)
+
+
 class ProductEvaluationResponse(FreeCorePayload):
     """Full evaluation report — sections 1–3 free; 4–6 unlock by tier."""
 
@@ -54,10 +72,10 @@ class ProductEvaluationResponse(FreeCorePayload):
     web_competitor_tracking: str | None = None
     web_sourcing_links: str | None = None
 
-    marketing_ad_scripts: str | None = None
-    marketing_targeting_blueprint: str | None = None
-    marketing_influencer_templates: str | None = None
-    marketing_positioning_matrix: str | None = None
+    sentiment_executive_summary: str | None = None
+    sentiment_pain_points: list[SentimentPainPoint] | None = None
+    sentiment_improvement_directives: list[SentimentImprovement] | None = None
+    sentiment_shopify_hooks: list[SentimentShopifyHook] | None = None
 
     def has_marketing_teaser(self) -> bool:
         return bool(self.marketing_primary_channel and self.marketing_teaser)
@@ -65,8 +83,8 @@ class ProductEvaluationResponse(FreeCorePayload):
     def has_web_intelligence(self) -> bool:
         return bool(self.web_intelligence_summary)
 
-    def has_marketing_deep_dive(self) -> bool:
-        return bool(self.marketing_ad_scripts)
+    def has_competitor_sentiment(self) -> bool:
+        return bool(self.sentiment_pain_points)
 
 
 class WebIntelligencePayload(BaseModel):
@@ -77,11 +95,11 @@ class WebIntelligencePayload(BaseModel):
     web_sourcing_links: str = Field(min_length=1)
 
 
-class MarketingDeepDivePayload(BaseModel):
-    marketing_ad_scripts: str = Field(min_length=1)
-    marketing_targeting_blueprint: str = Field(min_length=1)
-    marketing_influencer_templates: str = Field(min_length=1)
-    marketing_positioning_matrix: str = Field(min_length=1)
+class CompetitorSentimentPayload(BaseModel):
+    sentiment_executive_summary: str = Field(min_length=1)
+    sentiment_pain_points: list[SentimentPainPoint] = Field(min_length=3, max_length=3)
+    sentiment_improvement_directives: list[SentimentImprovement] = Field(min_length=3, max_length=3)
+    sentiment_shopify_hooks: list[SentimentShopifyHook] = Field(min_length=2, max_length=3)
 
 
 class MarketSearchHit(TypedDict):

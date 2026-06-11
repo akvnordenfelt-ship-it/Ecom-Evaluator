@@ -43,11 +43,11 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
         "accent_soft": "#F0F9FF",
         "highlight": "Live Amazon, AliExpress and Shopify intel",
     },
-    "marketing_deep_dive": {
-        "icon": "🚀",
+    "competitor_sentiment": {
+        "icon": "📊",
         "accent": "#F59E0B",
         "accent_soft": "#FFFBEB",
-        "highlight": "5 ad scripts, targeting and influencer DMs",
+        "highlight": "Competitor review sentiment and product improvement directives",
     },
 }
 
@@ -60,12 +60,12 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     (
         "What's included in the free report?",
         "Sections 1–2 cover your product profile, core metrics, weighted score, and red-flag analysis. "
-        "Premium adds the financial verdict, marketing blueprint, competitor intel, and video scripts in Sections 3–6.",
+        "Premium adds the financial verdict, marketing blueprint, competitor intel, and review sentiment analysis in Sections 3–6.",
     ),
     (
         "When should I upgrade to Premium?",
         "Upgrade when red flags have your attention and you need the math: margin stress-tests, "
-        "final verdict, marketing blueprint, live competitor intel, and ready-to-film ad scripts.",
+        "final verdict, marketing blueprint, live competitor intel, and competitor review sentiment analysis.",
     ),
 )
 
@@ -127,13 +127,13 @@ def _premium_pricing_html(*, reveal: str = "lp-reveal lp-reveal-scale") -> str:
         f'<p class="lp-pricing-tier">Premium</p>'
         f'<p class="lp-pricing-price">${premium.price_usd_monthly}<span>/mo</span></p>'
         f'<p class="lp-pricing-blurb">One plan. Full stack. Unlimited evaluations. '
-        f"Unlock every section — financial verdict, marketing blueprint, live web intel, and 5× video scripts — "
+        f"Unlock every section — financial verdict, marketing blueprint, live web intel, and competitor review sentiment — "
         f'powered by our most advanced commercial AI engine.</p>'
         f'<ul class="lp-pricing-features">'
         f"<li>Section 3 — Financial matrix &amp; GO/NO-GO verdict</li>"
         f"<li>Section 4 — Marketing viability &amp; targeting blueprint</li>"
         f"<li>Section 5 — Live web intelligence &amp; sourcing links</li>"
-        f"<li>Section 6 — Ultimate 5× video content engine</li>"
+        f"<li>Section 6 — Competitor review sentiment analysis</li>"
         f"<li>Unlimited evaluations</li>"
         f"</ul></div>"
     )
@@ -294,7 +294,7 @@ def render_landing_body() -> None:
             "Unlock the full report",
             "One plan. Everything included. $29/month.",
             "Sections 3–6 cover the financial verdict, marketing blueprint, live competitor intel, "
-            "and five ready-to-shoot video scripts — plus unlimited evaluations.",
+            "and competitor review sentiment analysis — plus unlimited evaluations.",
         )
         + _premium_pricing_html()
         + _band_close(),
@@ -320,7 +320,7 @@ def render_landing_body() -> None:
         + _step_card_html(
             3,
             "Decide and scale",
-            "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and ad scripts.",
+            "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and sentiment analysis.",
             reveal="lp-reveal lp-reveal-delay-3",
         )
         + "</div>"
@@ -358,7 +358,7 @@ def render_landing_body() -> None:
         f"<tr><td>Financial matrix &amp; GO/NO-GO verdict (Section 3)</td><td>—</td><td>Yes</td></tr>"
         f"<tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>"
         f"<tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>"
-        f"<tr><td>5× video script engine (Section 6)</td><td>—</td><td>Yes</td></tr>"
+        f"<tr><td>Competitor review sentiment analysis (Section 6)</td><td>—</td><td>Yes</td></tr>"
         f"<tr><td>Evaluations</td><td>{FREE_EVALUATIONS_PER_ACCOUNT} free / account</td><td>Unlimited</td></tr>"
         f"<tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>"
         f"</tbody></table></div>"

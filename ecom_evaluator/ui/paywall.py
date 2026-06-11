@@ -30,7 +30,7 @@ def render_paywall_card() -> None:
         <div class="pricing-card pricing-card--premium" style="margin-bottom:0.75rem;">
             <p class="pricing-name">Premium · ${premium.price_usd_monthly}/mo</p>
             <ul class="paywall-list">
-                <li>Sections 3–6 — Financial verdict, marketing blueprint, live web intel, 5× video scripts</li>
+                <li>Sections 3–6 — Financial verdict, marketing blueprint, live web intel, review sentiment analysis</li>
                 <li>Unlimited evaluations</li>
                 <li>Powered by our most advanced commercial AI engine</li>
             </ul>

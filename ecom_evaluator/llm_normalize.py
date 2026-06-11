@@ -133,7 +133,7 @@ def normalize_marketing_teaser_payload(raw: Any) -> dict[str, Any]:
         ),
         "marketing_teaser": _ensure_text(
             data.get("marketing_teaser"),
-            "Lead with visual proof and a clear before/after — full scripts unlock on Pro.",
+            "Lead with visual proof and a clear before/after — Premium unlocks competitor sentiment analysis.",
         ),
     }
 
@@ -149,17 +149,117 @@ def normalize_web_intelligence_payload(raw: Any) -> dict[str, Any]:
     }
 
 
-def normalize_marketing_deep_dive_payload(raw: Any) -> dict[str, Any]:
+def _normalize_pain_points(raw_points: Any) -> list[dict[str, Any]]:
+    defaults = [
+        {
+            "category": "Quality / Durability",
+            "negative_trend": "Units fail under normal use within weeks of purchase.",
+            "anger_frustration_index": 78,
+            "review_evidence": "Repeated 1–3★ mentions of breakage, cheap materials, or loose joints.",
+        },
+        {
+            "category": "Usability / UX",
+            "negative_trend": "Setup or daily use is confusing relative to competitor listings.",
+            "anger_frustration_index": 71,
+            "review_evidence": "Buyers cite unclear instructions, poor ergonomics, or missing accessories.",
+        },
+        {
+            "category": "Expectations vs. Reality",
+            "negative_trend": "Listing photos overpromise size, finish, or performance.",
+            "anger_frustration_index": 84,
+            "review_evidence": "Reviews compare received product unfavorably to ads and hero images.",
+        },
+    ]
+    points = raw_points if isinstance(raw_points, list) else []
+    normalized: list[dict[str, Any]] = []
+    for index in range(3):
+        item = points[index] if index < len(points) and isinstance(points[index], dict) else {}
+        fallback = defaults[index]
+        anger = _coerce_score(item.get("anger_frustration_index"), default=fallback["anger_frustration_index"])
+        normalized.append(
+            {
+                "category": _ensure_text(item.get("category"), fallback["category"]),
+                "negative_trend": _ensure_text(item.get("negative_trend"), fallback["negative_trend"]),
+                "anger_frustration_index": 50 if anger is None else anger,
+                "review_evidence": _ensure_text(item.get("review_evidence"), fallback["review_evidence"]),
+            }
+        )
+    return normalized
+
+
+def _normalize_improvements(raw_items: Any, pain_points: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    defaults = [
+        "Reinforce the highest-stress component with a denser ABS or nylon blend and add a pre-shipment torque check.",
+        "Redesign packaging with numbered setup steps and a QR-linked 60-second demo video.",
+        "Align hero photography with a scale reference and add a comparison chart to the PDP above the fold.",
+    ]
+    badges = ["High ROI Improvement", "Low-Cost / High-Value", "High ROI Improvement"]
+    items = raw_items if isinstance(raw_items, list) else []
+    normalized: list[dict[str, Any]] = []
+    for index in range(3):
+        item = items[index] if index < len(items) and isinstance(items[index], dict) else {}
+        badge = _ensure_text(item.get("roi_badge"), badges[index])
+        if badge not in {"High ROI Improvement", "Low-Cost / High-Value"}:
+            badge = badges[index]
+        normalized.append(
+            {
+                "linked_category": _ensure_text(
+                    item.get("linked_category"),
+                    pain_points[index]["category"],
+                ),
+                "engineering_directive": _ensure_text(item.get("engineering_directive"), defaults[index]),
+                "roi_badge": badge,
+            }
+        )
+    return normalized
+
+
+def _normalize_shopify_hooks(raw_items: Any) -> list[dict[str, Any]]:
+    defaults = [
+        {
+            "angle": "Durability proof",
+            "copy_block": (
+                "Unlike models that crack under daily use, ours uses reinforced internal bracing "
+                "stress-tested before shipment — built for real routines, not photo shoots."
+            ),
+        },
+        {
+            "angle": "Honest expectations",
+            "copy_block": (
+                "No inflated hero shots — every listing includes exact dimensions and a side-by-side "
+                "comparison so you know exactly what arrives at your door."
+            ),
+        },
+    ]
+    items = raw_items if isinstance(raw_items, list) else []
+    normalized: list[dict[str, Any]] = []
+    count = max(2, min(3, len(items) if items else 2))
+    for index in range(count):
+        item = items[index] if index < len(items) and isinstance(items[index], dict) else {}
+        fallback = defaults[min(index, len(defaults) - 1)]
+        normalized.append(
+            {
+                "angle": _ensure_text(item.get("angle"), fallback["angle"]),
+                "copy_block": _ensure_text(item.get("copy_block"), fallback["copy_block"]),
+            }
+        )
+    if len(normalized) < 2:
+        normalized = defaults.copy()
+    return normalized[:3]
+
+
+def normalize_competitor_sentiment_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
+    pain_points = _normalize_pain_points(data.get("sentiment_pain_points"))
     return {
-        "marketing_ad_scripts": _ensure_text(data.get("marketing_ad_scripts"), "Scripts unavailable."),
-        "marketing_targeting_blueprint": _ensure_text(
-            data.get("marketing_targeting_blueprint"), "Targeting blueprint unavailable."
+        "sentiment_executive_summary": _ensure_text(
+            data.get("sentiment_executive_summary"),
+            "Competitor review sentiment synthesized from typical 1–3★ patterns in this niche.",
         ),
-        "marketing_influencer_templates": _ensure_text(
-            data.get("marketing_influencer_templates"), "Influencer templates unavailable."
+        "sentiment_pain_points": pain_points,
+        "sentiment_improvement_directives": _normalize_improvements(
+            data.get("sentiment_improvement_directives"),
+            pain_points,
         ),
-        "marketing_positioning_matrix": _ensure_text(
-            data.get("marketing_positioning_matrix"), "Positioning matrix unavailable."
-        ),
+        "sentiment_shopify_hooks": _normalize_shopify_hooks(data.get("sentiment_shopify_hooks")),
     }

@@ -25,14 +25,14 @@ from ecom_evaluator.economics import compute_economics_snapshot
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.llm_normalize import (
     normalize_free_evaluation_payload,
-    normalize_marketing_deep_dive_payload,
+    normalize_competitor_sentiment_payload,
     normalize_marketing_teaser_payload,
     normalize_web_intelligence_payload,
 )
 from ecom_evaluator.models import (
     FreeCorePayload,
     MarketSearchHit,
-    MarketingDeepDivePayload,
+    CompetitorSentimentPayload,
     MarketingTeaserPayload,
     ProductEvaluationResponse,
     WebIntelligencePayload,
@@ -102,20 +102,47 @@ Synthesize the live web research into sourcing and competitor intelligence.
 
 {WEB_INTEL_JSON}"""
 
-MARKETING_DEEP_JSON = """
-Return ONE flat JSON object with STRING values only (use markdown inside strings for formatting):
-"marketing_ad_scripts", "marketing_targeting_blueprint", "marketing_influencer_templates", "marketing_positioning_matrix"
+COMPETITOR_SENTIMENT_JSON = """
+Return ONE flat JSON object. Use STRING values for anger_frustration_index (e.g. "78" not 78).
 
-marketing_ad_scripts: exactly 5 complete TikTok/Reels scripts with visual cues.
-marketing_targeting_blueprint: exact Facebook & TikTok interest stacks and demographics.
-marketing_influencer_templates: 3 copy-paste DM templates.
-marketing_positioning_matrix: 3 distinct angles vs competitors.
+Keys exactly:
+"sentiment_executive_summary",
+"sentiment_pain_points",
+"sentiment_improvement_directives",
+"sentiment_shopify_hooks"
+
+sentiment_executive_summary: 2-3 sentences summarizing competitor weakness patterns in THIS niche.
+
+sentiment_pain_points: array of EXACTLY 3 objects, each with:
+- "category": one of "Quality / Durability", "Usability / UX", "Expectations vs. Reality" (or a niche-specific variant)
+- "negative_trend": data-driven summary of what 1–3★ reviewers complain about
+- "anger_frustration_index": string "0" to "100"
+- "review_evidence": paraphrased patterns from typical low-star reviews (no fake star counts)
+
+sentiment_improvement_directives: array of EXACTLY 3 objects aligned 1:1 with pain_points, each with:
+- "linked_category": must match the corresponding pain point category
+- "engineering_directive": concrete manufacturing, materials, QC, packaging, or sourcing fix — not generic marketing advice
+- "roi_badge": exactly "High ROI Improvement" or "Low-Cost / High-Value"
+
+sentiment_shopify_hooks: array of 2–3 objects with:
+- "angle": short label for the positioning angle
+- "copy_block": 1–2 sentences of Shopify-ready copy that explicitly contrasts your improved product vs. competitor failures
 """
 
-MARKETING_DEEP_SYSTEM = f"""You are a $100M DTC growth lead operating at the depth of the most advanced commercial AI engines.
-Build the ultimate marketing blueprint for this specific product.
+COMPETITOR_SENTIMENT_SYSTEM = f"""You are a senior product strategist and manufacturing consultant for DTC brands.
+Analyze the specific product niche using web research, category knowledge, and the user's product inputs.
 
-{MARKETING_DEEP_JSON}"""
+Your job: extract realistic competitor weaknesses from typical 1–3 star review patterns in this category,
+then translate each weakness into an exact engineering or sourcing improvement for the user's product.
+
+Rules:
+- Be niche-specific — reference materials, components, sizing, instructions, or QC steps relevant to THIS product.
+- Do NOT output generic advice like "improve quality" without naming what to change.
+- Do NOT invent fake review counts or star averages.
+- Each improvement must map directly to a listed pain point.
+- Shopify hooks must call out competitor failures and your concrete fixes.
+
+{COMPETITOR_SENTIMENT_JSON}"""
 
 T = TypeVar("T", bound=BaseModel)
 
@@ -412,27 +439,27 @@ def run_product_evaluation(
             )
         result = result.model_copy(update=web_block.model_dump())
 
-        if plan.runs_marketing_deep_dive:
-            channel = result.marketing_primary_channel or "TikTok Organic"
-            with st.spinner("Generating 5× video script engine…"):
-                marketing_block = run_phase_with_retries(
+        if plan.runs_competitor_sentiment:
+            with st.spinner("Analyzing competitor review sentiment…"):
+                sentiment_block = run_phase_with_retries(
                     client,
                     model=plan.gemini_pro_model or GEMINI_PRO_MODEL,
-                    system_instruction=MARKETING_DEEP_SYSTEM,
+                    system_instruction=COMPETITOR_SENTIMENT_SYSTEM,
                     user_parts=build_user_parts(
                         f"{context}\n\n{web_text}\n\n"
-                        f"Overall score: {result.overall_score}. Channel: {channel}.\n"
-                        "Return marketing deep-dive JSON now.",
+                        f"Overall score: {result.overall_score}. "
+                        f"Primary channel: {result.marketing_primary_channel or 'N/A'}.\n"
+                        "Return competitor sentiment JSON now.",
                         image_bytes,
                         image_mime,
                     ),
-                    model_class=MarketingDeepDivePayload,
-                    normalize_fn=normalize_marketing_deep_dive_payload,
-                    phase_label="Marketing deep-dive",
+                    model_class=CompetitorSentimentPayload,
+                    normalize_fn=normalize_competitor_sentiment_payload,
+                    phase_label="Competitor sentiment",
                     max_output_tokens=plan.premium_max_tokens,
-                    temperature=0.45,
+                    temperature=0.4,
                 )
-            result = result.model_copy(update=marketing_block.model_dump())
+            result = result.model_copy(update=sentiment_block.model_dump())
 
     return result
 

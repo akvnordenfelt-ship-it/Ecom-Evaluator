@@ -26,7 +26,7 @@ class PlanConfig:
     gemini_pro_model: str
     runs_web_search: bool
     runs_marketing_teaser: bool
-    runs_marketing_deep_dive: bool
+    runs_competitor_sentiment: bool
     core_max_tokens: int
     premium_max_tokens: int
     web_search_max_results: int
@@ -43,7 +43,7 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         gemini_pro_model=GEMINI_PRO_MODEL,
         runs_web_search=False,
         runs_marketing_teaser=False,
-        runs_marketing_deep_dive=False,
+        runs_competitor_sentiment=False,
         core_max_tokens=4096,
         premium_max_tokens=0,
         web_search_max_results=0,
@@ -58,7 +58,7 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         gemini_pro_model=GEMINI_PRO_MODEL,
         runs_web_search=True,
         runs_marketing_teaser=True,
-        runs_marketing_deep_dive=True,
+        runs_competitor_sentiment=True,
         core_max_tokens=4096,
         premium_max_tokens=8192,
         web_search_max_results=4,

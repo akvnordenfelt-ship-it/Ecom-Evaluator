@@ -89,14 +89,43 @@ def build_markdown_report(
             ]
         )
 
-    if result.has_marketing_deep_dive():
+    if result.has_competitor_sentiment() and has_section_access("competitor_sentiment", tier):
         lines.extend(
             [
-                "## Section 6 — Marketing deep-dive",
+                "## Section 6 — Competitor Review Sentiment Analysis",
                 "",
-                result.marketing_ad_scripts or "",
+                result.sentiment_executive_summary or "",
                 "",
             ]
         )
+        for point in result.sentiment_pain_points or []:
+            lines.extend(
+                [
+                    f"### Pain point · {point.category} ({point.anger_frustration_index}/100)",
+                    "",
+                    point.negative_trend,
+                    "",
+                    f"*Review signal:* {point.review_evidence}",
+                    "",
+                ]
+            )
+        for item in result.sentiment_improvement_directives or []:
+            lines.extend(
+                [
+                    f"### Fix · {item.linked_category} ({item.roi_badge})",
+                    "",
+                    item.engineering_directive,
+                    "",
+                ]
+            )
+        for hook in result.sentiment_shopify_hooks or []:
+            lines.extend(
+                [
+                    f"### Shopify hook · {hook.angle}",
+                    "",
+                    hook.copy_block,
+                    "",
+                ]
+            )
 
     return "\n".join(lines)
