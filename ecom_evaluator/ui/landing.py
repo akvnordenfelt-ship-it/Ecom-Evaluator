@@ -53,15 +53,14 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
 
 _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     (
-        "Why no web search on the free tier?",
-        "Web search APIs cost money on every evaluation. We keep the free tier input-only so "
-        "you still get a premium-quality profile, risk analysis, and margin math — without us "
-        "burning budget on tire-kickers. When you're serious, Premium unlocks live competitor intel.",
+        "Why doesn't the free tier include live web search?",
+        "Live web search runs on every evaluation and adds cost. The free tier uses your product "
+        "inputs only and still returns a weighted score, margin math, and red-flag analysis in Sections 1–2.",
     ),
     (
-        "What makes the free report 'ceiling quality'?",
-        "The free preview gives you Sections 1–2: a weighted product score and Shark Tank-grade red flags. "
-        "Premium unlocks the financial GO/NO-GO verdict plus the full execution stack.",
+        "What's included in the free report?",
+        "Sections 1–2 cover your product profile, core metrics, weighted score, and red-flag analysis. "
+        "Premium adds the financial verdict, marketing blueprint, competitor intel, and video scripts in Sections 3–6.",
     ),
     (
         "When should I upgrade to Premium?",
@@ -277,9 +276,9 @@ def render_landing_body() -> None:
         _band_open("free")
         + _section_header_html(
             "What you get free",
-            "Two sections designed to hook you — then Premium delivers the verdict",
-            "Free users get a real profile score and brutal red-flag analysis — enough to feel the opportunity "
-            "and the risk. The financial GO/NO-GO verdict and execution stack unlock on Premium.",
+            "Sections 1–2: profile, score, and red-flag analysis",
+            "The free report covers your product profile, core metrics, and risk flags. "
+            "Premium adds the financial verdict and the full Sections 3–6 stack.",
         )
         + '<div class="lp-section-grid">'
         + _section_card_html(free_sections[0], reveal="lp-reveal lp-reveal-left lp-reveal-delay-1")
@@ -389,6 +388,7 @@ def render_landing_final_cta(*, show_buttons: bool = True) -> None:
     )
 
     if show_buttons:
+        st.markdown('<div class="lp-final-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         _, bottom_cta, _ = st.columns([1, 1.4, 1])
         with bottom_cta:
             if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):

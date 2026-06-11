@@ -1678,6 +1678,22 @@ html.lp-reveal-ready .lp-reveal-scale.is-visible.lp-reveal-delay-4 { animation-d
     box-shadow: 0 24px 60px rgba(30, 64, 175, 0.28);
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
+.lp-final-cta .lp-final-kicker,
+.lp-final-cta .lp-final-title,
+.lp-final-cta .lp-final-lead {
+    text-align: center !important;
+}
+[data-testid="stMarkdownContainer"]:has(.lp-final-cta) p,
+[data-testid="stMarkdownContainer"]:has(.lp-final-cta) h2 {
+    text-align: center !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+}
+.lp-final-cta-gap {
+    height: 2rem;
+    width: 100%;
+    margin-bottom: 0.35rem;
+}
 .lp-final-kicker {
     font-size: 0.68rem;
     font-weight: 700;
