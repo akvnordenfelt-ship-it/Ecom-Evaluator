@@ -96,6 +96,100 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "profit": "$2,100",
         "margin": "61%",
     },
+    {
+        "name": "Automatic Electric Jar Opener",
+        "slug": "electric-jar-opener",
+        "category": "KITCHEN & GADGETS",
+        "icon": "🫙",
+        "gradient": "linear-gradient(135deg, #FFEDD5 0%, #EA580C 100%)",
+        "score": 8.1,
+        "trend": "↗ +18% Search Volume",
+        "profit": "$1,100",
+        "margin": "64%",
+    },
+    {
+        "name": "Magnetic Desktop Cable Organizer",
+        "slug": "cable-organizer",
+        "category": "OFFICE & PRODUCTIVITY",
+        "icon": "🧲",
+        "gradient": "linear-gradient(135deg, #F5F5F4 0%, #78716C 100%)",
+        "score": 7.9,
+        "trend": "↗ Steady Growth",
+        "profit": "$750",
+        "margin": "70%",
+    },
+    {
+        "name": "Ultra-Lightweight Inflatable Camping Pillow",
+        "slug": "camping-pillow",
+        "category": "TRAVEL & OUTDOOR",
+        "icon": "🏕️",
+        "gradient": "linear-gradient(135deg, #D1FAE5 0%, #059669 100%)",
+        "score": 8.5,
+        "trend": "↗ +33% Seasonal Spike",
+        "profit": "$1,320",
+        "margin": "67%",
+    },
+    {
+        "name": "Silicone Baby Bibs with Food Catcher",
+        "slug": "baby-bibs",
+        "category": "BABY SUPPLIES",
+        "icon": "👶",
+        "gradient": "linear-gradient(135deg, #FCE7F3 0%, #F472B6 100%)",
+        "score": 8.3,
+        "trend": "↗ High Consistent Demand",
+        "profit": "$980",
+        "margin": "74%",
+    },
+    {
+        "name": "Cheap Bluetooth Sleep Mask Headphones",
+        "slug": "sleep-mask-headphones",
+        "category": "ELECTRONICS",
+        "icon": "😴",
+        "gradient": "linear-gradient(135deg, #E5E7EB 0%, #6B7280 100%)",
+        "score": 4.2,
+        "trend": "↘ -28% Market Saturation",
+        "profit": "-$250",
+        "margin": "35%",
+        "fail": True,
+        "note": "High Return Rate — 18% of customers report battery failure within 2 weeks.",
+    },
+    {
+        "name": "Heavy Latex Resistance Loop Bands",
+        "slug": "resistance-bands",
+        "category": "FITNESS & GEAR",
+        "icon": "💪",
+        "gradient": "linear-gradient(135deg, #FEE2E2 0%, #EF4444 100%)",
+        "score": 5.1,
+        "trend": "→ Brutal Price War",
+        "profit": "$80",
+        "margin": "12%",
+        "fail": True,
+        "note": "Zero Margin — Oversaturated niche on Amazon, advertising cost eats all profit.",
+    },
+    {
+        "name": "DIY Ultrasonic Skin Scrubber",
+        "slug": "skin-scrubber",
+        "category": "BEAUTY & COSMETICS",
+        "icon": "⚠️",
+        "gradient": "linear-gradient(135deg, #FEF2F2 0%, #DC2626 100%)",
+        "score": 3.8,
+        "trend": "↘ Legal / Liability Risk",
+        "profit": "-$400",
+        "margin": "48%",
+        "fail": True,
+        "note": "High Liability — Severe customer complaints regarding skin burns and lack of CE certification.",
+    },
+    {
+        "name": "Smart Wireless Peephole Camera",
+        "slug": "peephole-camera",
+        "category": "HOME SECURITY",
+        "icon": "📹",
+        "gradient": "linear-gradient(135deg, #DBEAFE 0%, #1D4ED8 100%)",
+        "score": 8.8,
+        "trend": "↗ +52% Year-over-Year",
+        "profit": "$2,450",
+        "margin": "59%",
+    },
 )
 
 _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
@@ -130,7 +224,9 @@ def _band_close() -> str:
     return "</div></section>"
 
 
-def _carousel_score_class(score: float) -> str:
+def _carousel_score_class(score: float, *, is_fail: bool = False) -> str:
+    if is_fail or score < 6.0:
+        return "lp-carousel-score lp-carousel-score--fail"
     if score >= 8.0:
         return "lp-carousel-score lp-carousel-score--high"
     if score >= 7.0:
@@ -140,7 +236,8 @@ def _carousel_score_class(score: float) -> str:
 
 def _carousel_product_card(product: dict[str, str | float]) -> str:
     score = float(product["score"])
-    score_class = _carousel_score_class(score)
+    is_fail = bool(product.get("fail"))
+    score_class = _carousel_score_class(score, is_fail=is_fail)
     slug_raw = str(product["slug"])
     name = html.escape(str(product["name"]))
     category = html.escape(str(product["category"]))
@@ -150,8 +247,21 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
     profit = html.escape(str(product["profit"]))
     margin = html.escape(str(product["margin"]))
     image_url = f"https://picsum.photos/seed/{slug_raw}/640/480"
+    card_class = "lp-carousel-card lp-carousel-card--fail" if is_fail else "lp-carousel-card"
+    trend_class = "lp-carousel-trend lp-carousel-trend--fail" if is_fail else "lp-carousel-trend"
+    profit_value_class = (
+        "lp-carousel-profit-value--loss"
+        if str(product["profit"]).strip().startswith("-")
+        else ""
+    )
+    fail_badge = (
+        '<span class="lp-carousel-fail-badge">FAIL · High Risk</span>' if is_fail else ""
+    )
+    note_html = ""
+    if product.get("note"):
+        note_html = f'<p class="lp-carousel-risk-note">{html.escape(str(product["note"]))}</p>'
     return (
-        f'<article class="lp-carousel-card">'
+        f'<article class="{card_class}">'
         f'<div class="lp-carousel-card-media" style="background:{gradient}">'
         f'<div class="lp-carousel-media-fallback" aria-hidden="true">'
         f'<span class="lp-carousel-media-icon">{icon}</span>'
@@ -161,15 +271,19 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
         f"</div>"
         f'<div class="lp-carousel-card-body">'
         f'<div class="lp-carousel-card-content">'
+        f"{fail_badge}"
         f'<span class="lp-carousel-category">{category}</span>'
         f'<h3 class="lp-carousel-name">{name}</h3>'
         f'<div class="lp-carousel-score-row">'
         f'<span class="{score_class}">{score:.1f}<span>/10</span></span>'
-        f'<span class="lp-carousel-trend">{trend}</span>'
+        f'<span class="{trend_class}">{trend}</span>'
         f"</div>"
         f'<div class="lp-carousel-divider"></div>'
-        f'<p class="lp-carousel-profit">Est. Net Profit: <strong>{profit} / mo</strong></p>'
+        f'<p class="lp-carousel-profit">Est. Net Profit: '
+        f'<strong{" class=\"lp-carousel-profit-value--loss\"" if profit_value_class else ""}>'
+        f"{profit} / mo</strong></p>"
         f'<p class="lp-carousel-margin">{margin} Gross Margin</p>'
+        f"{note_html}"
         f"</div>"
         f'<div class="lp-carousel-card-footer">'
         f'<a class="lp-carousel-demo-link" href="?nav_anchor=sample">View Sample Evaluation →</a>'

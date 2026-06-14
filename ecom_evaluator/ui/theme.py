@@ -1027,6 +1027,32 @@ div[data-testid="stTextArea"] textarea:focus {
     transform: translateY(-8px);
     box-shadow: 0 10px 15px rgba(15, 23, 42, 0.06), 0 24px 48px rgba(15, 23, 42, 0.12);
 }
+.lp-carousel-card--fail {
+    background: #FEF2F2;
+    border: 1.5px solid #FCA5A5;
+    min-height: 520px;
+    box-shadow: 0 4px 6px rgba(220, 38, 38, 0.06), 0 16px 32px rgba(220, 38, 38, 0.08);
+}
+.lp-carousel-card--fail:hover {
+    border-color: #F87171;
+    box-shadow: 0 10px 15px rgba(220, 38, 38, 0.08), 0 24px 48px rgba(220, 38, 38, 0.12);
+}
+.lp-carousel-fail-badge {
+    display: inline-flex;
+    align-items: center;
+    align-self: flex-start;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #DC2626;
+    background: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: 999px;
+    padding: 0.28rem 0.55rem;
+    margin: 0 0 0.55rem;
+    line-height: 1.2;
+}
 .lp-carousel-card-media {
     position: relative;
     aspect-ratio: 4 / 3;
@@ -1134,6 +1160,11 @@ div[data-testid="stTextArea"] textarea:focus {
     background: rgba(254, 242, 242, 0.98);
     border: 1px solid #FECACA;
 }
+.lp-carousel-score--fail {
+    color: #DC2626;
+    background: #FEF2F2;
+    border: 1px solid #FECACA;
+}
 .lp-carousel-trend {
     display: inline-flex;
     align-items: center;
@@ -1149,6 +1180,11 @@ div[data-testid="stTextArea"] textarea:focus {
     text-overflow: ellipsis;
     white-space: nowrap;
     max-width: 100%;
+}
+.lp-carousel-trend--fail {
+    color: #DC2626;
+    background: #FEE2E2;
+    border-color: #FECACA;
 }
 .lp-carousel-divider {
     height: 1px;
@@ -1167,11 +1203,25 @@ div[data-testid="stTextArea"] textarea:focus {
     font-weight: 800;
     font-size: 1rem;
 }
+.lp-carousel-profit-value--loss {
+    color: #DC2626 !important;
+}
 .lp-carousel-margin {
     font-size: 0.78rem;
     font-weight: 600;
     color: #64748B;
     margin: 0;
+    line-height: 1.45;
+}
+.lp-carousel-risk-note {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: #B91C1C;
+    background: #FEE2E2;
+    border: 1px solid #FECACA;
+    border-radius: 10px;
+    padding: 0.55rem 0.65rem;
+    margin: 0.65rem 0 0;
     line-height: 1.45;
 }
 .lp-carousel-demo-link {
