@@ -934,6 +934,216 @@ div[data-testid="stTextArea"] textarea:focus {
     width: 100%;
     margin-bottom: 0.35rem;
 }
+
+/* Landing product carousel */
+.lp-carousel-section {
+    margin: 1.75rem 0 0.5rem;
+    padding: 0 0 0.25rem;
+}
+.lp-carousel-header {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto 1.35rem;
+    padding: 0 0.25rem;
+}
+.lp-carousel-title {
+    font-size: 1.45rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: #0F172A;
+    margin: 0 0 0.5rem;
+    line-height: 1.2;
+}
+.lp-carousel-lead {
+    font-size: 0.92rem;
+    color: #64748B;
+    margin: 0;
+    line-height: 1.55;
+}
+.lp-carousel-viewport {
+    position: relative;
+    overflow: hidden;
+    width: 100%;
+    padding: 0.75rem 0 1rem;
+    mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
+}
+.lp-carousel-viewport:hover .lp-carousel-track {
+    animation-play-state: paused;
+}
+.lp-carousel-track {
+    display: flex;
+    gap: 1rem;
+    width: max-content;
+    animation: lp-carousel-marquee 55s linear infinite;
+    will-change: transform;
+}
+@keyframes lp-carousel-marquee {
+    0% { transform: translateX(0); }
+    100% { transform: translateX(-50%); }
+}
+.lp-carousel-card {
+    flex: 0 0 320px;
+    width: 320px;
+    background: #FFFFFF;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    overflow: hidden;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.06);
+    transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
+}
+.lp-carousel-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.14);
+}
+.lp-carousel-card-media {
+    background: #F1F5F9;
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+}
+.lp-carousel-card-media img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.lp-carousel-card-body {
+    padding: 1rem 1.1rem 1.15rem;
+}
+.lp-carousel-category {
+    display: inline-block;
+    font-size: 0.62rem;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: #64748B;
+    margin-bottom: 0.35rem;
+}
+.lp-carousel-name {
+    font-size: 1rem;
+    font-weight: 700;
+    color: #0F172A;
+    margin: 0 0 0.75rem;
+    line-height: 1.3;
+}
+.lp-carousel-score-row {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+.lp-carousel-score {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.15rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    padding: 0.2rem 0.55rem;
+    border-radius: 10px;
+}
+.lp-carousel-score span {
+    font-size: 0.82rem;
+    font-weight: 600;
+    opacity: 0.72;
+}
+.lp-carousel-score--high {
+    color: #047857;
+    background: rgba(236, 253, 245, 0.9);
+    border: 1px solid #A7F3D0;
+}
+.lp-carousel-score--mid {
+    color: #B45309;
+    background: rgba(255, 251, 235, 0.95);
+    border: 1px solid #FDE68A;
+}
+.lp-carousel-score--low {
+    color: #B91C1C;
+    background: rgba(254, 242, 242, 0.95);
+    border: 1px solid #FECACA;
+}
+.lp-carousel-trend {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.72rem;
+    font-weight: 700;
+    color: #4338CA;
+    background: #EEF2FF;
+    border: 1px solid #C7D2FE;
+    border-radius: 999px;
+    padding: 0.22rem 0.55rem;
+    white-space: nowrap;
+}
+.lp-carousel-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
+    margin: 0.85rem 0 0.75rem;
+}
+.lp-carousel-profit {
+    font-size: 0.88rem;
+    color: #475569;
+    margin: 0 0 0.25rem;
+}
+.lp-carousel-profit strong {
+    color: #059669;
+    font-weight: 800;
+    font-size: 1rem;
+}
+.lp-carousel-margin {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: #64748B;
+    margin: 0 0 0.85rem;
+}
+.lp-carousel-demo-link {
+    display: inline-flex;
+    align-items: center;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #1E40AF;
+    text-decoration: none;
+    opacity: 0.88;
+    transition: opacity 0.15s ease, color 0.15s ease, transform 0.15s ease;
+}
+.lp-carousel-card:hover .lp-carousel-demo-link {
+    opacity: 1;
+    color: #4338CA;
+    transform: translateX(2px);
+}
+@media (max-width: 1024px) {
+    .lp-carousel-card {
+        flex: 0 0 300px;
+        width: 300px;
+    }
+}
+@media (max-width: 640px) {
+    .lp-carousel-card {
+        flex: 0 0 min(82vw, 320px);
+        width: min(82vw, 320px);
+    }
+    .lp-carousel-viewport {
+        mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 88%, transparent 100%);
+        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 88%, transparent 100%);
+    }
+}
+@media (prefers-reduced-motion: reduce) {
+    .lp-carousel-track {
+        animation: none;
+        flex-wrap: wrap;
+        width: 100%;
+        justify-content: center;
+    }
+    .lp-carousel-viewport {
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        mask-image: none;
+        -webkit-mask-image: none;
+    }
+    .lp-carousel-card {
+        scroll-snap-align: center;
+    }
+}
+
 .landing-hero {
     background: var(--lp-panel-gradient);
     border-radius: 20px;

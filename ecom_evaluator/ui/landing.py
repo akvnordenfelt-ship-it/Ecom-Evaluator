@@ -51,6 +51,54 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
     },
 }
 
+_CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
+    {
+        "name": "Ergonomic Vertical Mouse",
+        "category": "ELECTRONICS",
+        "image": "https://images.unsplash.com/photo-1527860319919-0412a91d1c78?w=640&h=480&fit=crop&auto=format",
+        "score": 8.7,
+        "trend": "↗ Hot Trend",
+        "profit": "$1,250",
+        "margin": "68%",
+    },
+    {
+        "name": "Minimalist Desk Lamp",
+        "category": "HOME OFFICE",
+        "image": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=640&h=480&fit=crop&auto=format",
+        "score": 8.2,
+        "trend": "↗ +14% Demand this month",
+        "profit": "$890",
+        "margin": "61%",
+    },
+    {
+        "name": "Smart High-Speed Blender",
+        "category": "HOME & KITCHEN",
+        "image": "https://images.unsplash.com/photo-1570222094114-d054a817e785?w=640&h=480&fit=crop&auto=format",
+        "score": 7.4,
+        "trend": "↗ +9% Demand this month",
+        "profit": "$2,100",
+        "margin": "54%",
+    },
+    {
+        "name": "Pro Wireless Earbuds",
+        "category": "ELECTRONICS",
+        "image": "https://images.unsplash.com/photo-1598331668826-20cecc596b84?w=640&h=480&fit=crop&auto=format",
+        "score": 8.9,
+        "trend": "↗ Hot Trend",
+        "profit": "$3,420",
+        "margin": "72%",
+    },
+    {
+        "name": "Insulated Steel Bottle",
+        "category": "HEALTH & FITNESS",
+        "image": "https://images.unsplash.com/photo-1602143407151-711154600de7?w=640&h=480&fit=crop&auto=format",
+        "score": 7.8,
+        "trend": "↗ +11% Demand this month",
+        "profit": "$980",
+        "margin": "63%",
+    },
+)
+
 _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     (
         "Why doesn't the free tier include live web search?",
@@ -81,6 +129,59 @@ def _band_open(band: str, *, section_id: str | None = None) -> str:
 
 def _band_close() -> str:
     return "</div></section>"
+
+
+def _carousel_score_class(score: float) -> str:
+    if score >= 8.0:
+        return "lp-carousel-score lp-carousel-score--high"
+    if score >= 7.0:
+        return "lp-carousel-score lp-carousel-score--mid"
+    return "lp-carousel-score lp-carousel-score--low"
+
+
+def _carousel_product_card(product: dict[str, str | float]) -> str:
+    score = float(product["score"])
+    score_class = _carousel_score_class(score)
+    name = html.escape(str(product["name"]))
+    category = html.escape(str(product["category"]))
+    image = html.escape(str(product["image"]))
+    trend = html.escape(str(product["trend"]))
+    profit = html.escape(str(product["profit"]))
+    margin = html.escape(str(product["margin"]))
+    return (
+        f'<article class="lp-carousel-card">'
+        f'<div class="lp-carousel-card-media">'
+        f'<img src="{image}" alt="{name}" loading="lazy" />'
+        f"</div>"
+        f'<div class="lp-carousel-card-body">'
+        f'<span class="lp-carousel-category">{category}</span>'
+        f'<h3 class="lp-carousel-name">{name}</h3>'
+        f'<div class="lp-carousel-score-row">'
+        f'<span class="{score_class}">{score:.1f}<span>/10</span></span>'
+        f'<span class="lp-carousel-trend">{trend}</span>'
+        f"</div>"
+        f'<div class="lp-carousel-divider"></div>'
+        f'<p class="lp-carousel-profit">Est. Net Profit: <strong>{profit} / mo</strong></p>'
+        f'<p class="lp-carousel-margin">{margin} Gross Margin</p>'
+        f'<a class="lp-carousel-demo-link" href="?nav_anchor=sample">View Sample Evaluation →</a>'
+        f"</div></article>"
+    )
+
+
+def render_landing_product_carousel() -> None:
+    cards = "".join(_carousel_product_card(product) for product in _CAROUSEL_PRODUCTS)
+    track = f'<div class="lp-carousel-track">{cards}{cards}</div>'
+    st.markdown(
+        '<section class="lp-carousel-section lp-reveal" aria-label="Sample product evaluations">'
+        '<div class="lp-carousel-header">'
+        '<span class="lp-band-label">Live preview</span>'
+        '<h2 class="lp-carousel-title">Products operators are evaluating right now</h2>'
+        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from sample niches — hover to explore, then open a full report.</p>'
+        "</div>"
+        f'<div class="lp-carousel-viewport">{track}</div>'
+        "</section>",
+        unsafe_allow_html=True,
+    )
 
 
 def _section_header_html(
@@ -404,6 +505,7 @@ def render_landing_footnote() -> None:
 
 def render_landing_page() -> None:
     render_landing_hero()
+    render_landing_product_carousel()
 
     st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
     _, hero_cta, _ = st.columns([1, 1.4, 1])
