@@ -53,59 +53,48 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
 
 _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     {
-        "name": "Ergonomic Vertical Mouse",
-        "slug": "ergonomic-mouse",
-        "category": "ELECTRONICS",
-        "icon": "🖱️",
-        "gradient": "linear-gradient(135deg, #DBEAFE 0%, #6366F1 100%)",
-        "score": 8.7,
-        "trend": "↗ Hot Trend",
-        "profit": "$1,250",
-        "margin": "68%",
-    },
-    {
-        "name": "Minimalist Desk Lamp",
-        "slug": "desk-lamp",
-        "category": "HOME OFFICE",
-        "icon": "💡",
-        "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%)",
-        "score": 8.2,
-        "trend": "↗ +14% Demand this month",
-        "profit": "$890",
-        "margin": "61%",
-    },
-    {
-        "name": "Smart High-Speed Blender",
-        "slug": "smart-blender",
-        "category": "HOME & KITCHEN",
-        "icon": "🥤",
-        "gradient": "linear-gradient(135deg, #DCFCE7 0%, #14B8A6 100%)",
-        "score": 7.4,
-        "trend": "↗ +9% Demand this month",
-        "profit": "$2,100",
-        "margin": "54%",
-    },
-    {
-        "name": "Pro Wireless Earbuds",
-        "slug": "wireless-earbuds",
-        "category": "ELECTRONICS",
-        "icon": "🎧",
-        "gradient": "linear-gradient(135deg, #EDE9FE 0%, #7C3AED 100%)",
+        "name": "Flame Effect Essential Oil Diffuser",
+        "slug": "flame-diffuser",
+        "category": "HOME & DECOR",
+        "icon": "🕯️",
+        "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F97316 100%)",
         "score": 8.9,
-        "trend": "↗ Hot Trend",
-        "profit": "$3,420",
+        "trend": "↗ +41% Demand this month",
+        "profit": "$1,450",
         "margin": "72%",
     },
     {
-        "name": "Insulated Steel Bottle",
-        "slug": "steel-bottle",
-        "category": "HEALTH & FITNESS",
-        "icon": "🍶",
-        "gradient": "linear-gradient(135deg, #E0F2FE 0%, #0EA5E9 100%)",
-        "score": 7.8,
-        "trend": "↗ +11% Demand this month",
-        "profit": "$980",
-        "margin": "63%",
+        "name": "Personalized Pet Travel Harness",
+        "slug": "pet-travel-harness",
+        "category": "PET SUPPLIES",
+        "icon": "🦮",
+        "gradient": "linear-gradient(135deg, #FFE4E6 0%, #FB7185 100%)",
+        "score": 9.2,
+        "trend": "↗ Hot Trend (Peak Summer)",
+        "profit": "$1,820",
+        "margin": "65%",
+    },
+    {
+        "name": "Portable USB-C Rechargeable Blender",
+        "slug": "usb-blender",
+        "category": "SMART KITCHEN",
+        "icon": "🥤",
+        "gradient": "linear-gradient(135deg, #DCFCE7 0%, #06B6D4 100%)",
+        "score": 8.4,
+        "trend": "↗ +14% Demand this month",
+        "profit": "$920",
+        "margin": "58%",
+    },
+    {
+        "name": "Sleep-Tech Smart Scales (Cloud Sync)",
+        "slug": "smart-scale",
+        "category": "HEALTH & TECH",
+        "icon": "⚖️",
+        "gradient": "linear-gradient(135deg, #E0E7FF 0%, #4F46E5 100%)",
+        "score": 8.7,
+        "trend": "↗ +22% Search Volume",
+        "profit": "$2,100",
+        "margin": "61%",
     },
 )
 
@@ -196,7 +185,7 @@ def render_landing_product_carousel() -> None:
         '<div class="lp-carousel-header">'
         '<span class="lp-band-label">Live preview</span>'
         '<h2 class="lp-carousel-title">Trending products analyzed right now</h2>'
-        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from live niches. Click and drag to explore.</p>'
+        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from live niches. Auto-scrolls — click and drag to explore.</p>'
         "</div>"
         f'<div class="lp-carousel-shell"><div class="lp-carousel-viewport">{track}</div></div>'
         "</section>",
@@ -214,6 +203,8 @@ def _install_carousel_drag() -> None:
             const CLICK_THRESHOLD = 6;
             const FRICTION = 0.92;
             const MIN_VELOCITY = 0.25;
+            const AUTO_SPEED = 0.42;
+            const AUTO_RESUME_MS = 1800;
 
             function initViewport(viewport) {
                 if (viewport.dataset.lpCarouselReady) return;
@@ -231,6 +222,10 @@ def _install_carousel_drag() -> None:
                 let dragDistance = 0;
                 let suppressClick = false;
                 let momentumFrame = null;
+                let autoFrame = null;
+                let autoPaused = false;
+                let autoResumeTimer = null;
+                const reducedMotion = win.matchMedia("(prefers-reduced-motion: reduce)");
 
                 function measure() {
                     loopWidth = track.scrollWidth / 2;
@@ -253,11 +248,65 @@ def _install_carousel_drag() -> None:
                     momentumFrame = null;
                 }
 
+                function stopAuto() {
+                    if (!autoFrame) return;
+                    cancelAnimationFrame(autoFrame);
+                    autoFrame = null;
+                }
+
+                function clearAutoResume() {
+                    if (!autoResumeTimer) return;
+                    clearTimeout(autoResumeTimer);
+                    autoResumeTimer = null;
+                }
+
+                function canAutoRun() {
+                    return (
+                        !autoPaused &&
+                        !isDragging &&
+                        !momentumFrame &&
+                        !reducedMotion.matches
+                    );
+                }
+
+                function autoStep() {
+                    autoFrame = null;
+                    if (!canAutoRun()) return;
+                    position -= AUTO_SPEED;
+                    wrapPosition();
+                    render();
+                    autoFrame = requestAnimationFrame(autoStep);
+                }
+
+                function startAuto() {
+                    if (autoFrame || !canAutoRun()) return;
+                    autoFrame = requestAnimationFrame(autoStep);
+                }
+
+                function pauseAuto() {
+                    autoPaused = true;
+                    stopAuto();
+                    clearAutoResume();
+                }
+
+                function resumeAutoAfter(delay) {
+                    autoPaused = true;
+                    stopAuto();
+                    clearAutoResume();
+                    autoResumeTimer = setTimeout(() => {
+                        autoResumeTimer = null;
+                        autoPaused = false;
+                        startAuto();
+                    }, delay);
+                }
+
                 function startMomentum() {
                     stopMomentum();
+                    stopAuto();
                     function step() {
                         if (Math.abs(velocity) < MIN_VELOCITY) {
                             momentumFrame = null;
+                            resumeAutoAfter(AUTO_RESUME_MS);
                             return;
                         }
                         position += velocity;
@@ -281,6 +330,7 @@ def _install_carousel_drag() -> None:
                     dragDistance = 0;
                     suppressClick = false;
                     stopMomentum();
+                    pauseAuto();
                 }
 
                 function onPointerMove(event) {
@@ -310,13 +360,21 @@ def _install_carousel_drag() -> None:
                     try {
                         if (event) viewport.releasePointerCapture(event.pointerId);
                     } catch (error) {}
-                    startMomentum();
+                    if (Math.abs(velocity) >= MIN_VELOCITY) {
+                        startMomentum();
+                    } else {
+                        resumeAutoAfter(AUTO_RESUME_MS);
+                    }
                 }
 
                 viewport.addEventListener("pointerdown", onPointerDown);
                 viewport.addEventListener("pointermove", onPointerMove, { passive: false });
                 viewport.addEventListener("pointerup", endDrag);
                 viewport.addEventListener("pointercancel", endDrag);
+                viewport.addEventListener("mouseenter", pauseAuto);
+                viewport.addEventListener("mouseleave", () => resumeAutoAfter(600));
+                viewport.addEventListener("touchstart", pauseAuto, { passive: true });
+                viewport.addEventListener("touchend", () => resumeAutoAfter(AUTO_RESUME_MS), { passive: true });
 
                 viewport.addEventListener(
                     "click",
@@ -351,6 +409,7 @@ def _install_carousel_drag() -> None:
                     measure();
                     wrapPosition();
                     render();
+                    startAuto();
                 }, 300);
             }
 
