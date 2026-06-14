@@ -151,7 +151,7 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
     return (
         f'<article class="lp-carousel-card">'
         f'<div class="lp-carousel-card-media">'
-        f'<img src="{image}" alt="{name}" loading="lazy" />'
+        f'<img src="{image}" alt="{name}" loading="lazy" draggable="false" />'
         f"</div>"
         f'<div class="lp-carousel-card-body">'
         f'<span class="lp-carousel-category">{category}</span>'
@@ -176,11 +176,179 @@ def render_landing_product_carousel() -> None:
         '<div class="lp-carousel-header">'
         '<span class="lp-band-label">Live preview</span>'
         '<h2 class="lp-carousel-title">Products operators are evaluating right now</h2>'
-        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from sample niches — hover to explore, then open a full report.</p>'
+        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from sample niches — drag to explore, then open a full report.</p>'
         "</div>"
         f'<div class="lp-carousel-viewport">{track}</div>'
         "</section>",
         unsafe_allow_html=True,
+    )
+
+
+def _install_carousel_drag() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            const CLICK_THRESHOLD = 6;
+            const FRICTION = 0.92;
+            const MIN_VELOCITY = 0.25;
+
+            function initViewport(viewport) {
+                if (viewport.dataset.lpCarouselReady) return;
+                const track = viewport.querySelector(".lp-carousel-track");
+                if (!track) return;
+                viewport.dataset.lpCarouselReady = "1";
+
+                let position = 0;
+                let loopWidth = 0;
+                let isDragging = false;
+                let pointerId = null;
+                let lastX = 0;
+                let lastTime = 0;
+                let velocity = 0;
+                let dragDistance = 0;
+                let suppressClick = false;
+                let momentumFrame = null;
+
+                function measure() {
+                    loopWidth = track.scrollWidth / 2;
+                    if (!loopWidth || Number.isNaN(loopWidth)) loopWidth = 1;
+                }
+
+                function wrapPosition() {
+                    if (loopWidth <= 0) return;
+                    while (position <= -loopWidth) position += loopWidth;
+                    while (position > 0) position -= loopWidth;
+                }
+
+                function render() {
+                    track.style.transform = "translate3d(" + position + "px, 0, 0)";
+                }
+
+                function stopMomentum() {
+                    if (!momentumFrame) return;
+                    cancelAnimationFrame(momentumFrame);
+                    momentumFrame = null;
+                }
+
+                function startMomentum() {
+                    stopMomentum();
+                    function step() {
+                        if (Math.abs(velocity) < MIN_VELOCITY) {
+                            momentumFrame = null;
+                            return;
+                        }
+                        position += velocity;
+                        velocity *= FRICTION;
+                        wrapPosition();
+                        render();
+                        momentumFrame = requestAnimationFrame(step);
+                    }
+                    momentumFrame = requestAnimationFrame(step);
+                }
+
+                function onPointerDown(event) {
+                    if (event.button !== undefined && event.button !== 0) return;
+                    isDragging = true;
+                    pointerId = event.pointerId;
+                    viewport.classList.add("is-grabbing");
+                    try { viewport.setPointerCapture(event.pointerId); } catch (error) {}
+                    lastX = event.clientX;
+                    lastTime = performance.now();
+                    velocity = 0;
+                    dragDistance = 0;
+                    suppressClick = false;
+                    stopMomentum();
+                }
+
+                function onPointerMove(event) {
+                    if (!isDragging || event.pointerId !== pointerId) return;
+                    const dx = event.clientX - lastX;
+                    position += dx;
+                    dragDistance += Math.abs(dx);
+                    const now = performance.now();
+                    const dt = Math.max(now - lastTime, 1);
+                    velocity = (dx / dt) * 16.67;
+                    lastX = event.clientX;
+                    lastTime = now;
+                    wrapPosition();
+                    render();
+                    if (dragDistance > CLICK_THRESHOLD) {
+                        suppressClick = true;
+                        event.preventDefault();
+                    }
+                }
+
+                function endDrag(event) {
+                    if (!isDragging) return;
+                    if (event && event.pointerId !== pointerId) return;
+                    isDragging = false;
+                    pointerId = null;
+                    viewport.classList.remove("is-grabbing");
+                    try {
+                        if (event) viewport.releasePointerCapture(event.pointerId);
+                    } catch (error) {}
+                    startMomentum();
+                }
+
+                viewport.addEventListener("pointerdown", onPointerDown);
+                viewport.addEventListener("pointermove", onPointerMove, { passive: false });
+                viewport.addEventListener("pointerup", endDrag);
+                viewport.addEventListener("pointercancel", endDrag);
+
+                viewport.addEventListener(
+                    "click",
+                    (event) => {
+                        if (!suppressClick) return;
+                        event.preventDefault();
+                        event.stopPropagation();
+                        suppressClick = false;
+                    },
+                    true
+                );
+
+                track.querySelectorAll("img").forEach((img) => {
+                    img.setAttribute("draggable", "false");
+                    if (!img.complete) {
+                        img.addEventListener("load", () => {
+                            measure();
+                            wrapPosition();
+                            render();
+                        });
+                    }
+                });
+
+                measure();
+                render();
+                win.addEventListener("resize", () => {
+                    measure();
+                    wrapPosition();
+                    render();
+                });
+                setTimeout(() => {
+                    measure();
+                    wrapPosition();
+                    render();
+                }, 300);
+            }
+
+            function scan() {
+                doc.querySelectorAll(".lp-carousel-viewport").forEach(initViewport);
+            }
+
+            if (!win.__lpCarousel) {
+                win.__lpCarousel = { scan };
+                win.__lpCarousel.mo = new MutationObserver(() => win.__lpCarousel.scan());
+                win.__lpCarousel.mo.observe(doc.body, { childList: true, subtree: true });
+            }
+            requestAnimationFrame(() => requestAnimationFrame(scan));
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
@@ -518,4 +686,5 @@ def render_landing_page() -> None:
     render_landing_final_cta()
     render_landing_footnote()
     _install_scroll_reveal()
+    _install_carousel_drag()
     _scroll_to_anchor_if_needed()

@@ -965,22 +965,29 @@ div[data-testid="stTextArea"] textarea:focus {
     overflow: hidden;
     width: 100%;
     padding: 0.75rem 0 1rem;
+    cursor: grab;
+    touch-action: pan-y;
+    user-select: none;
+    -webkit-user-select: none;
     mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
     -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
 }
-.lp-carousel-viewport:hover .lp-carousel-track {
-    animation-play-state: paused;
+.lp-carousel-viewport.is-grabbing {
+    cursor: grabbing;
+}
+.lp-carousel-viewport.is-grabbing .lp-carousel-card {
+    pointer-events: none;
+}
+.lp-carousel-viewport.is-grabbing .lp-carousel-card:hover {
+    transform: none;
+    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.06);
 }
 .lp-carousel-track {
     display: flex;
     gap: 1rem;
     width: max-content;
-    animation: lp-carousel-marquee 55s linear infinite;
     will-change: transform;
-}
-@keyframes lp-carousel-marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-50%); }
+    transform: translate3d(0, 0, 0);
 }
 .lp-carousel-card {
     flex: 0 0 320px;
@@ -1006,6 +1013,8 @@ div[data-testid="stTextArea"] textarea:focus {
     height: 100%;
     object-fit: cover;
     display: block;
+    pointer-events: none;
+    -webkit-user-drag: none;
 }
 .lp-carousel-card-body {
     padding: 1rem 1.1rem 1.15rem;
@@ -1128,16 +1137,17 @@ div[data-testid="stTextArea"] textarea:focus {
 }
 @media (prefers-reduced-motion: reduce) {
     .lp-carousel-track {
-        animation: none;
         flex-wrap: wrap;
         width: 100%;
         justify-content: center;
+        transform: none !important;
     }
     .lp-carousel-viewport {
         overflow-x: auto;
         scroll-snap-type: x mandatory;
         mask-image: none;
         -webkit-mask-image: none;
+        cursor: default;
     }
     .lp-carousel-card {
         scroll-snap-align: center;
