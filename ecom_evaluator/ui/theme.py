@@ -943,7 +943,7 @@ div[data-testid="stTextArea"] textarea:focus {
 .lp-carousel-header {
     text-align: center;
     max-width: 640px;
-    margin: 0 auto 1.35rem;
+    margin: 0 auto 1.5rem;
     padding: 0 0.25rem;
 }
 .lp-carousel-title {
@@ -960,17 +960,37 @@ div[data-testid="stTextArea"] textarea:focus {
     margin: 0;
     line-height: 1.55;
 }
+.lp-carousel-shell {
+    position: relative;
+    width: 100%;
+}
+.lp-carousel-shell::before,
+.lp-carousel-shell::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 72px;
+    z-index: 2;
+    pointer-events: none;
+}
+.lp-carousel-shell::before {
+    left: 0;
+    background: linear-gradient(90deg, #FFFFFF 0%, rgba(255, 255, 255, 0.92) 35%, transparent 100%);
+}
+.lp-carousel-shell::after {
+    right: 0;
+    background: linear-gradient(270deg, #FFFFFF 0%, rgba(255, 255, 255, 0.92) 35%, transparent 100%);
+}
 .lp-carousel-viewport {
     position: relative;
     overflow: hidden;
     width: 100%;
-    padding: 0.75rem 0 1rem;
+    padding: 0.85rem 0.5rem 1.15rem;
     cursor: grab;
     touch-action: pan-y;
     user-select: none;
     -webkit-user-select: none;
-    mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
-    -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 6%, #000 94%, transparent 100%);
 }
 .lp-carousel-viewport.is-grabbing {
     cursor: grabbing;
@@ -980,118 +1000,167 @@ div[data-testid="stTextArea"] textarea:focus {
 }
 .lp-carousel-viewport.is-grabbing .lp-carousel-card:hover {
     transform: none;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.05), 0 16px 32px rgba(15, 23, 42, 0.08);
 }
 .lp-carousel-track {
     display: flex;
-    gap: 1rem;
+    gap: 1.75rem;
     width: max-content;
     will-change: transform;
     transform: translate3d(0, 0, 0);
+    padding: 0.35rem 0.5rem;
 }
 .lp-carousel-card {
     flex: 0 0 320px;
     width: 320px;
+    min-height: 470px;
+    display: flex;
+    flex-direction: column;
     background: #FFFFFF;
     border: 1px solid #E2E8F0;
-    border-radius: 16px;
+    border-radius: 20px;
     overflow: hidden;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 10px 28px rgba(15, 23, 42, 0.06);
+    box-shadow: 0 4px 6px rgba(15, 23, 42, 0.05), 0 16px 32px rgba(15, 23, 42, 0.08);
     transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease;
 }
 .lp-carousel-card:hover {
     transform: translateY(-8px);
-    box-shadow: 0 24px 48px rgba(15, 23, 42, 0.14);
+    box-shadow: 0 10px 15px rgba(15, 23, 42, 0.06), 0 24px 48px rgba(15, 23, 42, 0.12);
 }
 .lp-carousel-card-media {
-    background: #F1F5F9;
+    position: relative;
     aspect-ratio: 4 / 3;
     overflow: hidden;
+    flex-shrink: 0;
+}
+.lp-carousel-media-fallback {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 0;
+}
+.lp-carousel-media-icon {
+    font-size: 3.25rem;
+    line-height: 1;
+    filter: drop-shadow(0 8px 16px rgba(15, 23, 42, 0.12));
+    opacity: 0.92;
 }
 .lp-carousel-card-media img {
+    position: relative;
+    z-index: 1;
     width: 100%;
     height: 100%;
     object-fit: cover;
     display: block;
     pointer-events: none;
     -webkit-user-drag: none;
+    background: transparent;
+}
+.lp-carousel-card-media img.is-broken {
+    opacity: 0;
+    visibility: hidden;
 }
 .lp-carousel-card-body {
-    padding: 1rem 1.1rem 1.15rem;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    padding: 1.15rem 1.25rem 1.25rem;
+}
+.lp-carousel-card-content {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    align-items: stretch;
+}
+.lp-carousel-card-footer {
+    margin-top: auto;
+    padding-top: 1rem;
+    border-top: 1px solid #F1F5F9;
 }
 .lp-carousel-category {
-    display: inline-block;
+    display: block;
     font-size: 0.62rem;
     font-weight: 700;
     letter-spacing: 0.12em;
     text-transform: uppercase;
     color: #64748B;
-    margin-bottom: 0.35rem;
+    margin: 0 0 0.4rem;
 }
 .lp-carousel-name {
     font-size: 1rem;
     font-weight: 700;
     color: #0F172A;
-    margin: 0 0 0.75rem;
+    margin: 0 0 0.85rem;
     line-height: 1.3;
+    min-height: 2.6rem;
 }
 .lp-carousel-score-row {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 0.5rem;
+    flex-wrap: nowrap;
+    gap: 0.55rem;
+    min-height: 2.1rem;
 }
 .lp-carousel-score {
     display: inline-flex;
     align-items: baseline;
     gap: 0.15rem;
-    font-size: 1.35rem;
+    font-size: 1.2rem;
     font-weight: 800;
     letter-spacing: -0.02em;
-    padding: 0.2rem 0.55rem;
+    padding: 0.28rem 0.6rem;
     border-radius: 10px;
+    flex-shrink: 0;
 }
 .lp-carousel-score span {
-    font-size: 0.82rem;
+    font-size: 0.78rem;
     font-weight: 600;
     opacity: 0.72;
 }
 .lp-carousel-score--high {
     color: #047857;
-    background: rgba(236, 253, 245, 0.9);
+    background: rgba(236, 253, 245, 0.95);
     border: 1px solid #A7F3D0;
 }
 .lp-carousel-score--mid {
     color: #B45309;
-    background: rgba(255, 251, 235, 0.95);
+    background: rgba(255, 251, 235, 0.98);
     border: 1px solid #FDE68A;
 }
 .lp-carousel-score--low {
     color: #B91C1C;
-    background: rgba(254, 242, 242, 0.95);
+    background: rgba(254, 242, 242, 0.98);
     border: 1px solid #FECACA;
 }
 .lp-carousel-trend {
     display: inline-flex;
     align-items: center;
-    font-size: 0.72rem;
+    font-size: 0.68rem;
     font-weight: 700;
     color: #4338CA;
     background: #EEF2FF;
     border: 1px solid #C7D2FE;
     border-radius: 999px;
-    padding: 0.22rem 0.55rem;
+    padding: 0.28rem 0.55rem;
+    line-height: 1.2;
+    overflow: hidden;
+    text-overflow: ellipsis;
     white-space: nowrap;
+    max-width: 100%;
 }
 .lp-carousel-divider {
     height: 1px;
-    background: linear-gradient(90deg, transparent, #E2E8F0, transparent);
-    margin: 0.85rem 0 0.75rem;
+    background: #E2E8F0;
+    margin: 0.9rem 0 0.8rem;
+    width: 100%;
 }
 .lp-carousel-profit {
     font-size: 0.88rem;
     color: #475569;
-    margin: 0 0 0.25rem;
+    margin: 0 0 0.3rem;
+    line-height: 1.45;
 }
 .lp-carousel-profit strong {
     color: #059669;
@@ -1102,7 +1171,8 @@ div[data-testid="stTextArea"] textarea:focus {
     font-size: 0.78rem;
     font-weight: 600;
     color: #64748B;
-    margin: 0 0 0.85rem;
+    margin: 0;
+    line-height: 1.45;
 }
 .lp-carousel-demo-link {
     display: inline-flex;
@@ -1111,7 +1181,7 @@ div[data-testid="stTextArea"] textarea:focus {
     font-weight: 700;
     color: #1E40AF;
     text-decoration: none;
-    opacity: 0.88;
+    opacity: 0.92;
     transition: opacity 0.15s ease, color 0.15s ease, transform 0.15s ease;
 }
 .lp-carousel-card:hover .lp-carousel-demo-link {
@@ -1123,6 +1193,10 @@ div[data-testid="stTextArea"] textarea:focus {
     .lp-carousel-card {
         flex: 0 0 300px;
         width: 300px;
+        min-height: 450px;
+    }
+    .lp-carousel-track {
+        gap: 1.35rem;
     }
 }
 @media (max-width: 640px) {
@@ -1130,9 +1204,9 @@ div[data-testid="stTextArea"] textarea:focus {
         flex: 0 0 min(82vw, 320px);
         width: min(82vw, 320px);
     }
-    .lp-carousel-viewport {
-        mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 88%, transparent 100%);
-        -webkit-mask-image: linear-gradient(90deg, transparent 0%, #000 2%, #000 88%, transparent 100%);
+    .lp-carousel-shell::before,
+    .lp-carousel-shell::after {
+        width: 40px;
     }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -1145,9 +1219,11 @@ div[data-testid="stTextArea"] textarea:focus {
     .lp-carousel-viewport {
         overflow-x: auto;
         scroll-snap-type: x mandatory;
-        mask-image: none;
-        -webkit-mask-image: none;
         cursor: default;
+    }
+    .lp-carousel-shell::before,
+    .lp-carousel-shell::after {
+        display: none;
     }
     .lp-carousel-card {
         scroll-snap-align: center;

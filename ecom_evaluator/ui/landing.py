@@ -54,8 +54,10 @@ SECTION_VISUALS: dict[str, dict[str, str]] = {
 _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     {
         "name": "Ergonomic Vertical Mouse",
+        "slug": "ergonomic-mouse",
         "category": "ELECTRONICS",
-        "image": "https://images.unsplash.com/photo-1527860319919-0412a91d1c78?w=640&h=480&fit=crop&auto=format",
+        "icon": "🖱️",
+        "gradient": "linear-gradient(135deg, #DBEAFE 0%, #6366F1 100%)",
         "score": 8.7,
         "trend": "↗ Hot Trend",
         "profit": "$1,250",
@@ -63,8 +65,10 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     },
     {
         "name": "Minimalist Desk Lamp",
+        "slug": "desk-lamp",
         "category": "HOME OFFICE",
-        "image": "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?w=640&h=480&fit=crop&auto=format",
+        "icon": "💡",
+        "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F59E0B 100%)",
         "score": 8.2,
         "trend": "↗ +14% Demand this month",
         "profit": "$890",
@@ -72,8 +76,10 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     },
     {
         "name": "Smart High-Speed Blender",
+        "slug": "smart-blender",
         "category": "HOME & KITCHEN",
-        "image": "https://images.unsplash.com/photo-1570222094114-d054a817e785?w=640&h=480&fit=crop&auto=format",
+        "icon": "🥤",
+        "gradient": "linear-gradient(135deg, #DCFCE7 0%, #14B8A6 100%)",
         "score": 7.4,
         "trend": "↗ +9% Demand this month",
         "profit": "$2,100",
@@ -81,8 +87,10 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     },
     {
         "name": "Pro Wireless Earbuds",
+        "slug": "wireless-earbuds",
         "category": "ELECTRONICS",
-        "image": "https://images.unsplash.com/photo-1598331668826-20cecc596b84?w=640&h=480&fit=crop&auto=format",
+        "icon": "🎧",
+        "gradient": "linear-gradient(135deg, #EDE9FE 0%, #7C3AED 100%)",
         "score": 8.9,
         "trend": "↗ Hot Trend",
         "profit": "$3,420",
@@ -90,8 +98,10 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
     },
     {
         "name": "Insulated Steel Bottle",
+        "slug": "steel-bottle",
         "category": "HEALTH & FITNESS",
-        "image": "https://images.unsplash.com/photo-1602143407151-711154600de7?w=640&h=480&fit=crop&auto=format",
+        "icon": "🍶",
+        "gradient": "linear-gradient(135deg, #E0F2FE 0%, #0EA5E9 100%)",
         "score": 7.8,
         "trend": "↗ +11% Demand this month",
         "profit": "$980",
@@ -142,18 +152,26 @@ def _carousel_score_class(score: float) -> str:
 def _carousel_product_card(product: dict[str, str | float]) -> str:
     score = float(product["score"])
     score_class = _carousel_score_class(score)
+    slug_raw = str(product["slug"])
     name = html.escape(str(product["name"]))
     category = html.escape(str(product["category"]))
-    image = html.escape(str(product["image"]))
+    icon = html.escape(str(product["icon"]))
+    gradient = str(product["gradient"])
     trend = html.escape(str(product["trend"]))
     profit = html.escape(str(product["profit"]))
     margin = html.escape(str(product["margin"]))
+    image_url = f"https://picsum.photos/seed/{slug_raw}/640/480"
     return (
         f'<article class="lp-carousel-card">'
-        f'<div class="lp-carousel-card-media">'
-        f'<img src="{image}" alt="{name}" loading="lazy" draggable="false" />'
+        f'<div class="lp-carousel-card-media" style="background:{gradient}">'
+        f'<div class="lp-carousel-media-fallback" aria-hidden="true">'
+        f'<span class="lp-carousel-media-icon">{icon}</span>'
+        f"</div>"
+        f'<img src="{image_url}" alt="" loading="lazy" draggable="false" '
+        f'onerror="this.classList.add(\'is-broken\')" />'
         f"</div>"
         f'<div class="lp-carousel-card-body">'
+        f'<div class="lp-carousel-card-content">'
         f'<span class="lp-carousel-category">{category}</span>'
         f'<h3 class="lp-carousel-name">{name}</h3>'
         f'<div class="lp-carousel-score-row">'
@@ -163,8 +181,10 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
         f'<div class="lp-carousel-divider"></div>'
         f'<p class="lp-carousel-profit">Est. Net Profit: <strong>{profit} / mo</strong></p>'
         f'<p class="lp-carousel-margin">{margin} Gross Margin</p>'
+        f"</div>"
+        f'<div class="lp-carousel-card-footer">'
         f'<a class="lp-carousel-demo-link" href="?nav_anchor=sample">View Sample Evaluation →</a>'
-        f"</div></article>"
+        f"</div></div></article>"
     )
 
 
@@ -175,10 +195,10 @@ def render_landing_product_carousel() -> None:
         '<section class="lp-carousel-section lp-reveal" aria-label="Sample product evaluations">'
         '<div class="lp-carousel-header">'
         '<span class="lp-band-label">Live preview</span>'
-        '<h2 class="lp-carousel-title">Products operators are evaluating right now</h2>'
-        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from sample niches — drag to explore, then open a full report.</p>'
+        '<h2 class="lp-carousel-title">Trending products analyzed right now</h2>'
+        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from live niches. Click and drag to explore.</p>'
         "</div>"
-        f'<div class="lp-carousel-viewport">{track}</div>'
+        f'<div class="lp-carousel-shell"><div class="lp-carousel-viewport">{track}</div></div>'
         "</section>",
         unsafe_allow_html=True,
     )
