@@ -41,8 +41,42 @@ def _finish_auth() -> None:
 def _auth_title() -> str:
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
-        return "Create your ProductScore account"
-    return "Continue to ProductScore"
+        return "Create your account"
+    return "Welcome back"
+
+
+def _auth_subtitle() -> str:
+    mode = st.session_state.get("auth_mode", "login")
+    if mode == "signup":
+        return "Start analyzing winning products in minutes."
+    return "Welcome back. Sign in to continue evaluating."
+
+
+def _render_brand_panel() -> None:
+    st.markdown(
+        '<div class="auth-brand-panel" aria-hidden="false">'
+        '<div class="auth-brand-panel__mesh"></div>'
+        '<div class="auth-brand-panel__glow"></div>'
+        '<div class="auth-brand-panel__inner">'
+        '<div class="auth-brand-panel__logo"><span aria-hidden="true">🦈</span> ProductScore</div>'
+        '<p class="auth-brand-panel__kicker">Built for e-commerce operators</p>'
+        '<blockquote class="auth-brand-panel__quote">'
+        "ProductScore surfaces margin traps, legal risks, and demand signals before you spend a dollar on inventory."
+        "</blockquote>"
+        '<div class="auth-brand-panel__metric">'
+        '<span class="auth-brand-panel__metric-value">12,000+</span>'
+        '<p class="auth-brand-panel__metric-copy">'
+        "Over 12,000+ high-margin products analyzed this week by e-commerce founders"
+        "</p>"
+        "</div>"
+        '<div class="auth-brand-panel__stats">'
+        '<div class="auth-brand-panel__stat"><strong>8.4</strong><span>Avg. ProductScore</span></div>'
+        '<div class="auth-brand-panel__stat"><strong>68%</strong><span>Median gross margin</span></div>'
+        '<div class="auth-brand-panel__stat"><strong>30s</strong><span>Free preview</span></div>'
+        "</div>"
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
 
 
 def _google_oauth_button_html(oauth_url: str) -> str:
@@ -50,28 +84,37 @@ def _google_oauth_button_html(oauth_url: str) -> str:
     return (
         f'<a class="auth-oauth-btn" href="{safe_url}">'
         f"{_GOOGLE_ICON_SVG}"
-        "<span>Google</span>"
+        "<span>Continue with Google</span>"
         "</a>"
     )
 
 
 def _render_auth_header() -> None:
     title = html.escape(_auth_title())
+    subtitle = html.escape(_auth_subtitle())
     st.markdown(
-        f'<div class="auth-screen-header"><div class="auth-screen-logo" aria-hidden="true">🦈</div>'
-        f'<h1 class="auth-screen-title">{title}</h1></div>',
+        f'<div class="auth-screen-header">'
+        f'<div class="auth-screen-logo" aria-hidden="true">🦈</div>'
+        f'<h1 class="auth-screen-title">{title}</h1>'
+        f'<p class="auth-screen-subtitle">{subtitle}</p>'
+        f"</div>",
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_divider() -> None:
-    st.markdown('<hr class="auth-screen-divider" />', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="auth-screen-divider" role="separator">'
+        '<span>or continue with email</span></div>',
+        unsafe_allow_html=True,
+    )
 
 
 def _render_auth_footer() -> None:
     st.markdown(
-        '<div class="auth-screen-footer"><p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>'
-        '<p class="auth-screen-footer-muted">Your data is used only to run evaluations and manage your account.</p></div>',
+        '<div class="auth-screen-footer">'
+        "<p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>"
+        "</div>",
         unsafe_allow_html=True,
     )
 
@@ -165,9 +208,12 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Centered Superhuman-style auth screen."""
-    _, center, _ = st.columns([1, 1.05, 1])
-    with center:
+    """Premium split-screen auth — form left, brand panel right (desktop)."""
+    st.markdown('<div class="auth-split-layout">', unsafe_allow_html=True)
+    col_form, col_brand = st.columns([1, 1], gap="small")
+
+    with col_form:
+        st.markdown('<div class="auth-split-panel auth-split-panel--form">', unsafe_allow_html=True)
         st.markdown('<div class="auth-screen">', unsafe_allow_html=True)
         _render_auth_header()
         render_auth_error()
@@ -180,7 +226,13 @@ def render_auth_screen() -> None:
         else:
             _render_dev_auth()
 
-        _render_auth_footer()
         if st.button("← Back to home", key="auth_back_home"):
             go_to_landing()
-        st.markdown("</div>", unsafe_allow_html=True)
+
+        _render_auth_footer()
+        st.markdown("</div></div>", unsafe_allow_html=True)
+
+    with col_brand:
+        _render_brand_panel()
+
+    st.markdown("</div>", unsafe_allow_html=True)
