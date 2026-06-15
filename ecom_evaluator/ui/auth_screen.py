@@ -52,50 +52,6 @@ def _auth_subtitle() -> str:
     return "Access your evaluations, scores, and saved reports."
 
 
-def _render_brand_panel() -> None:
-    st.markdown(
-        '<div class="auth-brand-panel">'
-        '<div class="auth-brand-panel__backdrop" aria-hidden="true"></div>'
-        '<div class="auth-brand-panel__grid" aria-hidden="true"></div>'
-        '<div class="auth-brand-panel__content">'
-        '<p class="auth-brand-eyebrow">Trusted by e-commerce founders</p>'
-        '<h2 class="auth-brand-headline">'
-        "Spot margin traps and demand signals "
-        '<span class="auth-brand-headline-accent">before</span> you buy inventory."'
-        "</h2>"
-        '<div class="auth-brand-showcase">'
-        '<div class="auth-showcase-card">'
-        '<div class="auth-showcase-card__top">'
-        '<span class="auth-showcase-card__label">Live ProductScore</span>'
-        '<span class="auth-showcase-card__score">8.7</span>'
-        "</div>"
-        '<p class="auth-showcase-card__title">Smart Wireless Peephole Camera</p>'
-        '<div class="auth-showcase-card__metrics">'
-        '<div><strong>$2,450</strong><span>Est. net / mo</span></div>'
-        '<div><strong>59%</strong><span>Gross margin</span></div>'
-        '<div><strong>↗ 52%</strong><span>YoY search</span></div>'
-        "</div>"
-        '<div class="auth-showcase-card__flags">'
-        '<span class="auth-showcase-flag auth-showcase-flag--good">Strong demand</span>'
-        '<span class="auth-showcase-flag auth-showcase-flag--warn">Competition rising</span>'
-        "</div>"
-        "</div>"
-        "</div>"
-        '<div class="auth-brand-proof">'
-        '<div class="auth-brand-proof__stat">'
-        '<strong>12,000+</strong>'
-        "<span>products analyzed this week</span>"
-        "</div>"
-        '<div class="auth-brand-proof__stat">'
-        "<strong>30 sec</strong>"
-        "<span>free preview turnaround</span>"
-        "</div>"
-        "</div>"
-        "</div></div>",
-        unsafe_allow_html=True,
-    )
-
-
 def _google_oauth_button_html(oauth_url: str) -> str:
     safe_url = html.escape(oauth_url, quote=True)
     return (
@@ -230,12 +186,10 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Full-viewport split auth — centered form card left, brand showcase right."""
-    st.markdown('<div class="auth-split-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
-    col_form, col_brand = st.columns([1, 1], gap="small")
-
-    with col_form:
-        st.markdown('<div class="auth-form-shell">', unsafe_allow_html=True)
+    """Centered auth form — login and signup."""
+    st.markdown('<div class="auth-page-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+    _, center, _ = st.columns([1, 1.05, 1])
+    with center:
         _render_auth_header()
         render_auth_error()
 
@@ -248,7 +202,3 @@ def render_auth_screen() -> None:
             _render_dev_auth()
 
         _render_auth_footer()
-        st.markdown("</div>", unsafe_allow_html=True)
-
-    with col_brand:
-        _render_brand_panel()

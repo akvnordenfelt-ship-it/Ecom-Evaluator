@@ -66,7 +66,7 @@ def handle_nav_anchor_query() -> None:
 
 
 def install_same_window_nav_bridge() -> None:
-    """Keep in-app and site links in the same tab (Streamlit often uses target=_blank)."""
+    """Strip target=_blank from in-app links so navigation stays in the same tab."""
     components.html(
         """
         <script>
@@ -76,41 +76,15 @@ def install_same_window_nav_bridge() -> None:
             if (win.__psSameWindowNav) return;
             win.__psSameWindowNav = true;
 
-            function resolveHref(href) {
-                if (!href) return win.location.href;
-                if (href.startsWith("?")) {
-                    return win.location.pathname + href;
-                }
-                if (href.startsWith("#")) {
-                    return win.location.pathname + win.location.search + href;
-                }
-                if (href.startsWith("/") && !href.startsWith("//")) {
-                    return win.location.origin + href;
-                }
-                try {
-                    return new URL(href, win.location.href).href;
-                } catch (error) {
-                    return href;
-                }
-            }
-
-            function isInAppHref(href) {
-                if (!href || href.startsWith("javascript:")) return false;
-                if (href.startsWith("mailto:") || href.startsWith("tel:")) return false;
-                if (href.startsWith("?") || href.startsWith("#")) return true;
-                if (href.startsWith("/") && !href.startsWith("//")) return true;
-                try {
-                    return new URL(href, win.location.href).origin === win.location.origin;
-                } catch (error) {
-                    return false;
-                }
-            }
-
             function normalizeLinks(root) {
                 root.querySelectorAll("a[href]").forEach((link) => {
                     const href = link.getAttribute("href") || "";
                     if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
-                    if (isInAppHref(href) || link.target === "_blank") {
+                    if (
+                        href.startsWith("?") ||
+                        href.startsWith("#") ||
+                        link.target === "_blank"
+                    ) {
                         link.setAttribute("target", "_self");
                         if (link.getAttribute("rel") === "noopener noreferrer") {
                             link.removeAttribute("rel");
@@ -118,21 +92,6 @@ def install_same_window_nav_bridge() -> None:
                     }
                 });
             }
-
-            doc.addEventListener(
-                "click",
-                (event) => {
-                    const link = event.target.closest("a[href]");
-                    if (!link) return;
-                    const href = link.getAttribute("href") || "";
-                    if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
-                    if (!isInAppHref(href) && link.target !== "_blank") return;
-                    event.preventDefault();
-                    event.stopPropagation();
-                    win.location.assign(resolveHref(href));
-                },
-                true
-            );
 
             normalizeLinks(doc);
             new MutationObserver(() => normalizeLinks(doc)).observe(doc.body, {
