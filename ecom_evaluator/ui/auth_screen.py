@@ -61,7 +61,7 @@ def _render_brand_panel() -> None:
         '<p class="auth-brand-eyebrow">Trusted by e-commerce founders</p>'
         '<h2 class="auth-brand-headline">'
         "Spot margin traps and demand signals "
-        '<span class="auth-brand-headline-accent">before</span> you buy inventory."
+        '<span class="auth-brand-headline-accent">before</span> you buy inventory."'
         "</h2>"
         '<div class="auth-brand-showcase">'
         '<div class="auth-showcase-card">'
