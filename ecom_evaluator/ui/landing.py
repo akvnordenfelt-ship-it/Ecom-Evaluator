@@ -300,7 +300,7 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
         f"{note_html}"
         f"</div>"
         f'<div class="lp-carousel-card-footer">'
-        f'<a class="lp-carousel-demo-link" href="?nav_anchor=sample">View Sample Evaluation →</a>'
+        f'<a class="lp-carousel-demo-link" href="?nav_anchor=sample" target="_self">View Sample Evaluation →</a>'
         f"</div></div></article>"
     )
 

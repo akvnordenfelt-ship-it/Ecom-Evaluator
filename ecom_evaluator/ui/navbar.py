@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from ecom_evaluator.auth.session import get_current_user, is_authenticated, logout_user
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
@@ -64,6 +65,88 @@ def handle_nav_anchor_query() -> None:
     handle_nav_query()
 
 
+def install_same_window_nav_bridge() -> None:
+    """Keep in-app and site links in the same tab (Streamlit often uses target=_blank)."""
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__psSameWindowNav) return;
+            win.__psSameWindowNav = true;
+
+            function resolveHref(href) {
+                if (!href) return win.location.href;
+                if (href.startsWith("?")) {
+                    return win.location.pathname + href;
+                }
+                if (href.startsWith("#")) {
+                    return win.location.pathname + win.location.search + href;
+                }
+                if (href.startsWith("/") && !href.startsWith("//")) {
+                    return win.location.origin + href;
+                }
+                try {
+                    return new URL(href, win.location.href).href;
+                } catch (error) {
+                    return href;
+                }
+            }
+
+            function isInAppHref(href) {
+                if (!href || href.startsWith("javascript:")) return false;
+                if (href.startsWith("mailto:") || href.startsWith("tel:")) return false;
+                if (href.startsWith("?") || href.startsWith("#")) return true;
+                if (href.startsWith("/") && !href.startsWith("//")) return true;
+                try {
+                    return new URL(href, win.location.href).origin === win.location.origin;
+                } catch (error) {
+                    return false;
+                }
+            }
+
+            function normalizeLinks(root) {
+                root.querySelectorAll("a[href]").forEach((link) => {
+                    const href = link.getAttribute("href") || "";
+                    if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                    if (isInAppHref(href) || link.target === "_blank") {
+                        link.setAttribute("target", "_self");
+                        if (link.getAttribute("rel") === "noopener noreferrer") {
+                            link.removeAttribute("rel");
+                        }
+                    }
+                });
+            }
+
+            doc.addEventListener(
+                "click",
+                (event) => {
+                    const link = event.target.closest("a[href]");
+                    if (!link) return;
+                    const href = link.getAttribute("href") || "";
+                    if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
+                    if (!isInAppHref(href) && link.target !== "_blank") return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    win.location.assign(resolveHref(href));
+                },
+                true
+            );
+
+            normalizeLinks(doc);
+            new MutationObserver(() => normalizeLinks(doc)).observe(doc.body, {
+                childList: true,
+                subtree: true,
+            });
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def _render_header_html(markup: str) -> None:
     """Render header markup (single compact block — blank lines break st.markdown HTML)."""
     st.markdown(markup, unsafe_allow_html=True)
@@ -77,18 +160,18 @@ def _mega_menu_html() -> str:
         '<p class="site-header__mega-title">Know before you spend</p>'
         '<p class="site-header__mega-desc">Upload a product and get Sections 1–2 free in about 30 seconds. '
         f"{FREE_EVALUATIONS_PER_ACCOUNT} evaluations included — no credit card.</p>"
-        '<a class="site-header__mega-link" href="?nav_action=signup">Start free evaluation →</a>'
+        '<a class="site-header__mega-link" href="?nav_action=signup" target="_self">Start free evaluation →</a>'
         "</div>"
         '<div class="site-header__mega-grid">'
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Learn</p>'
-        '<a class="site-header__mega-item" href="?nav_anchor=process">How it works</a>'
-        '<a class="site-header__mega-item" href="?nav_anchor=sample">Sample report</a>'
+        '<a class="site-header__mega-item" href="?nav_anchor=process" target="_self">How it works</a>'
+        '<a class="site-header__mega-item" href="?nav_anchor=sample" target="_self">Sample report</a>'
         "</div>"
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Support</p>'
-        '<a class="site-header__mega-item" href="?nav_anchor=pricing">Plans &amp; pricing</a>'
-        '<a class="site-header__mega-item" href="?nav_anchor=resources">FAQ</a>'
+        '<a class="site-header__mega-item" href="?nav_anchor=pricing" target="_self">Plans &amp; pricing</a>'
+        '<a class="site-header__mega-item" href="?nav_anchor=resources" target="_self">FAQ</a>'
         "</div>"
         "</div>"
         "</div>"
@@ -98,7 +181,7 @@ def _mega_menu_html() -> str:
 def _resources_dropdown_html() -> str:
     return (
         '<div class="site-header__dropdown">'
-        '<a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources">'
+        '<a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources" target="_self">'
         "<span>Resources</span>"
         f"{_CHEVRON_SVG}"
         "</a>"
@@ -109,8 +192,8 @@ def _resources_dropdown_html() -> str:
 
 def _guest_actions_html() -> str:
     return (
-        '<a class="site-header__login" href="?nav_action=login">Log in</a>'
-        '<a class="site-header__cta" href="?nav_action=signup">Get started</a>'
+        '<a class="site-header__login" href="?nav_action=login" target="_self">Log in</a>'
+        '<a class="site-header__cta" href="?nav_action=signup" target="_self">Get started</a>'
     )
 
 
@@ -119,8 +202,8 @@ def _authenticated_actions_html(*, email: str, status_label: str, status_class: 
         f'<span class="site-header__user">{html.escape(email)}</span>'
         f'<span class="check-row check-row--{status_class} site-header__quota">'
         f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
-        '<a class="site-header__cta site-header__cta--compact" href="?nav_action=tool">Run evaluation</a>'
-        '<a class="site-header__text-action" href="?nav_action=logout">Log out</a>'
+        '<a class="site-header__cta site-header__cta--compact" href="?nav_action=tool" target="_self">Run evaluation</a>'
+        '<a class="site-header__text-action" href="?nav_action=logout" target="_self">Log out</a>'
     )
 
 
@@ -129,12 +212,12 @@ def _build_site_header_html(*, actions_html: str) -> str:
         '<header class="site-header">'
         '<div class="site-header__bar">'
         '<div class="site-header__inner">'
-        '<a class="site-header__brand" href="?nav_action=home">'
+        '<a class="site-header__brand" href="?nav_action=home" target="_self">'
         '<span class="site-header__mark" aria-hidden="true">🦈</span>'
         '<span class="site-header__name">ProductScore</span>'
         "</a>"
         '<nav class="site-header__nav" aria-label="Primary">'
-        '<a class="site-header__link" href="?nav_anchor=pricing">Pricing</a>'
+        '<a class="site-header__link" href="?nav_anchor=pricing" target="_self">Pricing</a>'
         f"{_resources_dropdown_html()}"
         "</nav>"
         f'<div class="site-header__actions">{actions_html}</div>'

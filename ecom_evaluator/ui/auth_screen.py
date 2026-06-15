@@ -99,7 +99,7 @@ def _render_brand_panel() -> None:
 def _google_oauth_button_html(oauth_url: str) -> str:
     safe_url = html.escape(oauth_url, quote=True)
     return (
-        f'<a class="auth-oauth-btn" href="{safe_url}">'
+        f'<a class="auth-oauth-btn" href="{safe_url}" target="_self">'
         f"{_GOOGLE_ICON_SVG}"
         "<span>Continue with Google</span>"
         "</a>"
@@ -111,7 +111,7 @@ def _render_auth_header() -> None:
     subtitle = html.escape(_auth_subtitle())
     st.markdown(
         '<div class="auth-form-header">'
-        '<a class="auth-form-back" href="?nav_action=home">← Back to home</a>'
+        '<a class="auth-form-back" href="?nav_action=home" target="_self">← Back to home</a>'
         '<div class="auth-wordmark"><span class="auth-wordmark__mark" aria-hidden="true">🦈</span>'
         '<span class="auth-wordmark__name">ProductScore</span></div>'
         f'<h1 class="auth-form-title">{title}</h1>'
