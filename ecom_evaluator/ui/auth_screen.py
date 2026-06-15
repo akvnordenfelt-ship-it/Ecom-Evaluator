@@ -21,7 +21,7 @@ from ecom_evaluator.auth.session import (
     sign_up_account,
 )
 from ecom_evaluator.exceptions import AnalysisError
-from ecom_evaluator.ui.subscription import complete_post_auth_navigation, go_to_landing, open_auth_screen
+from ecom_evaluator.ui.subscription import complete_post_auth_navigation, open_auth_screen
 
 _GOOGLE_ICON_SVG = (
     '<svg class="auth-oauth-icon" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
@@ -42,37 +42,54 @@ def _auth_title() -> str:
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         return "Create your account"
-    return "Welcome back"
+    return "Sign in"
 
 
 def _auth_subtitle() -> str:
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
-        return "Start analyzing winning products in minutes."
-    return "Welcome back. Sign in to continue evaluating."
+        return "Start with a free preview — no credit card required."
+    return "Access your evaluations, scores, and saved reports."
 
 
 def _render_brand_panel() -> None:
     st.markdown(
-        '<div class="auth-brand-panel" aria-hidden="false">'
-        '<div class="auth-brand-panel__mesh"></div>'
-        '<div class="auth-brand-panel__glow"></div>'
-        '<div class="auth-brand-panel__inner">'
-        '<div class="auth-brand-panel__logo"><span aria-hidden="true">🦈</span> ProductScore</div>'
-        '<p class="auth-brand-panel__kicker">Built for e-commerce operators</p>'
-        '<blockquote class="auth-brand-panel__quote">'
-        "ProductScore surfaces margin traps, legal risks, and demand signals before you spend a dollar on inventory."
-        "</blockquote>"
-        '<div class="auth-brand-panel__metric">'
-        '<span class="auth-brand-panel__metric-value">12,000+</span>'
-        '<p class="auth-brand-panel__metric-copy">'
-        "Over 12,000+ high-margin products analyzed this week by e-commerce founders"
-        "</p>"
+        '<div class="auth-brand-panel">'
+        '<div class="auth-brand-panel__backdrop" aria-hidden="true"></div>'
+        '<div class="auth-brand-panel__grid" aria-hidden="true"></div>'
+        '<div class="auth-brand-panel__content">'
+        '<p class="auth-brand-eyebrow">Trusted by e-commerce founders</p>'
+        '<h2 class="auth-brand-headline">'
+        "Spot margin traps and demand signals "
+        '<span class="auth-brand-headline-accent">before</span> you buy inventory."
+        "</h2>"
+        '<div class="auth-brand-showcase">'
+        '<div class="auth-showcase-card">'
+        '<div class="auth-showcase-card__top">'
+        '<span class="auth-showcase-card__label">Live ProductScore</span>'
+        '<span class="auth-showcase-card__score">8.7</span>'
         "</div>"
-        '<div class="auth-brand-panel__stats">'
-        '<div class="auth-brand-panel__stat"><strong>8.4</strong><span>Avg. ProductScore</span></div>'
-        '<div class="auth-brand-panel__stat"><strong>68%</strong><span>Median gross margin</span></div>'
-        '<div class="auth-brand-panel__stat"><strong>30s</strong><span>Free preview</span></div>'
+        '<p class="auth-showcase-card__title">Smart Wireless Peephole Camera</p>'
+        '<div class="auth-showcase-card__metrics">'
+        '<div><strong>$2,450</strong><span>Est. net / mo</span></div>'
+        '<div><strong>59%</strong><span>Gross margin</span></div>'
+        '<div><strong>↗ 52%</strong><span>YoY search</span></div>'
+        "</div>"
+        '<div class="auth-showcase-card__flags">'
+        '<span class="auth-showcase-flag auth-showcase-flag--good">Strong demand</span>'
+        '<span class="auth-showcase-flag auth-showcase-flag--warn">Competition rising</span>'
+        "</div>"
+        "</div>"
+        "</div>"
+        '<div class="auth-brand-proof">'
+        '<div class="auth-brand-proof__stat">'
+        '<strong>12,000+</strong>'
+        "<span>products analyzed this week</span>"
+        "</div>"
+        '<div class="auth-brand-proof__stat">'
+        "<strong>30 sec</strong>"
+        "<span>free preview turnaround</span>"
+        "</div>"
         "</div>"
         "</div></div>",
         unsafe_allow_html=True,
@@ -93,18 +110,20 @@ def _render_auth_header() -> None:
     title = html.escape(_auth_title())
     subtitle = html.escape(_auth_subtitle())
     st.markdown(
-        f'<div class="auth-screen-header">'
-        f'<div class="auth-screen-logo" aria-hidden="true">🦈</div>'
-        f'<h1 class="auth-screen-title">{title}</h1>'
-        f'<p class="auth-screen-subtitle">{subtitle}</p>'
-        f"</div>",
+        '<div class="auth-form-header">'
+        '<a class="auth-form-back" href="?nav_action=home">← Back to home</a>'
+        '<div class="auth-wordmark"><span class="auth-wordmark__mark" aria-hidden="true">🦈</span>'
+        '<span class="auth-wordmark__name">ProductScore</span></div>'
+        f'<h1 class="auth-form-title">{title}</h1>'
+        f'<p class="auth-form-lead">{subtitle}</p>'
+        "</div>",
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_divider() -> None:
     st.markdown(
-        '<div class="auth-screen-divider" role="separator">'
+        '<div class="auth-form-divider" role="separator">'
         '<span>or continue with email</span></div>',
         unsafe_allow_html=True,
     )
@@ -112,7 +131,7 @@ def _render_auth_divider() -> None:
 
 def _render_auth_footer() -> None:
     st.markdown(
-        '<div class="auth-screen-footer">'
+        '<div class="auth-form-legal">'
         "<p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>"
         "</div>",
         unsafe_allow_html=True,
@@ -121,11 +140,11 @@ def _render_auth_footer() -> None:
 
 def _render_login_form() -> None:
     with st.form("auth_login_form", clear_on_submit=False):
-        st.markdown('<p class="auth-field-label">Your email</p>', unsafe_allow_html=True)
-        email = st.text_input("Your email", placeholder="you@company.com", key="auth_login_email", label_visibility="collapsed")
+        st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
+        email = st.text_input("Email", placeholder="you@company.com", key="auth_login_email", label_visibility="collapsed")
         st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
         password = st.text_input("Password", type="password", key="auth_login_password", label_visibility="collapsed")
-        submitted = st.form_submit_button("Continue with email", type="primary", use_container_width=True)
+        submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
         try:
@@ -137,9 +156,12 @@ def _render_login_form() -> None:
 
 def _render_signup_form() -> None:
     with st.form("auth_signup_form", clear_on_submit=False):
-        st.markdown('<p class="auth-field-label">Your email</p>', unsafe_allow_html=True)
-        email = st.text_input("Your email", placeholder="you@company.com", key="auth_signup_email", label_visibility="collapsed")
-        st.markdown('<p class="auth-field-label">Display name <span class="auth-field-optional">(optional)</span></p>', unsafe_allow_html=True)
+        st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
+        email = st.text_input("Email", placeholder="you@company.com", key="auth_signup_email", label_visibility="collapsed")
+        st.markdown(
+            '<p class="auth-field-label">Display name <span class="auth-field-optional">(optional)</span></p>',
+            unsafe_allow_html=True,
+        )
         name = st.text_input("Display name", placeholder="Alex", key="auth_signup_name", label_visibility="collapsed")
         st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
         password = st.text_input("Password", type="password", key="auth_signup_password", label_visibility="collapsed")
@@ -162,7 +184,7 @@ def _render_email_password_auth() -> None:
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         _render_signup_form()
-        if st.button("Already have an account? Log in", key="auth_switch_login"):
+        if st.button("Already have an account? Sign in", key="auth_switch_login"):
             open_auth_screen(mode="login", intent=st.session_state.get("auth_intent"))
     else:
         _render_login_form()
@@ -208,11 +230,12 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Premium split-screen auth — form left, brand panel right (desktop)."""
+    """Full-viewport split auth — centered form card left, brand showcase right."""
     st.markdown('<div class="auth-split-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
     col_form, col_brand = st.columns([1, 1], gap="small")
 
     with col_form:
+        st.markdown('<div class="auth-form-shell">', unsafe_allow_html=True)
         _render_auth_header()
         render_auth_error()
 
@@ -224,10 +247,8 @@ def render_auth_screen() -> None:
         else:
             _render_dev_auth()
 
-        if st.button("← Back to home", key="auth_back_home"):
-            go_to_landing()
-
         _render_auth_footer()
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col_brand:
         _render_brand_panel()
