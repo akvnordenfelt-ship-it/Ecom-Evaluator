@@ -433,41 +433,52 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 
 /* Auth screen — premium split layout (Linear / Stripe style) */
-section[data-testid="stMain"] > div:has(.auth-split-layout) {
-    max-width: 100% !important;
+.auth-split-marker {
+    display: none !important;
+    height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+}
+[data-testid="stMarkdownContainer"]:has(.auth-split-marker) {
+    margin: 0 !important;
     padding: 0 !important;
 }
-.block-container:has(.auth-split-layout) {
+section[data-testid="stMain"] > div:has(.auth-split-marker),
+.block-container:has(.auth-split-marker) {
     max-width: 100% !important;
-    padding: 0 !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+.block-container:has(.auth-split-marker) {
     margin: 0 !important;
 }
-.auth-split-layout {
-    width: 100%;
-    min-height: calc(100vh - var(--ps-nav-h));
-}
-.auth-split-layout > div[data-testid="stHorizontalBlock"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] {
     gap: 0 !important;
     align-items: stretch !important;
     min-height: calc(100vh - var(--ps-nav-h));
 }
-.auth-split-layout [data-testid="column"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
     padding: 0 !important;
+    min-height: calc(100vh - var(--ps-nav-h));
 }
-.auth-split-panel--form {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: calc(100vh - var(--ps-nav-h));
-    padding: 2.75rem 1.5rem 2rem;
+    padding: 2.75rem 1.5rem 2rem !important;
     background: #FAFAFA;
     border-right: 1px solid #F1F5F9;
 }
-.auth-screen {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child > div {
     width: 100%;
     max-width: 420px;
-    margin: 0 auto;
-    padding: 0;
+}
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child > div {
+    width: 100%;
+    height: 100%;
+    min-height: calc(100vh - var(--ps-nav-h));
 }
 .auth-screen-header {
     text-align: left;
@@ -564,23 +575,23 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     font-weight: 500;
     color: #94A3B8;
 }
-.auth-screen [data-testid="stForm"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] {
     margin: 0;
     padding: 0;
     border: none;
     background: transparent;
 }
-.auth-screen [data-testid="stForm"] [data-testid="InputInstructions"],
-.auth-screen [data-testid="stForm"] [data-testid="stCaptionContainer"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] [data-testid="InputInstructions"],
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] [data-testid="stCaptionContainer"] {
     display: none;
 }
-.auth-screen [data-testid="stForm"] [data-testid="stTextInput"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] [data-testid="stTextInput"] {
     margin-bottom: 0.9rem;
 }
-.auth-screen [data-testid="stForm"] [data-testid="stTextInput"] > div {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] [data-testid="stTextInput"] > div {
     border-radius: 8px;
 }
-.auth-screen [data-testid="stForm"] input {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] input {
     min-height: 2.875rem !important;
     border: 1px solid #E2E8F0 !important;
     border-radius: 8px !important;
@@ -591,35 +602,34 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     padding-right: 0.875rem !important;
     transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-.auth-screen [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
     padding-right: 2.75rem !important;
 }
-.auth-screen [data-testid="stForm"] input:focus {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] input:focus {
     border-color: transparent !important;
     box-shadow: 0 0 0 2px #2563EB !important;
     outline: none !important;
 }
-.auth-screen [data-testid="stForm"] input::placeholder {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] input::placeholder {
     color: #94A3B8 !important;
 }
-.auth-screen [data-testid="stTextInput"] button[kind="icon"],
-.auth-screen [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
-.auth-screen [data-testid="stTextInput"] [data-baseweb="button"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stTextInput"] button[kind="icon"],
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stTextInput"] [data-baseweb="button"] {
     color: #64748B !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    right: 0.35rem !important;
 }
-.auth-screen [data-testid="stTextInput"] button[kind="icon"]:hover,
-.auth-screen [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stTextInput"] button[kind="icon"]:hover,
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover {
     color: #0F172A !important;
     background: #F1F5F9 !important;
 }
-.auth-screen [data-testid="stForm"] .stButton {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] .stButton {
     margin-top: 0.5rem;
 }
-.auth-screen [data-testid="stForm"] .stButton > button[kind="primary"] {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] .stButton > button[kind="primary"] {
     min-height: 2.875rem;
     border-radius: 8px !important;
     font-size: 0.9375rem !important;
@@ -630,13 +640,12 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06) !important;
     transition: all 0.2s ease !important;
 }
-.auth-screen [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
     background: rgba(30, 58, 138, 0.9) !important;
     box-shadow: 0 4px 14px rgba(30, 58, 138, 0.22) !important;
     transform: translateY(-1px);
 }
-.auth-screen > .stButton > button,
-.auth-screen .stButton:not([data-testid="stForm"] .stButton) > button {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child .stButton:not([data-testid="stForm"] .stButton) > button {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
@@ -647,10 +656,16 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     margin-top: 0.65rem;
     transition: color 0.2s ease !important;
 }
-.auth-screen > .stButton > button:hover,
-.auth-screen .stButton:not([data-testid="stForm"] .stButton) > button:hover {
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child .stButton:not([data-testid="stForm"] .stButton) > button:hover {
     color: #1E40AF !important;
     background: transparent !important;
+}
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stAlert"] {
+    margin: 0 0 1rem;
+    border-radius: 8px;
+}
+.block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] [data-testid="column"]:first-child [data-testid="stExpander"] {
+    margin-bottom: 0.75rem;
 }
 .auth-screen-footer {
     margin-top: 1.5rem;
@@ -663,20 +678,13 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     line-height: 1.6;
     color: #94A3B8;
 }
-.auth-screen-footer a {
-    color: inherit;
-    text-decoration: none;
-}
-.auth-screen [data-testid="stAlert"] {
-    margin: 0 0 1rem;
-    border-radius: 8px;
-}
 .auth-brand-panel {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     min-height: calc(100vh - var(--ps-nav-h));
+    height: 100%;
     padding: 3rem 2.5rem;
     background: #0F172A;
     overflow: hidden;
@@ -788,16 +796,16 @@ section[data-testid="stMain"] > div:has(.auth-split-layout) {
     color: #94A3B8;
 }
 @media (max-width: 767px) {
-    .auth-split-layout [data-testid="column"]:last-child {
+    .block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child {
         display: none !important;
     }
-    .auth-split-panel--form {
+    .block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
         border-right: none;
         min-height: auto;
-        padding: 2rem 1.25rem 2.5rem;
+        padding: 2rem 1.25rem 2.5rem !important;
     }
-    .auth-split-layout,
-    .auth-split-layout > div[data-testid="stHorizontalBlock"] {
+    .block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"],
+    .block-container:has(.auth-split-marker) [data-testid="stHorizontalBlock"] > [data-testid="column"] {
         min-height: auto;
     }
 }

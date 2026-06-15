@@ -165,7 +165,7 @@ def restore_auth_from_browser_cookie() -> bool:
     if not raw_cookie:
         return False
 
-    from ecom_evaluator.auth.session import set_auth_error, set_auth_user
+    from ecom_evaluator.auth.session import set_auth_user
 
     try:
         data = decode_auth_cookie(raw_cookie)
@@ -179,11 +179,9 @@ def restore_auth_from_browser_cookie() -> bool:
         else:
             set_auth_user(restored)
         return True
-    except AnalysisError as exc:
-        set_auth_error(str(exc))
-        return False
-    except (ValueError, json.JSONDecodeError):
-        set_auth_error("Saved sign-in data could not be read. Log in again.")
+    except (AnalysisError, ValueError, json.JSONDecodeError):
+        st.session_state["auth_browser_clear"] = True
+        st.session_state["auth_error"] = None
         return False
 
 
@@ -207,7 +205,7 @@ def handle_auth_restore() -> bool:
     if st.query_params.get("ps_auth_sync") != "1":
         return False
 
-    from ecom_evaluator.auth.session import set_auth_error, set_auth_user
+    from ecom_evaluator.auth.session import set_auth_user
 
     if st.session_state.get("auth_user") is not None:
         _clear_auth_sync_query_params()
@@ -228,8 +226,9 @@ def handle_auth_restore() -> bool:
             )
             _clear_auth_sync_query_params()
             return True
-        except AnalysisError as exc:
-            set_auth_error(str(exc))
+        except AnalysisError:
+            st.session_state["auth_browser_clear"] = True
+            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 
@@ -243,8 +242,9 @@ def handle_auth_restore() -> bool:
             )
             _clear_auth_sync_query_params()
             return True
-        except AnalysisError as exc:
-            set_auth_error(str(exc))
+        except AnalysisError:
+            st.session_state["auth_browser_clear"] = True
+            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 
@@ -256,8 +256,9 @@ def handle_auth_restore() -> bool:
             set_auth_user(user)
             _clear_auth_sync_query_params()
             return True
-        except AnalysisError as exc:
-            set_auth_error(str(exc))
+        except AnalysisError:
+            st.session_state["auth_browser_clear"] = True
+            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 

@@ -209,12 +209,10 @@ def _render_streamlit_authenticator() -> None:
 
 def render_auth_screen() -> None:
     """Premium split-screen auth — form left, brand panel right (desktop)."""
-    st.markdown('<div class="auth-split-layout">', unsafe_allow_html=True)
+    st.markdown('<div class="auth-split-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
     col_form, col_brand = st.columns([1, 1], gap="small")
 
     with col_form:
-        st.markdown('<div class="auth-split-panel auth-split-panel--form">', unsafe_allow_html=True)
-        st.markdown('<div class="auth-screen">', unsafe_allow_html=True)
         _render_auth_header()
         render_auth_error()
 
@@ -230,9 +228,6 @@ def render_auth_screen() -> None:
             go_to_landing()
 
         _render_auth_footer()
-        st.markdown("</div></div>", unsafe_allow_html=True)
 
     with col_brand:
         _render_brand_panel()
-
-    st.markdown("</div>", unsafe_allow_html=True)
