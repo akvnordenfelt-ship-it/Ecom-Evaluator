@@ -5,7 +5,7 @@ from __future__ import annotations
 import streamlit as st
 import streamlit.components.v1 as components
 
-from ecom_evaluator.auth.providers.base import get_auth_settings
+from ecom_evaluator.auth.providers.base import get_auth_settings, resolve_auth_redirect_url
 from ecom_evaluator.auth.session import set_auth_error, set_auth_user
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.ui.subscription import complete_post_auth_navigation
@@ -20,6 +20,7 @@ _OAUTH_QUERY_KEYS = (
     "provider_token",
     "provider_refresh_token",
     "type",
+    "token_hash",
     "error",
     "error_description",
 )
@@ -27,10 +28,7 @@ _OAUTH_QUERY_KEYS = (
 
 def resolve_oauth_redirect_url() -> str:
     """Public URL where Supabase redirects after Google auth (must be allowlisted)."""
-    settings = get_auth_settings()
-    if settings.oauth_redirect_url:
-        return settings.oauth_redirect_url.rstrip("/")
-    return "http://localhost:8501"
+    return resolve_auth_redirect_url()
 
 
 def install_oauth_callback_bridge() -> None:
@@ -50,7 +48,7 @@ def install_oauth_callback_bridge() -> None:
             if (win.location.search.includes("code=")) return;
 
             const params = new URLSearchParams(hash.substring(1));
-            if (!params.get("access_token") && !params.get("error")) return;
+            if (!params.get("access_token") && !params.get("error") && !params.get("token_hash")) return;
 
             const next = win.location.pathname + "?" + params.toString();
             win.location.replace(next);
@@ -82,19 +80,42 @@ def get_google_oauth_url() -> str:
 
 def handle_oauth_callback() -> bool:
     """
-    Complete a Supabase OAuth redirect if query params are present.
+    Complete a Supabase auth redirect if query params are present.
+    Handles Google OAuth, email confirmation links, and magic-link tokens.
     Returns True when the user was authenticated (caller should rerun).
     """
     settings = get_auth_settings()
-    if settings.provider != "supabase" or not settings.google_oauth_enabled:
+    if settings.provider != "supabase":
         return False
 
     error = st.query_params.get("error")
     if error:
         description = st.query_params.get("error_description") or error
-        set_auth_error(f"Google sign-in failed: {description}")
+        set_auth_error(f"Sign-in failed: {description}")
         _clear_oauth_query_params()
         return False
+
+    token_hash = st.query_params.get("token_hash")
+    confirm_type = st.query_params.get("type")
+    if token_hash and confirm_type in ("signup", "email", "magiclink", "recovery"):
+        try:
+            provider = _get_supabase_provider()
+            result = provider.complete_email_confirmation(
+                token_hash=str(token_hash),
+                confirmation_type=str(confirm_type),
+            )
+            set_auth_user(
+                result.user,
+                access_token=result.access_token,
+                refresh_token=result.refresh_token,
+            )
+            _clear_oauth_query_params()
+            complete_post_auth_navigation()
+            return True
+        except AnalysisError as exc:
+            set_auth_error(str(exc))
+            _clear_oauth_query_params()
+            return False
 
     access_token = st.query_params.get("access_token")
     refresh_token = st.query_params.get("refresh_token")

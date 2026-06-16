@@ -144,17 +144,18 @@ def main() -> None:
     init_session_state()
     if restore_auth_from_browser_cookie():
         st.rerun()
-    inject_custom_css(saas_mode=True)
-
-    install_same_window_nav_bridge()
-    install_oauth_callback_bridge()
-    install_auth_sync_bridge()
     if handle_auth_logout_sync():
         st.rerun()
     if handle_auth_restore():
         st.rerun()
     if handle_oauth_callback():
         st.rerun()
+
+    inject_custom_css(saas_mode=True)
+
+    install_same_window_nav_bridge()
+    install_oauth_callback_bridge()
+    install_auth_sync_bridge()
 
     handle_nav_query()
     render_site_navbar()

@@ -53,10 +53,7 @@ def build_browser_auth_payload() -> dict[str, Any] | None:
         "email": user.email,
         "display_name": user.display_name,
     }
-    access_token = st.session_state.get("auth_access_token")
     refresh_token = st.session_state.get("auth_refresh_token")
-    if access_token:
-        payload["access_token"] = str(access_token)
     if refresh_token:
         payload["refresh_token"] = str(refresh_token)
     return payload
@@ -179,9 +176,11 @@ def restore_auth_from_browser_cookie() -> bool:
         else:
             set_auth_user(restored)
         return True
-    except (AnalysisError, ValueError, json.JSONDecodeError):
+    except (ValueError, json.JSONDecodeError):
         st.session_state["auth_browser_clear"] = True
         st.session_state["auth_error"] = None
+        return False
+    except AnalysisError:
         return False
 
 
@@ -332,16 +331,12 @@ def install_auth_sync_bridge() -> None:
             }}
 
             function buildRestoreUrl(stored) {{
-                const params = new URLSearchParams();
+                const params = new URLSearchParams(win.location.search);
                 params.set("ps_auth_sync", "1");
-                if (stored.access_token && stored.refresh_token) {{
-                    params.set("access_token", stored.access_token);
-                    params.set("refresh_token", stored.refresh_token);
-                    return win.location.pathname + "?" + params.toString();
-                }}
+                params.delete("access_token");
+                params.delete("refresh_token");
                 if (stored.refresh_token && stored.provider === "supabase") {{
                     params.set("refresh_token", stored.refresh_token);
-                    params.set("ps_auth_sync", "1");
                     return win.location.pathname + "?" + params.toString();
                 }}
                 if (stored.provider === "dev" && stored.user_id && stored.email) {{
@@ -379,14 +374,12 @@ def install_auth_sync_bridge() -> None:
             const stored = readStored();
             if (stored) {{
                 const restoreUrl = buildRestoreUrl(stored);
-                if (restoreUrl) {{
+                if (restoreUrl && params.get("ps_auth_sync") !== "1") {{
                     win.location.replace(restoreUrl);
                     return;
                 }}
+                return;
             }}
-
-            writeStored(null);
-            writeCookie(null);
         }})();
 
         (function () {{

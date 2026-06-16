@@ -15,12 +15,15 @@ from ecom_evaluator.auth.providers.base import get_auth_settings
 from ecom_evaluator.auth.providers.streamlit_authenticator_provider import StreamlitAuthenticatorProvider
 from ecom_evaluator.auth.session import (
     clear_auth_error,
+    clear_pending_signup,
     login_with_credentials,
     render_auth_error,
+    resend_signup_confirmation,
     set_auth_user,
     sign_up_account,
+    verify_signup_code,
 )
-from ecom_evaluator.exceptions import AnalysisError
+from ecom_evaluator.exceptions import AnalysisError, SignupPendingConfirmation
 from ecom_evaluator.ui.subscription import complete_post_auth_navigation, open_auth_screen
 
 _GOOGLE_ICON_SVG = (
@@ -39,6 +42,8 @@ def _finish_auth() -> None:
 
 
 def _auth_title() -> str:
+    if st.session_state.get("auth_pending_email"):
+        return "Verify your email"
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         return "Create your account"
@@ -46,6 +51,9 @@ def _auth_title() -> str:
 
 
 def _auth_subtitle() -> str:
+    pending = st.session_state.get("auth_pending_email")
+    if pending:
+        return f"Enter the 6-digit code we sent to {pending}."
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         return "Start with a free preview — no credit card required."
@@ -109,6 +117,56 @@ def _render_login_form() -> None:
         except AnalysisError as exc:
             st.error(str(exc))
 
+    if get_auth_settings().provider == "supabase":
+        if st.button("Resend verification code", key="auth_resend_confirmation", use_container_width=True):
+            email_value = str(st.session_state.get("auth_login_email", "")).strip()
+            if not email_value:
+                st.error("Enter your email above first.")
+            else:
+                try:
+                    resend_signup_confirmation(email=email_value)
+                    st.success("Verification code sent. Check your inbox and spam folder.")
+                except AnalysisError as exc:
+                    st.error(str(exc))
+
+
+def _render_verify_email_form() -> None:
+    pending_email = str(st.session_state.get("auth_pending_email", "")).strip()
+    if not pending_email:
+        clear_pending_signup()
+        st.rerun()
+        return
+
+    with st.form("auth_verify_form", clear_on_submit=False):
+        st.markdown('<p class="auth-field-label">Verification code</p>', unsafe_allow_html=True)
+        code = st.text_input(
+            "Verification code",
+            placeholder="123456",
+            key="auth_verify_code",
+            label_visibility="collapsed",
+            max_chars=8,
+        )
+        submitted = st.form_submit_button("Verify and continue", type="primary", use_container_width=True)
+
+    if submitted:
+        clear_auth_error()
+        try:
+            verify_signup_code(email=pending_email, code=code)
+            _finish_auth()
+        except AnalysisError as exc:
+            st.error(str(exc))
+
+    if st.button("Resend code", key="auth_resend_verify_code", use_container_width=True):
+        try:
+            resend_signup_confirmation(email=pending_email)
+            st.success("New verification code sent.")
+        except AnalysisError as exc:
+            st.error(str(exc))
+
+    if st.button("Back to sign in", key="auth_verify_back_login"):
+        clear_pending_signup()
+        open_auth_screen(mode="login", intent=st.session_state.get("auth_intent"))
+
 
 def _render_signup_form() -> None:
     with st.form("auth_signup_form", clear_on_submit=False):
@@ -132,6 +190,9 @@ def _render_signup_form() -> None:
             try:
                 sign_up_account(email=email, password=password, display_name=name or None)
                 _finish_auth()
+            except SignupPendingConfirmation as pending:
+                st.session_state["auth_pending_email"] = pending.email
+                st.rerun()
             except AnalysisError as exc:
                 st.error(str(exc))
 
@@ -165,6 +226,9 @@ def _render_google_sign_in() -> bool:
 
 def _render_supabase_auth() -> None:
     install_oauth_callback_bridge()
+    if st.session_state.get("auth_pending_email"):
+        _render_verify_email_form()
+        return
     if not _render_google_sign_in():
         with st.expander("Google sign-in unavailable"):
             st.caption(f"Redirect URL: `{resolve_oauth_redirect_url()}`")

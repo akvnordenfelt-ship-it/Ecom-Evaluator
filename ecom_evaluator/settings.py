@@ -25,6 +25,11 @@ def _read_key_from_streamlit_secrets() -> str:
             key = (st.secrets.get(name) or "").strip()
             if key:
                 return key
+        gemini_block = st.secrets.get("gemini")
+        if isinstance(gemini_block, dict):
+            nested = (gemini_block.get("api_key") or "").strip()
+            if nested:
+                return nested
     except Exception:
         pass
     return ""

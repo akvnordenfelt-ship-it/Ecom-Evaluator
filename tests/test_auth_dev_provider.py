@@ -11,13 +11,13 @@ def test_dev_sign_up_and_login(tmp_path):
     user = provider.sign_up(
         type("Req", (), {"email": "founder@example.com", "password": "password123", "display_name": "Founder"})()
     )
-    assert user.user_id
-    assert user.email == "founder@example.com"
+    assert user.user.user_id
+    assert user.user.email == "founder@example.com"
 
     logged_in = provider.login(
         type("Creds", (), {"email": "founder@example.com", "password": "password123"})()
     )
-    assert logged_in.user.user_id == user.user_id
+    assert logged_in.user.user_id == user.user.user_id
 
 
 def test_dev_login_rejects_bad_password(tmp_path):

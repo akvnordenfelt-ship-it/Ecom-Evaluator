@@ -47,7 +47,7 @@ class DevAuthProvider:
         self._path.parent.mkdir(parents=True, exist_ok=True)
         self._path.write_text(json.dumps(users, indent=2), encoding="utf-8")
 
-    def sign_up(self, request: SignUpRequest) -> AuthUser:
+    def sign_up(self, request: SignUpRequest) -> AuthLoginResult:
         email = _normalize_email(request.email)
         if not _valid_email(email):
             raise AnalysisError("Enter a valid email address.")
@@ -68,7 +68,9 @@ class DevAuthProvider:
             "password_hash": _hash_password(request.password, salt),
         }
         self._save_users(users)
-        return AuthUser(user_id=user_id, email=email, display_name=users[email]["display_name"])
+        return AuthLoginResult(
+            user=AuthUser(user_id=user_id, email=email, display_name=users[email]["display_name"])
+        )
 
     def login(self, credentials: AuthCredentials) -> AuthLoginResult:
         email = _normalize_email(credentials.email)

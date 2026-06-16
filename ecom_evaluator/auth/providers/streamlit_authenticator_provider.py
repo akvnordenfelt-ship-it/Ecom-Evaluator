@@ -58,7 +58,7 @@ class StreamlitAuthenticatorProvider:
             "Use render_authenticator_widget() from the auth screen."
         )
 
-    def sign_up(self, request: SignUpRequest) -> AuthUser:
+    def sign_up(self, request: SignUpRequest) -> AuthLoginResult:
         raise AnalysisError("Self-serve sign up is not enabled for Streamlit Authenticator.")
 
     def render_login_widget(self) -> AuthUser | None:

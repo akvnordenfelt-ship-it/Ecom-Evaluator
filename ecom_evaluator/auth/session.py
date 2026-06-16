@@ -18,6 +18,7 @@ def init_auth_state() -> None:
         "auth_error": None,
         "auth_access_token": None,
         "auth_refresh_token": None,
+        "auth_pending_email": None,
     }
     for key, value in defaults.items():
         if key not in st.session_state:
@@ -85,8 +86,44 @@ def login_with_credentials(*, email: str, password: str) -> None:
 
 def sign_up_account(*, email: str, password: str, display_name: str | None = None) -> None:
     provider = get_auth_provider()
-    user = provider.sign_up(SignUpRequest(email=email, password=password, display_name=display_name))
-    set_auth_user(user)
+    result = provider.sign_up(SignUpRequest(email=email, password=password, display_name=display_name))
+    set_auth_user(
+        result.user,
+        access_token=result.access_token,
+        refresh_token=result.refresh_token,
+    )
+
+
+def resend_signup_confirmation(*, email: str) -> None:
+    settings = get_auth_settings()
+    if settings.provider != "supabase":
+        raise AnalysisError("Email confirmation is only available with Supabase auth.")
+    provider = get_auth_provider()
+    resend = getattr(provider, "resend_confirmation_email", None)
+    if not callable(resend):
+        raise AnalysisError("Email confirmation is not available.")
+    resend(email=email)
+
+
+def verify_signup_code(*, email: str, code: str) -> None:
+    settings = get_auth_settings()
+    if settings.provider != "supabase":
+        raise AnalysisError("Email verification is only available with Supabase auth.")
+    provider = get_auth_provider()
+    verify = getattr(provider, "verify_email_otp", None)
+    if not callable(verify):
+        raise AnalysisError("Email verification is not available.")
+    result = verify(email=email, token=code)
+    set_auth_user(
+        result.user,
+        access_token=result.access_token,
+        refresh_token=result.refresh_token,
+    )
+    st.session_state["auth_pending_email"] = None
+
+
+def clear_pending_signup() -> None:
+    st.session_state["auth_pending_email"] = None
 
 
 def logout_user() -> None:
@@ -94,6 +131,7 @@ def logout_user() -> None:
     st.session_state["auth_error"] = None
     st.session_state["auth_access_token"] = None
     st.session_state["auth_refresh_token"] = None
+    st.session_state["auth_pending_email"] = None
     st.session_state["auth_browser_clear"] = True
     st.session_state["analysis_result"] = None
     st.session_state["analysis_meta"] = None
