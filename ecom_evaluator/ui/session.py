@@ -15,7 +15,8 @@ from ecom_evaluator.rate_limit import (
     record_analysis,
     remaining_analyses,
 )
-from ecom_evaluator.settings import has_shared_api_key, resolve_api_key, uses_shared_api_key
+from ecom_evaluator.product_links import validate_product_url
+from ecom_evaluator.product_validation import validate_product_name
 from ecom_evaluator.auth.session import init_auth_state
 from ecom_evaluator.ui.subscription import init_subscription_state, show_paywall
 
@@ -99,6 +100,18 @@ def validate_inputs(data: dict) -> list[str]:
         )
     if not data["product_name"].strip():
         errors.append("Enter a product name.")
+    else:
+        product_link, url_error = validate_product_url(data.get("product_url", ""))
+        if url_error:
+            errors.append(url_error)
+        else:
+            name_check = validate_product_name(
+                data["product_name"],
+                product_link=product_link,
+                description=data.get("description", ""),
+            )
+            if not name_check.ok and name_check.message:
+                errors.append(name_check.message)
     if data["purchase_price"] <= 0:
         errors.append("Purchase price must be greater than 0.")
 

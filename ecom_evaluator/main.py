@@ -106,11 +106,13 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
                 tier=tier,
                 used_physical_baseline=resolved.used_physical_baseline,
                 used_sales_price_estimate=resolved.used_sales_price_estimate,
+                product_url=str(data.get("product_url", "")).strip(),
             )
 
         st.session_state["analysis_result"] = result
         st.session_state["analysis_meta"] = {
             "product_name": data["product_name"].strip(),
+            "product_url": str(data.get("product_url", "")).strip(),
             "analyzed_at": datetime.now(timezone.utc).isoformat(),
             "purchase_price": resolved.purchase_price,
             "sales_price": resolved.sales_price,

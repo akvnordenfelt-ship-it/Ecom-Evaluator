@@ -38,6 +38,7 @@ from ecom_evaluator.models import (
     WebIntelligencePayload,
 )
 from ecom_evaluator.plans import PlanTier, get_plan_config
+from ecom_evaluator.product_links import ProductLinkInfo, format_product_link_for_prompt
 from ecom_evaluator.web_search import format_web_research_for_prompt, run_web_market_research
 
 FREE_TIER_JSON = """
@@ -161,6 +162,7 @@ def build_input_context(
     used_physical_baseline: bool = False,
     used_sales_price_estimate: bool = False,
     web_research_text: str = "",
+    product_link: ProductLinkInfo | None = None,
 ) -> str:
     econ = compute_economics_snapshot(
         purchase_price=purchase_price,
@@ -190,9 +192,11 @@ def build_input_context(
         "## Web research\nNot available for this tier — rely on category knowledge only."
     )
     description_block = description.strip() or "No additional description provided."
+    link_block = format_product_link_for_prompt(product_link) if product_link else ""
 
     return f"""## Product
 - Name: {product_name}
+{link_block}
 
 ## Computed economics (use for logistics/margin metrics)
 - Purchase: ${econ.purchase_price:.2f} | Sell: ${econ.sales_price:.2f}
@@ -362,12 +366,18 @@ def run_product_evaluation(
     tier: PlanTier = PlanTier.FREE,
     used_physical_baseline: bool = False,
     used_sales_price_estimate: bool = False,
+    product_url: str = "",
 ) -> ProductEvaluationResponse:
     if not api_key.strip():
         raise AnalysisError("API key is required.")
 
     plan = get_plan_config(tier)
     client = genai.Client(api_key=api_key.strip())
+
+    from ecom_evaluator.product_links import parse_product_url
+
+    product_link = parse_product_url(product_url) if product_url.strip() else None
+
     context = build_input_context(
         product_name=product_name,
         purchase_price=purchase_price,
@@ -380,6 +390,7 @@ def run_product_evaluation(
         has_image=image_bytes is not None,
         used_physical_baseline=used_physical_baseline,
         used_sales_price_estimate=used_sales_price_estimate,
+        product_link=product_link,
     )
 
     with st.spinner("Analyzing product profile and risks…"):
@@ -420,6 +431,7 @@ def run_product_evaluation(
             product_name=product_name,
             description=description,
             max_results=plan.web_search_max_results,
+            product_url=product_url,
         )
         web_text = format_web_research_for_prompt(hits)
         with st.spinner("Scanning live market intelligence…"):

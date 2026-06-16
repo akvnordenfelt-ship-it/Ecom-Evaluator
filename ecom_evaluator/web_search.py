@@ -52,6 +52,7 @@ def run_web_market_research(
     product_name: str,
     description: str,
     max_results: int | None = None,
+    product_url: str = "",
 ) -> list[MarketSearchHit]:
     DDGS = _get_ddgs_client()
     hits: list[MarketSearchHit] = []
@@ -59,6 +60,24 @@ def run_web_market_research(
     desc_hint = " ".join(description.split()[:8])
     search_name = f"{keywords} {desc_hint}".strip() if desc_hint else keywords
     per_query_max = max_results if max_results is not None else WEB_SEARCH_MAX_RESULTS
+
+    from ecom_evaluator.product_links import parse_product_url
+
+    link = parse_product_url(product_url) if product_url.strip() else None
+    if link is not None:
+        hits.append(
+            MarketSearchHit(
+                channel=link.platform,
+                query="user_listing_url",
+                title=link.slug_hint or f"{link.platform} listing",
+                url=link.url,
+                snippet=(
+                    f"User-supplied listing on {link.platform}"
+                    + (f" (ID {link.listing_id})" if link.listing_id else "")
+                    + ". Treat this as the primary sourcing reference."
+                ),
+            )
+        )
 
     for channel, template in MARKET_SEARCH_TEMPLATES:
         query = template.format(name=search_name)

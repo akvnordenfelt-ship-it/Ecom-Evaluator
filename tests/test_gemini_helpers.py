@@ -23,3 +23,24 @@ def test_build_input_context_includes_computed_margin():
     assert "Gross margin:" in text
     assert "Computed economics" in text
     assert "Web research" not in text or "Not available" in text
+
+
+def test_build_input_context_includes_listing_link():
+    from ecom_evaluator.product_links import parse_product_url
+
+    link = parse_product_url("https://www.aliexpress.com/item/1005006123456789.html")
+    text = build_input_context(
+        product_name="USB blender",
+        purchase_price=8.0,
+        sales_price=24.0,
+        weight_kg=0.4,
+        length_cm=10,
+        width_cm=8,
+        height_cm=8,
+        description="",
+        has_image=False,
+        product_link=link,
+    )
+    assert link is not None
+    assert "Supplier / listing link" in text
+    assert link.url in text

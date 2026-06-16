@@ -92,6 +92,8 @@ def render_readiness_panel(data: dict) -> None:
         (bool(data["product_name"].strip()), "Product name entered"),
         (data["purchase_price"] > 0, "Purchase price set"),
     ]
+    if data.get("product_url", "").strip():
+        checks.append((True, "Listing URL added for richer context"))
     if not has_shared_api_key():
         checks.insert(0, (api_ok, "API connected"))
     done = sum(1 for ok, _ in checks if ok)
@@ -165,6 +167,12 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 step=0.01,
                 format="%.2f",
                 key="form_purchase_price",
+            )
+            product_url = st.text_input(
+                "Product listing URL (optional)",
+                placeholder="https://www.aliexpress.com/item/…",
+                key="form_product_url",
+                help="Paste an AliExpress, Amazon, eBay, or similar listing link so the AI can use real product context.",
             )
 
         st.markdown(
@@ -242,6 +250,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             "api_key": api_key,
             "product_name": product_name,
             "purchase_price": purchase_price,
+            "product_url": product_url,
         }
         render_readiness_panel(form_snapshot)
 
@@ -278,6 +287,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
         "api_key": api_key,
         "product_name": product_name,
         "purchase_price": purchase_price,
+        "product_url": product_url,
         "sales_price": sales_price,
         "weight_kg": weight_kg,
         "length_cm": length_cm,
