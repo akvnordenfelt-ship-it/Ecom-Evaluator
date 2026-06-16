@@ -260,6 +260,7 @@ def handle_auth_restore() -> bool:
             return True
         except AnalysisError:
             _clear_auth_sync_query_params()
+            st.session_state["auth_browser_clear"] = True
             return False
 
     if refresh_token and not access_token:
@@ -274,6 +275,7 @@ def handle_auth_restore() -> bool:
             return True
         except AnalysisError:
             _clear_auth_sync_query_params()
+            st.session_state["auth_browser_clear"] = True
             return False
 
     dev_blob = st.query_params.get("ps_dev_user")
@@ -286,59 +288,17 @@ def handle_auth_restore() -> bool:
             return True
         except AnalysisError:
             _clear_auth_sync_query_params()
+            st.session_state["auth_browser_clear"] = True
             return False
 
     _clear_auth_sync_query_params()
+    st.session_state["auth_browser_clear"] = True
     return False
 
 
 def install_auth_early_restore() -> None:
-    """Redirect immediately on cold loads when browser storage still has a session."""
-    settings = get_auth_settings()
-    if not settings.auth_required:
-        return
-    if st.session_state.get("auth_user") is not None:
-        return
-    if st.query_params.get("ps_auth_sync") == "1":
-        return
-
-    st.html(
-        f"""
-        <script>
-        (function () {{
-            const params = new URLSearchParams(window.location.search);
-            if (params.get("ps_auth_sync") === "1" || params.get("ps_logout") === "1") {{
-                return;
-            }}
-            let stored = null;
-            try {{
-                const raw = localStorage.getItem({json.dumps(STORAGE_KEY)});
-                stored = raw ? JSON.parse(raw) : null;
-            }} catch (error) {{
-                return;
-            }}
-            if (!stored || stored.provider !== "supabase") {{
-                return;
-            }}
-            params.set("ps_auth_sync", "1");
-            params.delete("access_token");
-            params.delete("refresh_token");
-            params.delete("ps_dev_user");
-            if (stored.access_token && stored.refresh_token) {{
-                params.set("access_token", stored.access_token);
-                params.set("refresh_token", stored.refresh_token);
-                window.location.replace(window.location.pathname + "?" + params.toString());
-                return;
-            }}
-            if (stored.refresh_token) {{
-                params.set("refresh_token", stored.refresh_token);
-                window.location.replace(window.location.pathname + "?" + params.toString());
-            }}
-        }})();
-        </script>
-        """,
-        unsafe_allow_javascript=True,
-    )
+    """Deprecated — restore is handled by install_auth_sync_bridge with loop guards."""
+    return
 
 
 def install_auth_sync_bridge() -> None:
@@ -407,6 +367,45 @@ def install_auth_sync_bridge() -> None:
                 return JSON.stringify(left) === JSON.stringify(right);
             }}
 
+            function restoreGuardKey() {{
+                return "ps_auth_restore_guard";
+            }}
+
+            function canAttemptClientRestore() {{
+                try {{
+                    const last = parseInt(sessionStorage.getItem(restoreGuardKey()) || "", 10);
+                    if (Number.isNaN(last)) {{
+                        return true;
+                    }}
+                    return (Date.now() - last) > 15000;
+                }} catch (error) {{
+                    return true;
+                }}
+            }}
+
+            function markClientRestoreAttempt() {{
+                try {{
+                    sessionStorage.setItem(restoreGuardKey(), String(Date.now()));
+                }} catch (error) {{
+                    /* ignore */
+                }}
+            }}
+
+            function clearRestoreGuard() {{
+                try {{
+                    sessionStorage.removeItem(restoreGuardKey());
+                }} catch (error) {{
+                    /* ignore */
+                }}
+            }}
+
+            function cleanAuthSyncParams(params) {{
+                params.delete("ps_auth_sync");
+                params.delete("access_token");
+                params.delete("refresh_token");
+                params.delete("ps_dev_user");
+            }}
+
             function buildRestoreUrl(stored) {{
                 const params = new URLSearchParams(window.location.search);
                 params.set("ps_auth_sync", "1");
@@ -440,6 +439,30 @@ def install_auth_sync_bridge() -> None:
             if (params.get("ps_logout") === "1" || clearBrowserAuth) {{
                 writeStored(null);
                 writeCookie(null);
+                clearRestoreGuard();
+                if (clearBrowserAuth) {{
+                    cleanAuthSyncParams(params);
+                    const clean = params.toString();
+                    window.history.replaceState(
+                        {{}},
+                        "",
+                        window.location.pathname + (clean ? "?" + clean : "")
+                    );
+                }}
+                return;
+            }}
+
+            if (params.get("ps_auth_sync") === "1" && !serverAuth) {{
+                writeStored(null);
+                writeCookie(null);
+                markClientRestoreAttempt();
+                cleanAuthSyncParams(params);
+                const clean = params.toString();
+                window.history.replaceState(
+                    {{}},
+                    "",
+                    window.location.pathname + (clean ? "?" + clean : "")
+                );
                 return;
             }}
 
@@ -448,6 +471,7 @@ def install_auth_sync_bridge() -> None:
             }}
 
             if (serverAuth) {{
+                clearRestoreGuard();
                 const stored = readStored();
                 if (!authPayloadsMatch(stored, serverAuth)) {{
                     writeStored(serverAuth);
@@ -460,10 +484,15 @@ def install_auth_sync_bridge() -> None:
 
             const stored = readStored();
             if (stored) {{
-                const restoreUrl = buildRestoreUrl(stored);
-                if (restoreUrl && params.get("ps_auth_sync") !== "1") {{
-                    window.location.replace(restoreUrl);
+                if (!canAttemptClientRestore()) {{
+                    writeStored(null);
+                    writeCookie(null);
                     return;
+                }}
+                const restoreUrl = buildRestoreUrl(stored);
+                if (restoreUrl) {{
+                    markClientRestoreAttempt();
+                    window.location.replace(restoreUrl);
                 }}
                 return;
             }}
