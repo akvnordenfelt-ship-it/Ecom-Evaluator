@@ -39,6 +39,7 @@ from ecom_evaluator.models import (
 )
 from ecom_evaluator.plans import PlanTier, get_plan_config
 from ecom_evaluator.product_links import ProductLinkInfo, format_product_link_for_prompt
+from ecom_evaluator.scoring import format_scoring_guidance_for_prompt
 from ecom_evaluator.web_search import format_web_research_for_prompt, run_web_market_research
 
 FREE_TIER_JSON = """
@@ -55,23 +56,37 @@ Keys exactly:
 "metric_brandability", "metric_brandability_note",
 "red_flag_headline", "red_flag_analysis", "red_flag_1", "red_flag_2", "red_flag_3"
 
-Scoring rules — output ONLY these five sub-scores (0-100 strings):
-1. metric_logistics_margin — Logistics & Margin Profile (lightweight + high markup wins)
-2. metric_market_saturation — Market Saturation (category crowding from your knowledge)
-3. metric_marketing_velocity — Marketing Velocity (TikTok organic viral vs paid ads viability)
-4. metric_brandability — Brandability & Longevity (real brand vs impulse fad)
-5. metric_seasonality — Seasonality Factor (year-round vs holiday-only spikes)
+Scoring rules — output ONLY these five sub-scores (0-100 strings). On EVERY metric, higher = better for the seller:
+1. metric_logistics_margin — unit economics after shipping (lightweight + strong markup = high score; thin/negative contribution = low score)
+2. metric_market_saturation — MARKET OPPORTUNITY score (100 = wide-open niche, 0 = hyper-saturated red ocean). Do NOT score high when the category is crowded.
+3. metric_marketing_velocity — organic viral / paid acquisition viability (easy to demo on TikTok = high; boring commodity = low)
+4. metric_brandability — durable brand vs fad (repeat purchases & defensible positioning = high; generic impulse gadget = low)
+5. metric_seasonality — year-round demand (100 = steady all year, 0 = holiday-only spike)
 
-Metrics must reflect THIS product — do NOT default all scores to 50.
+Calibration — be brutally honest like Shark Tank live on TV:
+- Use the FULL range. Winners can score 85–96. Average products land 40–58. Bad ideas belong at 10–30.
+- FORBIDDEN: putting all five metrics in a tight 60–75 band unless every dimension is truly mediocre.
+- If you write harsh red flags, the metrics MUST reflect that (typically 2+ metrics below 40).
+- Follow the Python "Scoring anchors" section in the user prompt — those override your instincts.
+- Metrics must reflect THIS product — do NOT default to 50 or play it safe in the middle.
 red_flag_* must be brutal and product-specific (returns, compliance, fragility, sizing, etc.).
 """
 
 FREE_SYSTEM = f"""You are an elite Shark Tank investor and 8-figure e-commerce operator.
 Analyze ONLY the user's form inputs and product image — you have NO live web search.
 
-Your job: show the CEILING, not the floor. Free-tier output must feel premium, specific, and actionable.
-Use the computed economics numbers in the prompt for logistics/margin reasoning.
-Do NOT output marketing channel recommendations or ad scripts — those are paid tiers.
+Your default stance is skeptical: most product ideas fail. Score LOW without hesitation when margins,
+saturation, differentiation, or compliance are weak. Score HIGH only when the evidence supports it.
+Never hedge every metric into a "safe" 60–80 range — that is inaccurate and unhelpful.
+
+If the product name is too vague to identify a specific sellable item (for example a single generic word
+like "doodle", "gadget", or "thing" without a listing URL or concrete product type), do NOT invent a
+product or speculate. The application should block such inputs before you see them — if you still receive
+an ambiguous name, set all five metric_* scores to "5", red_flag_headline to "Input too vague to evaluate",
+and explain in red_flag_analysis that a specific product title or supplier URL is required.
+
+Be specific, actionable, and honest — not optimistic by default. Use the computed economics and scoring
+anchors in the user message. Do NOT output marketing channel recommendations or ad scripts — those are paid tiers.
 
 {FREE_TIER_JSON}"""
 
@@ -193,6 +208,7 @@ def build_input_context(
     )
     description_block = description.strip() or "No additional description provided."
     link_block = format_product_link_for_prompt(product_link) if product_link else ""
+    scoring_guidance = format_scoring_guidance_for_prompt(econ)
 
     return f"""## Product
 - Name: {product_name}
@@ -206,6 +222,8 @@ def build_input_context(
 - Contribution after shipping: ${econ.contribution_margin_usd:.2f}
 {baseline_note}
 {price_note}
+
+{scoring_guidance}
 
 ## Dimensions & weight
 - {weight_kg:.3f} kg | {length_cm}×{width_cm}×{height_cm} cm
@@ -398,11 +416,18 @@ def run_product_evaluation(
             client,
             model=plan.gemini_model,
             system_instruction=FREE_SYSTEM,
-            user_parts=build_user_parts(f"{context}\n\nReturn the free-tier JSON now.", image_bytes, image_mime),
+            user_parts=build_user_parts(
+                f"{context}\n\n"
+                "Score like a Shark Tank investor on live TV — decisive highs and lows, not a safe middle cluster.\n"
+                "Return the free-tier JSON now.",
+                image_bytes,
+                image_mime,
+            ),
             model_class=FreeCorePayload,
             normalize_fn=normalize_free_evaluation_payload,
             phase_label="Product evaluation",
             max_output_tokens=plan.core_max_tokens,
+            temperature=0.52,
         )
 
     result = ProductEvaluationResponse.model_validate(free_core.model_dump())

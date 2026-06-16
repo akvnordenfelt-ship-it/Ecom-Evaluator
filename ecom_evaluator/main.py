@@ -18,6 +18,8 @@ from ecom_evaluator.economics import resolve_product_inputs
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.gemini_client import run_product_evaluation
 from ecom_evaluator.plans import get_plan_config
+from ecom_evaluator.product_links import validate_product_url
+from ecom_evaluator.product_validation import product_name_error_message
 from ecom_evaluator.settings import resolve_api_key
 from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.dashboard import render_dashboard
@@ -50,6 +52,17 @@ from ecom_evaluator.ui.theme import inject_custom_css
 
 
 def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
+    product_link, url_error = validate_product_url(str(data.get("product_url", "")))
+    if url_error:
+        raise AnalysisError(url_error)
+    name_error = product_name_error_message(
+        data["product_name"],
+        product_link=product_link,
+        description=str(data.get("description", "")),
+    )
+    if name_error:
+        raise AnalysisError(name_error)
+
     image_bytes: bytes | None = None
     image_mime: str | None = None
     if data["uploaded_file"] is not None:

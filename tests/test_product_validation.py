@@ -9,7 +9,14 @@ def test_rejects_non_product_single_word():
     assert not result.ok
     assert result.message is not None
     assert "potato" in result.message
-    assert "Portable neck fan" in result.message or "product title" in result.message.lower()
+
+
+def test_rejects_doodle():
+    result = validate_product_name("doodle")
+    assert not result.ok
+    assert result.message is not None
+    assert "doodle" in result.message
+    assert "magnetic drawing board" in result.message or "specific" in result.message.lower()
 
 
 def test_rejects_religious_or_random_single_word():
@@ -19,6 +26,7 @@ def test_rejects_religious_or_random_single_word():
 
 def test_accepts_specific_multi_word_product():
     assert validate_product_name("Wireless earbud cleaning kit").ok
+    assert validate_product_name("Magnetic drawing board for kids").ok
 
 
 def test_accepts_vague_name_when_listing_url_provided():
@@ -27,12 +35,16 @@ def test_accepts_vague_name_when_listing_url_provided():
     assert validate_product_name("item", product_link=link).ok
 
 
-def test_accepts_short_name_with_description():
-    assert validate_product_name(
-        "Fan",
-        description="Portable rechargeable neck fan for travel and outdoor sports.",
+def test_description_does_not_bypass_vague_single_word():
+    assert not validate_product_name(
+        "doodle",
+        description="This is a doodle product for kids who like to draw.",
     ).ok
 
 
 def test_rejects_two_generic_modifiers_only():
     assert not validate_product_name("smart wireless").ok
+
+
+def test_rejects_vague_two_word_combo():
+    assert not validate_product_name("cool gadget").ok

@@ -17,6 +17,7 @@ from ecom_evaluator.rate_limit import (
 )
 from ecom_evaluator.product_links import validate_product_url
 from ecom_evaluator.product_validation import validate_product_name
+from ecom_evaluator.settings import has_shared_api_key, resolve_api_key, uses_shared_api_key
 from ecom_evaluator.auth.session import init_auth_state
 from ecom_evaluator.ui.subscription import init_subscription_state, show_paywall
 
