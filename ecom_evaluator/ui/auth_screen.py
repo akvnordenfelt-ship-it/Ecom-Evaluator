@@ -41,43 +41,69 @@ def _finish_auth() -> None:
     st.rerun()
 
 
-def _auth_title() -> str:
+def _auth_mode() -> str:
     if st.session_state.get("auth_pending_email"):
+        return "verify"
+    return st.session_state.get("auth_mode", "login")
+
+
+def _auth_title() -> str:
+    mode = _auth_mode()
+    if mode == "verify":
         return "Verify your email"
-    mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
-        return "Create your account"
-    return "Sign in"
+        return "Create a ProductScore account"
+    return "Sign in to ProductScore"
 
 
-def _auth_subtitle() -> str:
+def _auth_subtitle_html() -> str:
     pending = st.session_state.get("auth_pending_email")
     if pending:
-        return f"Enter the verification code we sent to {pending}."
-    mode = st.session_state.get("auth_mode", "login")
+        safe_email = html.escape(str(pending))
+        return f"Enter the verification code we sent to {safe_email}."
+
+    mode = _auth_mode()
     if mode == "signup":
-        return "Start with a free preview — no credit card required."
-    return "Access your evaluations, scores, and saved reports."
+        return (
+            'Already have an account? '
+            '<a class="auth-inline-link" href="#" data-ps-nav-action="login">Log in</a>'
+        )
+    return (
+        'Don\u2019t have an account? '
+        '<a class="auth-inline-link" href="#" data-ps-nav-action="signup">Create one</a>'
+    )
 
 
 def _google_oauth_button_html(oauth_url: str) -> str:
     safe_url = html.escape(oauth_url, quote=True)
+    label = "Log in with Google"
     return (
+        '<div class="auth-oauth-row">'
         f'<a class="auth-oauth-btn" href="{safe_url}" target="_self">'
         f"{_GOOGLE_ICON_SVG}"
-        "<span>Continue with Google</span>"
+        f"<span>{label}</span>"
         "</a>"
+        "</div>"
+    )
+
+
+def _render_auth_shell_start() -> None:
+    st.markdown('<div class="auth-page-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+    st.markdown('<div class="auth-page-backdrop" aria-hidden="true"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<a class="auth-form-back" href="#" data-ps-nav-action="home" target="_self">&lt; Home</a>',
+        unsafe_allow_html=True,
     )
 
 
 def _render_auth_header() -> None:
     title = html.escape(_auth_title())
-    subtitle = html.escape(_auth_subtitle())
+    subtitle = _auth_subtitle_html()
     st.markdown(
         '<div class="auth-form-header">'
-        '<a class="auth-form-back" href="#" data-ps-nav-action="home" target="_self">← Back to home</a>'
-        '<div class="auth-wordmark"><span class="auth-wordmark__mark" aria-hidden="true">🦈</span>'
-        '<span class="auth-wordmark__name">ProductScore</span></div>'
+        '<div class="auth-brand-mark" aria-hidden="true">'
+        '<span class="auth-brand-mark__glyph">🦈</span>'
+        "</div>"
         f'<h1 class="auth-form-title">{title}</h1>'
         f'<p class="auth-form-lead">{subtitle}</p>'
         "</div>",
@@ -87,8 +113,7 @@ def _render_auth_header() -> None:
 
 def _render_auth_divider() -> None:
     st.markdown(
-        '<div class="auth-form-divider" role="separator">'
-        '<span>or continue with email</span></div>',
+        '<div class="auth-form-divider" role="separator"><span>or</span></div>',
         unsafe_allow_html=True,
     )
 
@@ -96,7 +121,10 @@ def _render_auth_divider() -> None:
 def _render_auth_footer() -> None:
     st.markdown(
         '<div class="auth-form-legal">'
-        "<p>By continuing, you agree to our Terms of Service and Privacy Policy.</p>"
+        "<p>By signing up, you agree to our "
+        '<a class="auth-inline-link" href="#" target="_self">Terms</a>, '
+        '<a class="auth-inline-link" href="#" target="_self">Acceptable Use</a>, and '
+        '<a class="auth-inline-link" href="#" target="_self">Privacy Policy</a>.</p>'
         "</div>",
         unsafe_allow_html=True,
     )
@@ -105,9 +133,19 @@ def _render_auth_footer() -> None:
 def _render_login_form() -> None:
     with st.form("auth_login_form", clear_on_submit=False):
         st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
-        email = st.text_input("Email", placeholder="you@company.com", key="auth_login_email", label_visibility="collapsed")
+        email = st.text_input(
+            "Email",
+            placeholder="you@company.com",
+            key="auth_login_email",
+            label_visibility="collapsed",
+        )
         st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
-        password = st.text_input("Password", type="password", key="auth_login_password", label_visibility="collapsed")
+        password = st.text_input(
+            "Password",
+            type="password",
+            key="auth_login_password",
+            label_visibility="collapsed",
+        )
         submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
@@ -156,57 +194,55 @@ def _render_verify_email_form() -> None:
         except AnalysisError as exc:
             st.error(str(exc))
 
-    if st.button("Resend code", key="auth_resend_verify_code", use_container_width=True):
-        try:
-            resend_signup_confirmation(email=pending_email)
-            st.success("New verification code sent.")
-        except AnalysisError as exc:
-            st.error(str(exc))
-
-    if st.button("Back to sign in", key="auth_verify_back_login"):
-        clear_pending_signup()
-        open_auth_screen(mode="login", intent=st.session_state.get("auth_intent"))
+    col_resend, col_back = st.columns(2)
+    with col_resend:
+        if st.button("Resend code", key="auth_resend_verify_code", use_container_width=True):
+            try:
+                resend_signup_confirmation(email=pending_email)
+                st.success("New verification code sent.")
+            except AnalysisError as exc:
+                st.error(str(exc))
+    with col_back:
+        if st.button("Back to sign in", key="auth_verify_back_login", use_container_width=True):
+            clear_pending_signup()
+            open_auth_screen(mode="login", intent=st.session_state.get("auth_intent"))
 
 
 def _render_signup_form() -> None:
     with st.form("auth_signup_form", clear_on_submit=False):
         st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
-        email = st.text_input("Email", placeholder="you@company.com", key="auth_signup_email", label_visibility="collapsed")
-        st.markdown(
-            '<p class="auth-field-label">Display name <span class="auth-field-optional">(optional)</span></p>',
-            unsafe_allow_html=True,
+        email = st.text_input(
+            "Email",
+            placeholder="you@company.com",
+            key="auth_signup_email",
+            label_visibility="collapsed",
         )
-        name = st.text_input("Display name", placeholder="Alex", key="auth_signup_name", label_visibility="collapsed")
         st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
-        password = st.text_input("Password", type="password", key="auth_signup_password", label_visibility="collapsed")
-        st.markdown('<p class="auth-field-label">Confirm password</p>', unsafe_allow_html=True)
-        confirm = st.text_input("Confirm password", type="password", key="auth_signup_confirm", label_visibility="collapsed")
+        password = st.text_input(
+            "Password",
+            type="password",
+            key="auth_signup_password",
+            label_visibility="collapsed",
+        )
         submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
-        if password != confirm:
-            st.error("Passwords do not match.")
-        else:
-            try:
-                sign_up_account(email=email, password=password, display_name=name or None)
-                _finish_auth()
-            except SignupPendingConfirmation as pending:
-                st.session_state["auth_pending_email"] = pending.email
-                st.rerun()
-            except AnalysisError as exc:
-                st.error(str(exc))
+        try:
+            sign_up_account(email=email, password=password, display_name=None)
+            _finish_auth()
+        except SignupPendingConfirmation as pending:
+            st.session_state["auth_pending_email"] = pending.email
+            st.rerun()
+        except AnalysisError as exc:
+            st.error(str(exc))
 
 
 def _render_email_password_auth() -> None:
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         _render_signup_form()
-        if st.button("Already have an account? Sign in", key="auth_switch_login"):
-            open_auth_screen(mode="login", intent=st.session_state.get("auth_intent"))
     else:
         _render_login_form()
-        if st.button("New here? Create a free account", key="auth_switch_signup"):
-            open_auth_screen(mode="signup", intent=st.session_state.get("auth_intent"))
 
 
 def _render_google_sign_in() -> bool:
@@ -250,9 +286,9 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Centered auth form — login and signup."""
-    st.markdown('<div class="auth-page-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
-    _, center, _ = st.columns([1, 1.05, 1])
+    """Resend-style centered auth — login and signup."""
+    _render_auth_shell_start()
+    _, center, _ = st.columns([1, 1, 1])
     with center:
         _render_auth_header()
         render_auth_error()

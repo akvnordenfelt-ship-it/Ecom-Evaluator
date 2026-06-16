@@ -432,7 +432,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     margin: 1rem auto 2rem;
 }
 
-/* Auth screen — centered login / signup */
+/* Auth screen — Resend-style dark login / signup */
 .auth-page-marker {
     display: none !important;
     height: 0 !important;
@@ -440,60 +440,126 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0 !important;
     overflow: hidden !important;
 }
-.block-container:has(.auth-page-marker) {
-    padding-top: 0.5rem !important;
+.stApp:has(.auth-page-marker) {
+    background: #000000 !important;
+    color: #FFFFFF !important;
+}
+.stApp:has(.auth-page-marker) .site-header,
+.stApp:has(.auth-page-marker) .site-header__spacer {
+    display: none !important;
+}
+.stApp:has(.auth-page-marker) section[data-testid="stMain"] > div {
+    max-width: 100% !important;
+    padding: 0 1.25rem 2rem !important;
+}
+.stApp:has(.auth-page-marker) .block-container {
+    position: relative;
+    z-index: 1;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+    padding: 5.5rem 0 3rem !important;
+}
+.auth-page-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    background: #000000;
+}
+.auth-page-backdrop::before,
+.auth-page-backdrop::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    filter: blur(80px);
+    opacity: 0.55;
+}
+.auth-page-backdrop::before {
+    top: -8rem;
+    right: -6rem;
+    width: min(42vw, 520px);
+    height: min(42vw, 520px);
+    background: radial-gradient(circle at 30% 30%, rgba(180, 180, 180, 0.22) 0%, rgba(80, 80, 80, 0.08) 45%, transparent 70%);
+    transform: rotate(18deg);
+}
+.auth-page-backdrop::after {
+    bottom: -10rem;
+    left: -8rem;
+    width: min(48vw, 560px);
+    height: min(48vw, 560px);
+    background: radial-gradient(circle at 60% 40%, rgba(160, 160, 160, 0.18) 0%, rgba(70, 70, 70, 0.06) 50%, transparent 72%);
+    transform: rotate(-12deg);
 }
 .auth-form-back {
+    position: fixed;
+    top: 1.35rem;
+    left: 1.35rem;
+    z-index: 20;
     display: inline-flex;
     align-items: center;
     gap: 0.25rem;
-    margin-bottom: 1.75rem;
-    font-size: 0.8125rem;
+    font-size: 0.875rem;
     font-weight: 500;
-    color: #64748B;
+    color: #888888 !important;
     text-decoration: none !important;
     transition: color 0.15s ease;
 }
 .auth-form-back:hover {
-    color: #0F172A;
+    color: #FFFFFF !important;
 }
-.auth-wordmark {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.55rem;
-    margin-bottom: 1.35rem;
+.auth-form-header {
+    position: relative;
+    z-index: 1;
+    text-align: center;
+    margin-bottom: 1.75rem;
 }
-.auth-wordmark__mark {
+.auth-brand-mark {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 8px;
-    background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%);
-    font-size: 1rem;
-    line-height: 1;
-    box-shadow: inset 0 0 0 1px rgba(59, 130, 246, 0.12);
+    width: 2.5rem;
+    height: 2.5rem;
+    margin: 0 auto 1.35rem;
+    border-radius: 10px;
+    background: #111111;
+    border: 1px solid #222222;
+    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
 }
-.auth-wordmark__name {
-    font-size: 0.9375rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: #0F172A;
+.auth-brand-mark__glyph {
+    font-size: 1.15rem;
+    line-height: 1;
 }
 .auth-form-title {
-    margin: 0 0 0.5rem;
-    font-size: clamp(1.75rem, 2.4vw, 2rem);
-    font-weight: 700;
-    letter-spacing: -0.04em;
-    line-height: 1.1;
-    color: #0F172A;
+    margin: 0 0 0.65rem;
+    font-size: clamp(1.65rem, 2.2vw, 1.875rem);
+    font-weight: 600;
+    letter-spacing: -0.035em;
+    line-height: 1.15;
+    color: #FFFFFF;
 }
 .auth-form-lead {
-    margin: 0 0 1.75rem;
-    font-size: 0.9375rem;
-    line-height: 1.6;
-    color: #64748B;
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.55;
+    color: #888888;
+}
+.auth-inline-link {
+    color: #FFFFFF !important;
+    font-weight: 500;
+    text-decoration: none !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
+    transition: border-color 0.15s ease, color 0.15s ease;
+}
+.auth-inline-link:hover {
+    color: #FFFFFF !important;
+    border-bottom-color: #FFFFFF;
+}
+.auth-oauth-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 0.15rem;
 }
 .auth-oauth-btn {
     display: flex;
@@ -503,22 +569,20 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     width: 100%;
     min-height: 2.75rem;
     padding: 0.65rem 1rem;
-    border: 1px solid #E2E8F0;
+    border: 1px solid #333333;
     border-radius: 10px;
-    background: #FFFFFF;
-    color: #0F172A;
+    background: #111111;
+    color: #FFFFFF;
     font-size: 0.875rem;
-    font-weight: 600;
+    font-weight: 500;
     letter-spacing: -0.01em;
     text-decoration: none !important;
-    transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+    transition: border-color 0.15s ease, background 0.15s ease;
     box-sizing: border-box;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
 }
 .auth-oauth-btn:hover {
-    border-color: #CBD5E1;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
-    transform: translateY(-1px);
+    border-color: #444444;
+    background: #161616;
     text-decoration: none !important;
 }
 .auth-oauth-icon {
@@ -528,45 +592,54 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 1.25rem 0 1.15rem;
+    margin: 1.15rem 0 1.1rem;
 }
 .auth-form-divider::before,
 .auth-form-divider::after {
     content: "";
     flex: 1;
     height: 1px;
-    background: #E2E8F0;
+    background: #222222;
 }
 .auth-form-divider span {
-    font-size: 0.625rem;
-    font-weight: 600;
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-    color: #94A3B8;
+    font-size: 0.8125rem;
+    font-weight: 400;
+    color: #666666;
     white-space: nowrap;
 }
 .auth-field-label {
-    margin: 0 0 0.4rem;
+    margin: 0 0 0.45rem;
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: #334155;
+    font-weight: 500;
+    color: #888888;
 }
 .auth-field-optional {
-    font-weight: 500;
-    color: #94A3B8;
+    font-weight: 400;
+    color: #666666;
 }
 .auth-form-legal {
-    margin-top: 1.35rem;
-    padding-top: 0.15rem;
+    position: relative;
+    z-index: 1;
+    margin-top: 1.5rem;
     text-align: center;
 }
 .auth-form-legal p {
     margin: 0;
-    font-size: 0.6875rem;
-    line-height: 1.55;
-    color: #94A3B8;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    color: #666666;
+}
+.auth-form-legal .auth-inline-link {
+    color: #888888 !important;
+    border-bottom-color: rgba(136, 136, 136, 0.45);
+}
+.auth-form-legal .auth-inline-link:hover {
+    color: #FFFFFF !important;
+    border-bottom-color: #FFFFFF;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] {
+    position: relative;
+    z-index: 1;
     margin: 0;
     padding: 0;
     border: none;
@@ -577,15 +650,15 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     display: none;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"] {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.95rem;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input {
     min-height: 2.75rem !important;
-    border: 1px solid #E2E8F0 !important;
+    border: 1px solid #333333 !important;
     border-radius: 10px !important;
     font-size: 0.9375rem !important;
-    color: #0F172A !important;
-    background: #FFFFFF !important;
+    color: #FFFFFF !important;
+    background: #111111 !important;
     box-shadow: none !important;
     padding-right: 0.875rem !important;
     transition: box-shadow 0.15s ease, border-color 0.15s ease;
@@ -594,72 +667,99 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding-right: 2.65rem !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input:focus {
-    border-color: #93C5FD !important;
-    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+    border-color: #555555 !important;
+    box-shadow: 0 0 0 1px #555555 !important;
     outline: none !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input::placeholder {
-    color: #94A3B8 !important;
+    color: #555555 !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"],
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] {
-    color: #64748B !important;
+    color: #888888 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
     border-radius: 6px !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton {
-    margin-top: 0.35rem;
+    margin-top: 0.45rem;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"] {
     min-height: 2.75rem;
     border-radius: 10px !important;
     font-size: 0.9375rem !important;
-    font-weight: 600 !important;
-    background: #0F172A !important;
-    border: none !important;
-    box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08) !important;
-    transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease !important;
+    font-weight: 500 !important;
+    color: #CCCCCC !important;
+    background: #222222 !important;
+    border: 1px solid #333333 !important;
+    box-shadow: none !important;
+    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
-    background: #1E293B !important;
-    box-shadow: 0 6px 20px rgba(15, 23, 42, 0.14) !important;
-    transform: translateY(-1px);
+    color: #FFFFFF !important;
+    background: #2A2A2A !important;
+    border-color: #444444 !important;
+    box-shadow: none !important;
+    transform: none;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) {
     display: flex;
     justify-content: center;
-    margin-top: 0.75rem;
+    margin-top: 0.65rem;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button {
     background: transparent !important;
-    border: none !important;
+    border: 1px solid #333333 !important;
     box-shadow: none !important;
-    color: #475569 !important;
+    color: #888888 !important;
     font-size: 0.8125rem !important;
     font-weight: 500 !important;
-    padding: 0.35rem 0.5rem !important;
-    width: auto !important;
-    min-height: auto !important;
+    padding: 0.55rem 0.85rem !important;
+    width: 100% !important;
+    min-height: 2.5rem !important;
+    border-radius: 10px !important;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover {
-    color: #0F172A !important;
-    background: #F8FAFC !important;
+    color: #FFFFFF !important;
+    background: #161616 !important;
+    border-color: #444444 !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stAlert"] {
+    position: relative;
+    z-index: 1;
     margin: 0 0 1rem;
     border-radius: 10px;
+    background: #161616 !important;
+    border: 1px solid #333333 !important;
+    color: #FFFFFF !important;
+}
+.block-container:has(.auth-page-marker) [data-testid="stAlert"] * {
+    color: #FFFFFF !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] {
+    position: relative;
+    z-index: 1;
     margin-bottom: 0.75rem;
+    background: #111111;
+    border: 1px solid #222222;
+    border-radius: 10px;
+}
+.block-container:has(.auth-page-marker) [data-testid="stExpander"] summary,
+.block-container:has(.auth-page-marker) [data-testid="stExpander"] p,
+.block-container:has(.auth-page-marker) [data-testid="stExpander"] code {
+    color: #CCCCCC !important;
 }
 @media (max-width: 640px) {
-    .auth-form-title {
-        font-size: 1.625rem;
+    .stApp:has(.auth-page-marker) .block-container {
+        padding-top: 4.75rem !important;
     }
-    .auth-form-lead {
-        margin-bottom: 1.35rem;
+    .auth-form-back {
+        top: 1rem;
+        left: 1rem;
+    }
+    .auth-form-title {
+        font-size: 1.5rem;
     }
 }
 
