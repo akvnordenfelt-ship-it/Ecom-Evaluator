@@ -39,7 +39,7 @@ def test_login_error_message_email_not_confirmed():
 def test_login_error_message_invalid_credentials():
     exc = Exception("Invalid login credentials")
     exc.code = "invalid_credentials"  # type: ignore[attr-defined]
-    assert "6-digit code" in _login_error_message(exc).lower()
+    assert "verification code" in _login_error_message(exc).lower()
 
 
 def test_signup_error_message_smtp_failure():

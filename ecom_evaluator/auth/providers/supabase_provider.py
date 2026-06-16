@@ -61,7 +61,7 @@ def _login_error_message(exc: Exception) -> str:
     if code == "invalid_credentials" or "invalid login credentials" in message:
         return (
             "Could not sign in. Double-check your email and password — if you haven't verified yet, "
-            "enter the 6-digit code from your signup email, or use Resend verification code below."
+            "enter the verification code from your signup email, or use Resend verification code below."
         )
     return "Incorrect email or password."
 
@@ -82,6 +82,28 @@ def _signup_error_message(exc: Exception) -> str:
             "SMTP Settings and configure custom SMTP (Resend, SendGrid, etc.), then try again."
         )
     return f"Sign up failed: {exc}"
+
+
+def _session_tokens_from_client(client: Any) -> tuple[str | None, str | None]:
+    try:
+        session = client.auth.get_session()
+    except Exception:
+        return None, None
+    return _session_tokens(session)
+
+
+def _login_result_from_response(client: Any, response: Any) -> AuthLoginResult:
+    access_token, refresh_token = _session_tokens(getattr(response, "session", None))
+    if not refresh_token:
+        _, refresh_token = _session_tokens_from_client(client)
+    user = getattr(response, "user", None)
+    if user is None or not getattr(user, "id", None):
+        raise AnalysisError("Authentication succeeded but no user was returned.")
+    return AuthLoginResult(
+        user=user_from_supabase_record(user),
+        access_token=access_token,
+        refresh_token=refresh_token,
+    )
 
 
 class SupabaseAuthProvider:
@@ -194,7 +216,7 @@ class SupabaseAuthProvider:
     def verify_email_otp(self, *, email: str, token: str) -> AuthLoginResult:
         client = self._get_client()
         normalized_email = email.strip().lower()
-        normalized_token = token.strip()
+        normalized_token = "".join(token.strip().split())
         if not normalized_token:
             raise AnalysisError("Enter the verification code from your email.")
 
@@ -216,6 +238,8 @@ class SupabaseAuthProvider:
             user = getattr(response, "user", None)
             if user is None or not getattr(user, "id", None):
                 raise AnalysisError("Verification succeeded but no user was returned. Try signing in.")
+            if not refresh_token:
+                _, refresh_token = _session_tokens_from_client(client)
             return AuthLoginResult(
                 user=user_from_supabase_record(user),
                 access_token=access_token,
@@ -243,6 +267,8 @@ class SupabaseAuthProvider:
             raise AnalysisError(
                 "Email confirmation link is invalid or expired. Request a new verification code."
             )
+        if not refresh_token:
+            _, refresh_token = _session_tokens_from_client(client)
         return AuthLoginResult(
             user=user_from_supabase_record(user),
             access_token=access_token,
@@ -258,12 +284,7 @@ class SupabaseAuthProvider:
         except Exception as exc:
             raise AnalysisError(_login_error_message(exc)) from exc
 
-        access_token, refresh_token = _session_tokens(getattr(response, "session", None))
-        return AuthLoginResult(
-            user=user_from_supabase_record(response.user),
-            access_token=access_token,
-            refresh_token=refresh_token,
-        )
+        return _login_result_from_response(client, response)
 
     def refresh_session(self, *, refresh_token: str) -> AuthLoginResult:
         client = self._get_client()

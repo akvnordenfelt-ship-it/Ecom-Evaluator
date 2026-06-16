@@ -10,6 +10,7 @@ from ecom_evaluator.auth.oauth import handle_oauth_callback, install_oauth_callb
 from ecom_evaluator.auth.persistence import (
     handle_auth_logout_sync,
     handle_auth_restore,
+    install_auth_early_restore,
     install_auth_sync_bridge,
     restore_auth_from_browser_cookie,
 )
@@ -150,6 +151,8 @@ def main() -> None:
         st.rerun()
     if handle_oauth_callback():
         st.rerun()
+
+    install_auth_early_restore()
 
     inject_custom_css(saas_mode=True)
 

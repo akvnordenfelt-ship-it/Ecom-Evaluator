@@ -53,7 +53,7 @@ def _auth_title() -> str:
 def _auth_subtitle() -> str:
     pending = st.session_state.get("auth_pending_email")
     if pending:
-        return f"Enter the 6-digit code we sent to {pending}."
+        return f"Enter the verification code we sent to {pending}."
     mode = st.session_state.get("auth_mode", "login")
     if mode == "signup":
         return "Start with a free preview — no credit card required."
@@ -141,7 +141,7 @@ def _render_verify_email_form() -> None:
         st.markdown('<p class="auth-field-label">Verification code</p>', unsafe_allow_html=True)
         code = st.text_input(
             "Verification code",
-            placeholder="123456",
+            placeholder="12345678",
             key="auth_verify_code",
             label_visibility="collapsed",
             max_chars=8,

@@ -39,6 +39,22 @@ def decode_auth_cookie(value: str) -> dict[str, Any]:
     return data
 
 
+def _decode_cookie_value(raw: str) -> dict[str, Any]:
+    """Decode cookie values written by the browser sync script."""
+    candidates = [raw.strip(), unquote(raw.strip())]
+    seen: set[str] = set()
+    last_error: Exception | None = None
+    for candidate in candidates:
+        if not candidate or candidate in seen:
+            continue
+        seen.add(candidate)
+        try:
+            return decode_auth_cookie(candidate)
+        except (ValueError, json.JSONDecodeError) as exc:
+            last_error = exc
+    raise ValueError("Auth cookie payload could not be decoded.") from last_error
+
+
 def build_browser_auth_payload() -> dict[str, Any] | None:
     """Serialize the current server session for browser storage."""
     user = st.session_state.get("auth_user")
@@ -54,9 +70,28 @@ def build_browser_auth_payload() -> dict[str, Any] | None:
         "display_name": user.display_name,
     }
     refresh_token = st.session_state.get("auth_refresh_token")
+    access_token = st.session_state.get("auth_access_token")
     if refresh_token:
         payload["refresh_token"] = str(refresh_token)
+    if access_token:
+        payload["access_token"] = str(access_token)
     return payload
+
+
+def build_cookie_auth_payload() -> dict[str, Any] | None:
+    """Minimal payload for the HTTP cookie (kept small for browser limits)."""
+    full = build_browser_auth_payload()
+    if full is None:
+        return None
+    cookie_payload: dict[str, Any] = {
+        "v": full["v"],
+        "provider": full["provider"],
+        "user_id": full["user_id"],
+        "email": full["email"],
+    }
+    if full.get("refresh_token"):
+        cookie_payload["refresh_token"] = full["refresh_token"]
+    return cookie_payload
 
 
 def _parse_cookie_header(header: str, name: str) -> str | None:
@@ -165,7 +200,7 @@ def restore_auth_from_browser_cookie() -> bool:
     from ecom_evaluator.auth.session import set_auth_user
 
     try:
-        data = decode_auth_cookie(raw_cookie)
+        data = _decode_cookie_value(raw_cookie)
         restored = _restore_from_payload(data)
         if isinstance(restored, AuthLoginResult):
             set_auth_user(
@@ -226,8 +261,6 @@ def handle_auth_restore() -> bool:
             _clear_auth_sync_query_params()
             return True
         except AnalysisError:
-            st.session_state["auth_browser_clear"] = True
-            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 
@@ -242,8 +275,6 @@ def handle_auth_restore() -> bool:
             _clear_auth_sync_query_params()
             return True
         except AnalysisError:
-            st.session_state["auth_browser_clear"] = True
-            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 
@@ -256,13 +287,64 @@ def handle_auth_restore() -> bool:
             _clear_auth_sync_query_params()
             return True
         except AnalysisError:
-            st.session_state["auth_browser_clear"] = True
-            st.session_state["auth_error"] = None
             _clear_auth_sync_query_params()
             return False
 
     _clear_auth_sync_query_params()
     return False
+
+
+def install_auth_early_restore() -> None:
+    """Redirect immediately on cold loads when browser storage still has a session."""
+    settings = get_auth_settings()
+    if not settings.auth_required:
+        return
+    if st.session_state.get("auth_user") is not None:
+        return
+    if st.query_params.get("ps_auth_sync") == "1":
+        return
+
+    components.html(
+        f"""
+        <script>
+        (function () {{
+            const win = window.parent;
+            const params = new URLSearchParams(win.location.search);
+            if (params.get("ps_auth_sync") === "1" || params.get("ps_logout") === "1") {{
+                return;
+            }}
+            let stored = null;
+            try {{
+                const raw = win.localStorage.getItem({json.dumps(STORAGE_KEY)});
+                stored = raw ? JSON.parse(raw) : null;
+            }} catch (error) {{
+                return;
+            }}
+            if (!stored) {{
+                return;
+            }}
+            params.set("ps_auth_sync", "1");
+            params.delete("access_token");
+            params.delete("refresh_token");
+            params.delete("ps_dev_user");
+            if (stored.provider === "supabase") {{
+                if (stored.access_token && stored.refresh_token) {{
+                    params.set("access_token", stored.access_token);
+                    params.set("refresh_token", stored.refresh_token);
+                    win.location.replace(win.location.pathname + "?" + params.toString());
+                    return;
+                }}
+                if (stored.refresh_token) {{
+                    params.set("refresh_token", stored.refresh_token);
+                    win.location.replace(win.location.pathname + "?" + params.toString());
+                }}
+            }}
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 def install_auth_sync_bridge() -> None:
@@ -272,7 +354,9 @@ def install_auth_sync_bridge() -> None:
         return
 
     payload = build_browser_auth_payload()
+    cookie_payload = build_cookie_auth_payload()
     payload_json = json.dumps(payload)
+    cookie_payload_json = json.dumps(cookie_payload)
     cookie_name = json.dumps(AUTH_COOKIE_NAME)
     clear_browser_auth = bool(st.session_state.pop("auth_browser_clear", False))
 
@@ -285,6 +369,7 @@ def install_auth_sync_bridge() -> None:
             const STORAGE_KEY = {json.dumps(STORAGE_KEY)};
             const COOKIE_NAME = {cookie_name};
             const serverAuth = {payload_json};
+            const serverCookie = {cookie_payload_json};
             const clearBrowserAuth = {json.dumps(clear_browser_auth)};
             const secure = win.location.protocol === "https:";
 
@@ -335,9 +420,17 @@ def install_auth_sync_bridge() -> None:
                 params.set("ps_auth_sync", "1");
                 params.delete("access_token");
                 params.delete("refresh_token");
-                if (stored.refresh_token && stored.provider === "supabase") {{
-                    params.set("refresh_token", stored.refresh_token);
-                    return win.location.pathname + "?" + params.toString();
+                params.delete("ps_dev_user");
+                if (stored.provider === "supabase") {{
+                    if (stored.access_token && stored.refresh_token) {{
+                        params.set("access_token", stored.access_token);
+                        params.set("refresh_token", stored.refresh_token);
+                        return win.location.pathname + "?" + params.toString();
+                    }}
+                    if (stored.refresh_token) {{
+                        params.set("refresh_token", stored.refresh_token);
+                        return win.location.pathname + "?" + params.toString();
+                    }}
                 }}
                 if (stored.provider === "dev" && stored.user_id && stored.email) {{
                     const devUser = JSON.stringify({{
@@ -367,7 +460,9 @@ def install_auth_sync_bridge() -> None:
                 if (!authPayloadsMatch(stored, serverAuth)) {{
                     writeStored(serverAuth);
                 }}
-                writeCookie(serverAuth);
+                if (serverCookie) {{
+                    writeCookie(serverCookie);
+                }}
                 return;
             }}
 
