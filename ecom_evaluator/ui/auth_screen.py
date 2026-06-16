@@ -75,7 +75,7 @@ def _render_auth_header() -> None:
     subtitle = html.escape(_auth_subtitle())
     st.markdown(
         '<div class="auth-form-header">'
-        '<a class="auth-form-back" href="?nav_action=home" target="_self">← Back to home</a>'
+        '<a class="auth-form-back" href="#" data-ps-nav-action="home" target="_self">← Back to home</a>'
         '<div class="auth-wordmark"><span class="auth-wordmark__mark" aria-hidden="true">🦈</span>'
         '<span class="auth-wordmark__name">ProductScore</span></div>'
         f'<h1 class="auth-form-title">{title}</h1>'

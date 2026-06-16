@@ -26,17 +26,39 @@ _CHEVRON_SVG = (
 )
 
 
-def handle_nav_query() -> None:
-    """Apply landing anchors and nav actions from URL query params."""
-    anchor = st.query_params.get("nav_anchor")
-    action = st.query_params.get("nav_action")
-    if not anchor and not action:
-        return
+_NavAction = str | None
+_NavAnchor = str | None
 
+NAV_ACTIONS = ("home", "login", "signup", "tool", "logout")
+NAV_ANCHORS = ("process", "sample", "pricing", "resources")
+
+
+def _nav_action_link(*, action: str, class_name: str, text: str) -> str:
+    """In-app nav link that never triggers a full page reload by itself."""
+    safe_action = html.escape(action, quote=True)
+    return (
+        f'<a class="{class_name}" href="#" data-ps-nav-action="{safe_action}" '
+        f'target="_self">{text}</a>'
+    )
+
+
+def _nav_anchor_link(*, anchor: str, class_name: str, text: str) -> str:
+    safe_anchor = html.escape(anchor, quote=True)
+    return (
+        f'<a class="{class_name}" href="#" data-ps-nav-anchor="{safe_anchor}" '
+        f'target="_self">{text}</a>'
+    )
+
+
+def apply_nav_state(*, action: _NavAction = None, anchor: _NavAnchor = None) -> bool:
+    """Update session view state for in-app navigation without a full page reload."""
     if anchor:
         st.session_state["app_view"] = APP_VIEW_LANDING
         st.session_state["landing_anchor"] = anchor
-    elif action == "home":
+        return True
+    if not action:
+        return False
+    if action == "home":
         st.session_state["app_view"] = APP_VIEW_LANDING
     elif action == "login":
         st.session_state["app_view"] = APP_VIEW_AUTH
@@ -49,6 +71,19 @@ def handle_nav_query() -> None:
     elif action == "logout":
         logout_user()
         st.session_state["app_view"] = APP_VIEW_LANDING
+    else:
+        return False
+    return True
+
+
+def handle_nav_query() -> None:
+    """Apply landing anchors and nav actions from URL query params (cold loads only)."""
+    anchor = st.query_params.get("nav_anchor")
+    action = st.query_params.get("nav_action")
+    if not anchor and not action:
+        return
+
+    apply_nav_state(action=action, anchor=anchor)
 
     try:
         if anchor:
@@ -56,7 +91,7 @@ def handle_nav_query() -> None:
         if action:
             del st.query_params["nav_action"]
     except Exception:
-        st.query_params.clear()
+        pass
     st.rerun()
 
 
@@ -65,45 +100,108 @@ def handle_nav_anchor_query() -> None:
     handle_nav_query()
 
 
-def install_same_window_nav_bridge() -> None:
-    """Strip target=_blank from in-app links so navigation stays in the same tab."""
+def render_hidden_nav_buttons() -> None:
+    """Hidden Streamlit buttons triggered by the in-app nav JavaScript bridge."""
+    for action in NAV_ACTIONS:
+        if st.button(f"__PSNAV_{action}__", key=f"ps_nav_{action}"):
+            if apply_nav_state(action=action):
+                st.rerun()
+    for anchor in NAV_ANCHORS:
+        if st.button(f"__PSNAV_anchor_{anchor}__", key=f"ps_nav_anchor_{anchor}"):
+            if apply_nav_state(anchor=anchor):
+                st.rerun()
+
+
+def install_in_app_nav_bridge() -> None:
+    """
+    Intercept header/landing nav links and click hidden Streamlit buttons.
+
+    Raw ``href="?nav_..."`` links cause a full HTTP reload, which tears down the
+    Streamlit websocket and clears ``st.session_state`` (including auth). Links
+    use ``href="#"`` + ``data-ps-nav-*`` so a failed bridge cannot log users out.
+    """
     components.html(
         """
         <script>
         (function () {
             const win = window.parent;
             const doc = win.document;
-            if (win.__psSameWindowNav) return;
-            win.__psSameWindowNav = true;
+            if (win.__psInAppNavInstalled) return;
+            win.__psInAppNavInstalled = true;
 
-            function normalizeLinks(root) {
-                root.querySelectorAll("a[href]").forEach((link) => {
-                    const href = link.getAttribute("href") || "";
-                    if (href.startsWith("mailto:") || href.startsWith("tel:")) return;
-                    if (
-                        href.startsWith("?") ||
-                        href.startsWith("#") ||
-                        link.target === "_blank"
-                    ) {
-                        link.setAttribute("target", "_self");
-                        if (link.getAttribute("rel") === "noopener noreferrer") {
-                            link.removeAttribute("rel");
-                        }
-                    }
-                });
+            function readNavTarget(link) {
+                const action = link.getAttribute("data-ps-nav-action");
+                const anchor = link.getAttribute("data-ps-nav-anchor");
+                if (action || anchor) {
+                    return { action, anchor };
+                }
+                const href = link.getAttribute("href") || "";
+                if (!href.startsWith("?nav_")) return null;
+                const params = new URLSearchParams(href.substring(1));
+                return {
+                    action: params.get("nav_action"),
+                    anchor: params.get("nav_anchor"),
+                };
             }
 
-            normalizeLinks(doc);
-            new MutationObserver(() => normalizeLinks(doc)).observe(doc.body, {
-                childList: true,
-                subtree: true,
-            });
+            function clickNavKey(keySuffix, attempt) {
+                const tries = attempt || 0;
+                const selector = '[class*="st-key-ps_nav_' + keySuffix + '"]';
+                const host = doc.querySelector(selector);
+                if (!host) {
+                    if (tries < 8) {
+                        win.setTimeout(function () {
+                            clickNavKey(keySuffix, tries + 1);
+                        }, 40);
+                    }
+                    return false;
+                }
+                const button = host.querySelector("button");
+                if (!button) {
+                    if (tries < 8) {
+                        win.setTimeout(function () {
+                            clickNavKey(keySuffix, tries + 1);
+                        }, 40);
+                    }
+                    return false;
+                }
+                button.click();
+                return true;
+            }
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const link = event.target.closest(
+                        'a[data-ps-nav-action], a[data-ps-nav-anchor], a[href^="?nav_"]'
+                    );
+                    if (!link) return;
+
+                    const target = readNavTarget(link);
+                    if (!target) return;
+
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+
+                    if (target.action) {
+                        clickNavKey(target.action, 0);
+                    } else if (target.anchor) {
+                        clickNavKey("anchor_" + target.anchor, 0);
+                    }
+                },
+                true
+            );
         })();
         </script>
         """,
         height=0,
         width=0,
     )
+
+
+def install_same_window_nav_bridge() -> None:
+    """Backward-compatible alias — navigation is handled by install_in_app_nav_bridge."""
+    install_in_app_nav_bridge()
 
 
 def _render_header_html(markup: str) -> None:
@@ -119,19 +217,23 @@ def _mega_menu_html() -> str:
         '<p class="site-header__mega-title">Know before you spend</p>'
         '<p class="site-header__mega-desc">Upload a product and get Sections 1–2 free in about 30 seconds. '
         f"{FREE_EVALUATIONS_PER_ACCOUNT} evaluations included — no credit card.</p>"
-        '<a class="site-header__mega-link" href="?nav_action=signup" target="_self">Start free evaluation →</a>'
-        "</div>"
+        + _nav_action_link(
+            action="signup",
+            class_name="site-header__mega-link",
+            text="Start free evaluation →",
+        )
+        + "</div>"
         '<div class="site-header__mega-grid">'
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Learn</p>'
-        '<a class="site-header__mega-item" href="?nav_anchor=process" target="_self">How it works</a>'
-        '<a class="site-header__mega-item" href="?nav_anchor=sample" target="_self">Sample report</a>'
-        "</div>"
+        + _nav_anchor_link(anchor="process", class_name="site-header__mega-item", text="How it works")
+        + _nav_anchor_link(anchor="sample", class_name="site-header__mega-item", text="Sample report")
+        + "</div>"
         '<div class="site-header__mega-col">'
         '<p class="site-header__mega-heading">Support</p>'
-        '<a class="site-header__mega-item" href="?nav_anchor=pricing" target="_self">Plans &amp; pricing</a>'
-        '<a class="site-header__mega-item" href="?nav_anchor=resources" target="_self">FAQ</a>'
-        "</div>"
+        + _nav_anchor_link(anchor="pricing", class_name="site-header__mega-item", text="Plans &amp; pricing")
+        + _nav_anchor_link(anchor="resources", class_name="site-header__mega-item", text="FAQ")
+        + "</div>"
         "</div>"
         "</div>"
     )
@@ -140,19 +242,20 @@ def _mega_menu_html() -> str:
 def _resources_dropdown_html() -> str:
     return (
         '<div class="site-header__dropdown">'
-        '<a class="site-header__link site-header__dropdown-trigger" href="?nav_anchor=resources" target="_self">'
-        "<span>Resources</span>"
-        f"{_CHEVRON_SVG}"
-        "</a>"
-        f'<div class="site-header__dropdown-panel" role="menu">{_mega_menu_html()}</div>'
+        + _nav_anchor_link(
+            anchor="resources",
+            class_name="site-header__link site-header__dropdown-trigger",
+            text=f"<span>Resources</span>{_CHEVRON_SVG}",
+        )
+        + f'<div class="site-header__dropdown-panel" role="menu">{_mega_menu_html()}</div>'
         "</div>"
     )
 
 
 def _guest_actions_html() -> str:
     return (
-        '<a class="site-header__login" href="?nav_action=login" target="_self">Log in</a>'
-        '<a class="site-header__cta" href="?nav_action=signup" target="_self">Get started</a>'
+        _nav_action_link(action="login", class_name="site-header__login", text="Log in")
+        + _nav_action_link(action="signup", class_name="site-header__cta", text="Get started")
     )
 
 
@@ -161,8 +264,12 @@ def _authenticated_actions_html(*, email: str, status_label: str, status_class: 
         f'<span class="site-header__user">{html.escape(email)}</span>'
         f'<span class="check-row check-row--{status_class} site-header__quota">'
         f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
-        '<a class="site-header__cta site-header__cta--compact" href="?nav_action=tool" target="_self">Run evaluation</a>'
-        '<a class="site-header__text-action" href="?nav_action=logout" target="_self">Log out</a>'
+        + _nav_action_link(
+            action="tool",
+            class_name="site-header__cta site-header__cta--compact",
+            text="Run evaluation",
+        )
+        + _nav_action_link(action="logout", class_name="site-header__text-action", text="Log out")
     )
 
 
@@ -171,14 +278,18 @@ def _build_site_header_html(*, actions_html: str) -> str:
         '<header class="site-header">'
         '<div class="site-header__bar">'
         '<div class="site-header__inner">'
-        '<a class="site-header__brand" href="?nav_action=home" target="_self">'
-        '<span class="site-header__mark" aria-hidden="true">🦈</span>'
-        '<span class="site-header__name">ProductScore</span>'
-        "</a>"
-        '<nav class="site-header__nav" aria-label="Primary">'
-        '<a class="site-header__link" href="?nav_anchor=pricing" target="_self">Pricing</a>'
-        f"{_resources_dropdown_html()}"
-        "</nav>"
+        + _nav_action_link(
+            action="home",
+            class_name="site-header__brand",
+            text=(
+                '<span class="site-header__mark" aria-hidden="true">🦈</span>'
+                '<span class="site-header__name">ProductScore</span>'
+            ),
+        )
+        + '<nav class="site-header__nav" aria-label="Primary">'
+        + _nav_anchor_link(anchor="pricing", class_name="site-header__link", text="Pricing")
+        + f"{_resources_dropdown_html()}"
+        + "</nav>"
         f'<div class="site-header__actions">{actions_html}</div>'
         "</div>"
         "</div>"

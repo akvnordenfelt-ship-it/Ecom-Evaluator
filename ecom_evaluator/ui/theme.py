@@ -2974,6 +2974,15 @@ div[data-testid="stExpander"] details[open] > summary {
 
 SAAS_CHROME_CSS = """
 header[data-testid="stHeader"] { display: none !important; }
+div[class*="st-key-ps_nav_"] {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+}
 """
 
 

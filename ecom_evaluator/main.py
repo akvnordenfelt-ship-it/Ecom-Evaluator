@@ -24,7 +24,12 @@ from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
-from ecom_evaluator.ui.navbar import handle_nav_query, install_same_window_nav_bridge, render_site_navbar
+from ecom_evaluator.ui.navbar import (
+    handle_nav_query,
+    install_in_app_nav_bridge,
+    render_hidden_nav_buttons,
+    render_site_navbar,
+)
 from ecom_evaluator.ui.session import (
     clear_analysis_error,
     friendly_analysis_error,
@@ -152,11 +157,12 @@ def main() -> None:
     if handle_oauth_callback():
         st.rerun()
 
-    install_auth_early_restore()
+    render_hidden_nav_buttons()
 
     inject_custom_css(saas_mode=True)
 
-    install_same_window_nav_bridge()
+    install_in_app_nav_bridge()
+    install_auth_early_restore()
     install_oauth_callback_bridge()
     install_auth_sync_bridge()
 

@@ -8,7 +8,6 @@ from typing import Any
 from urllib.parse import unquote
 
 import streamlit as st
-import streamlit.components.v1 as components
 
 from ecom_evaluator.auth.models import AuthLoginResult, AuthUser
 from ecom_evaluator.auth.providers.base import get_auth_settings
@@ -212,8 +211,7 @@ def restore_auth_from_browser_cookie() -> bool:
             set_auth_user(restored)
         return True
     except (ValueError, json.JSONDecodeError):
-        st.session_state["auth_browser_clear"] = True
-        st.session_state["auth_error"] = None
+        # Ignore unreadable cookies and fall back to localStorage restore instead.
         return False
     except AnalysisError:
         return False
@@ -304,46 +302,42 @@ def install_auth_early_restore() -> None:
     if st.query_params.get("ps_auth_sync") == "1":
         return
 
-    components.html(
+    st.html(
         f"""
         <script>
         (function () {{
-            const win = window.parent;
-            const params = new URLSearchParams(win.location.search);
+            const params = new URLSearchParams(window.location.search);
             if (params.get("ps_auth_sync") === "1" || params.get("ps_logout") === "1") {{
                 return;
             }}
             let stored = null;
             try {{
-                const raw = win.localStorage.getItem({json.dumps(STORAGE_KEY)});
+                const raw = localStorage.getItem({json.dumps(STORAGE_KEY)});
                 stored = raw ? JSON.parse(raw) : null;
             }} catch (error) {{
                 return;
             }}
-            if (!stored) {{
+            if (!stored || stored.provider !== "supabase") {{
                 return;
             }}
             params.set("ps_auth_sync", "1");
             params.delete("access_token");
             params.delete("refresh_token");
             params.delete("ps_dev_user");
-            if (stored.provider === "supabase") {{
-                if (stored.access_token && stored.refresh_token) {{
-                    params.set("access_token", stored.access_token);
-                    params.set("refresh_token", stored.refresh_token);
-                    win.location.replace(win.location.pathname + "?" + params.toString());
-                    return;
-                }}
-                if (stored.refresh_token) {{
-                    params.set("refresh_token", stored.refresh_token);
-                    win.location.replace(win.location.pathname + "?" + params.toString());
-                }}
+            if (stored.access_token && stored.refresh_token) {{
+                params.set("access_token", stored.access_token);
+                params.set("refresh_token", stored.refresh_token);
+                window.location.replace(window.location.pathname + "?" + params.toString());
+                return;
+            }}
+            if (stored.refresh_token) {{
+                params.set("refresh_token", stored.refresh_token);
+                window.location.replace(window.location.pathname + "?" + params.toString());
             }}
         }})();
         </script>
         """,
-        height=0,
-        width=0,
+        unsafe_allow_javascript=True,
     )
 
 
@@ -360,22 +354,20 @@ def install_auth_sync_bridge() -> None:
     cookie_name = json.dumps(AUTH_COOKIE_NAME)
     clear_browser_auth = bool(st.session_state.pop("auth_browser_clear", False))
 
-    components.html(
+    st.html(
         f"""
         <script>
         (function () {{
-            const win = window.parent;
-            const doc = win.document;
             const STORAGE_KEY = {json.dumps(STORAGE_KEY)};
             const COOKIE_NAME = {cookie_name};
             const serverAuth = {payload_json};
             const serverCookie = {cookie_payload_json};
             const clearBrowserAuth = {json.dumps(clear_browser_auth)};
-            const secure = win.location.protocol === "https:";
+            const secure = window.location.protocol === "https:";
 
             function readStored() {{
                 try {{
-                    const raw = win.localStorage.getItem(STORAGE_KEY);
+                    const raw = localStorage.getItem(STORAGE_KEY);
                     return raw ? JSON.parse(raw) : null;
                 }} catch (error) {{
                     return null;
@@ -385,10 +377,10 @@ def install_auth_sync_bridge() -> None:
             function writeStored(data) {{
                 try {{
                     if (!data) {{
-                        win.localStorage.removeItem(STORAGE_KEY);
+                        localStorage.removeItem(STORAGE_KEY);
                         return;
                     }}
-                    win.localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
                 }} catch (error) {{
                     /* localStorage may be unavailable in strict browser modes */
                 }}
@@ -404,11 +396,11 @@ def install_auth_sync_bridge() -> None:
             function writeCookie(data) {{
                 const base = "path=/; SameSite=Lax" + (secure ? "; Secure" : "");
                 if (!data) {{
-                    doc.cookie = COOKIE_NAME + "=; " + base + "; max-age=0";
+                    document.cookie = COOKIE_NAME + "=; " + base + "; max-age=0";
                     return;
                 }}
                 const encoded = toBase64Url(JSON.stringify(data));
-                doc.cookie = COOKIE_NAME + "=" + encodeURIComponent(encoded) + "; " + base + "; max-age=2592000";
+                document.cookie = COOKIE_NAME + "=" + encodeURIComponent(encoded) + "; " + base + "; max-age=2592000";
             }}
 
             function authPayloadsMatch(left, right) {{
@@ -416,7 +408,7 @@ def install_auth_sync_bridge() -> None:
             }}
 
             function buildRestoreUrl(stored) {{
-                const params = new URLSearchParams(win.location.search);
+                const params = new URLSearchParams(window.location.search);
                 params.set("ps_auth_sync", "1");
                 params.delete("access_token");
                 params.delete("refresh_token");
@@ -425,11 +417,11 @@ def install_auth_sync_bridge() -> None:
                     if (stored.access_token && stored.refresh_token) {{
                         params.set("access_token", stored.access_token);
                         params.set("refresh_token", stored.refresh_token);
-                        return win.location.pathname + "?" + params.toString();
+                        return window.location.pathname + "?" + params.toString();
                     }}
                     if (stored.refresh_token) {{
                         params.set("refresh_token", stored.refresh_token);
-                        return win.location.pathname + "?" + params.toString();
+                        return window.location.pathname + "?" + params.toString();
                     }}
                 }}
                 if (stored.provider === "dev" && stored.user_id && stored.email) {{
@@ -439,12 +431,12 @@ def install_auth_sync_bridge() -> None:
                         display_name: stored.display_name || null,
                     }});
                     params.set("ps_dev_user", btoa(unescape(encodeURIComponent(devUser))));
-                    return win.location.pathname + "?" + params.toString();
+                    return window.location.pathname + "?" + params.toString();
                 }}
                 return null;
             }}
 
-            const params = new URLSearchParams(win.location.search);
+            const params = new URLSearchParams(window.location.search);
             if (params.get("ps_logout") === "1" || clearBrowserAuth) {{
                 writeStored(null);
                 writeCookie(null);
@@ -470,7 +462,7 @@ def install_auth_sync_bridge() -> None:
             if (stored) {{
                 const restoreUrl = buildRestoreUrl(stored);
                 if (restoreUrl && params.get("ps_auth_sync") !== "1") {{
-                    win.location.replace(restoreUrl);
+                    window.location.replace(restoreUrl);
                     return;
                 }}
                 return;
@@ -478,36 +470,33 @@ def install_auth_sync_bridge() -> None:
         }})();
 
         (function () {{
-            const win = window.parent;
-            const doc = win.document;
             const STORAGE_KEY = {json.dumps(STORAGE_KEY)};
             const COOKIE_NAME = {cookie_name};
-            if (win.__psAuthSyncInstalled) {{
+            if (window.__psAuthSyncInstalled) {{
                 return;
             }}
-            win.__psAuthSyncInstalled = true;
+            window.__psAuthSyncInstalled = true;
 
-            win.addEventListener("storage", (event) => {{
+            window.addEventListener("storage", (event) => {{
                 if (event.key !== STORAGE_KEY) {{
                     return;
                 }}
 
-                const params = new URLSearchParams(win.location.search);
+                const params = new URLSearchParams(window.location.search);
                 if (params.get("ps_auth_sync") === "1" || params.get("ps_logout") === "1") {{
                     return;
                 }}
 
                 if (!event.newValue) {{
-                    doc.cookie = COOKIE_NAME + "=; path=/; max-age=0; SameSite=Lax";
-                    win.location.replace(win.location.pathname + "?ps_logout=1");
+                    document.cookie = COOKIE_NAME + "=; path=/; max-age=0; SameSite=Lax";
+                    window.location.replace(window.location.pathname + "?ps_logout=1");
                     return;
                 }}
 
-                win.location.reload();
+                window.location.reload();
             }});
         }})();
         </script>
         """,
-        height=0,
-        width=0,
+        unsafe_allow_javascript=True,
     )
