@@ -10,6 +10,12 @@ import streamlit.components.v1 as components
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
+from ecom_evaluator.ui.carousel_assets import carousel_image_data_uri
+from ecom_evaluator.ui.carousel_samples import (
+    install_carousel_sample_bridge,
+    maybe_show_carousel_sample_dialog,
+    render_hidden_carousel_sample_buttons,
+)
 from ecom_evaluator.ui.subscription import request_free_evaluation
 
 SECTION_VISUALS: dict[str, dict[str, str]] = {
@@ -58,7 +64,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "HOME & DECOR",
         "icon": "🕯️",
         "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F97316 100%)",
-        "image": "https://images.unsplash.com/photo-1602928322596-5c4b0a043754?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.9,
         "trend": "↗ +41% Demand this month",
         "profit": "$1,450",
@@ -70,7 +75,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "PET SUPPLIES",
         "icon": "🦮",
         "gradient": "linear-gradient(135deg, #FFE4E6 0%, #FB7185 100%)",
-        "image": "https://images.unsplash.com/photo-1583337130417-3346a1be7dee?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 9.2,
         "trend": "↗ Hot Trend (Peak Summer)",
         "profit": "$1,820",
@@ -82,7 +86,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "ELECTRONICS",
         "icon": "😴",
         "gradient": "linear-gradient(135deg, #E5E7EB 0%, #6B7280 100%)",
-        "image": "https://images.unsplash.com/photo-1541783245831-57aa83588340?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 4.2,
         "trend": "↘ -28% Market Saturation",
         "profit": "-$250",
@@ -96,7 +99,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "SMART KITCHEN",
         "icon": "🥤",
         "gradient": "linear-gradient(135deg, #DCFCE7 0%, #06B6D4 100%)",
-        "image": "https://images.unsplash.com/photo-1622597467836-f32821fde237?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.4,
         "trend": "↗ +14% Demand this month",
         "profit": "$920",
@@ -108,7 +110,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "HEALTH & TECH",
         "icon": "⚖️",
         "gradient": "linear-gradient(135deg, #E0E7FF 0%, #4F46E5 100%)",
-        "image": "https://images.unsplash.com/photo-1610348725531-843dff563e2c?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.7,
         "trend": "↗ +22% Search Volume",
         "profit": "$2,100",
@@ -120,7 +121,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "FITNESS & GEAR",
         "icon": "💪",
         "gradient": "linear-gradient(135deg, #FEE2E2 0%, #EF4444 100%)",
-        "image": "https://images.unsplash.com/photo-1598289431512-b97b0917affc?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 5.1,
         "trend": "→ Brutal Price War",
         "profit": "$80",
@@ -134,7 +134,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "KITCHEN & GADGETS",
         "icon": "🫙",
         "gradient": "linear-gradient(135deg, #FFEDD5 0%, #EA580C 100%)",
-        "image": "https://images.unsplash.com/photo-1584345620449-2873241639a4?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.1,
         "trend": "↗ +18% Search Volume",
         "profit": "$1,100",
@@ -146,7 +145,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "BEAUTY & COSMETICS",
         "icon": "⚠️",
         "gradient": "linear-gradient(135deg, #FEF2F2 0%, #DC2626 100%)",
-        "image": "https://images.unsplash.com/photo-1570172619644-dfd957f4821e?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 3.8,
         "trend": "↘ Legal / Liability Risk",
         "profit": "-$400",
@@ -160,7 +158,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "OFFICE & PRODUCTIVITY",
         "icon": "🧲",
         "gradient": "linear-gradient(135deg, #F5F5F4 0%, #78716C 100%)",
-        "image": "https://images.unsplash.com/photo-1587825140708-287875046127?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 7.9,
         "trend": "↗ Steady Growth",
         "profit": "$750",
@@ -172,7 +169,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "TRAVEL & OUTDOOR",
         "icon": "🏕️",
         "gradient": "linear-gradient(135deg, #D1FAE5 0%, #059669 100%)",
-        "image": "https://images.unsplash.com/photo-1537220297804-118093246436?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.5,
         "trend": "↗ +33% Seasonal Spike",
         "profit": "$1,320",
@@ -184,7 +180,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "BABY SUPPLIES",
         "icon": "👶",
         "gradient": "linear-gradient(135deg, #FCE7F3 0%, #F472B6 100%)",
-        "image": "https://images.unsplash.com/photo-1522771739844-6a9f6d5f14af?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.3,
         "trend": "↗ High Consistent Demand",
         "profit": "$980",
@@ -196,7 +191,6 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
         "category": "HOME SECURITY",
         "icon": "📹",
         "gradient": "linear-gradient(135deg, #DBEAFE 0%, #1D4ED8 100%)",
-        "image": "https://images.unsplash.com/photo-1558002030-135582151667?auto=format&fit=crop&w=640&h=480&q=80",
         "score": 8.8,
         "trend": "↗ +52% Year-over-Year",
         "profit": "$2,450",
@@ -258,9 +252,7 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
     trend = html.escape(str(product["trend"]))
     profit = html.escape(str(product["profit"]))
     margin = html.escape(str(product["margin"]))
-    image_url = html.escape(str(product.get("image", "")))
-    if not image_url:
-        image_url = html.escape(f"https://picsum.photos/seed/{slug_raw}/640/480")
+    image_url = html.escape(carousel_image_data_uri(slug_raw))
     card_class = "lp-carousel-card lp-carousel-card--fail" if is_fail else "lp-carousel-card"
     trend_class = "lp-carousel-trend lp-carousel-trend--fail" if is_fail else "lp-carousel-trend"
     profit_value_class = (
@@ -280,7 +272,7 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
         f'<div class="lp-carousel-media-fallback" aria-hidden="true">'
         f'<span class="lp-carousel-media-icon">{icon}</span>'
         f"</div>"
-        f'<img src="{image_url}" alt="" loading="lazy" draggable="false" '
+        f'<img src="{image_url}" alt="{name}" loading="lazy" draggable="false" '
         f'onerror="this.classList.add(\'is-broken\')" />'
         f"</div>"
         f'<div class="lp-carousel-card-body">'
@@ -300,7 +292,7 @@ def _carousel_product_card(product: dict[str, str | float]) -> str:
         f"{note_html}"
         f"</div>"
         f'<div class="lp-carousel-card-footer">'
-        f'<a class="lp-carousel-demo-link" href="#" data-ps-nav-anchor="sample" target="_self">View Sample Evaluation →</a>'
+        f'<a class="lp-carousel-demo-link" href="#" data-ps-sample-slug="{html.escape(slug_raw)}" target="_self">View Sample Evaluation →</a>'
         f"</div></div></article>"
     )
 
@@ -879,6 +871,8 @@ def render_landing_footnote() -> None:
 
 
 def render_landing_page() -> None:
+    render_hidden_carousel_sample_buttons()
+    install_carousel_sample_bridge()
     render_landing_hero()
     render_landing_product_carousel()
 
@@ -895,3 +889,4 @@ def render_landing_page() -> None:
     _install_scroll_reveal()
     _install_carousel_drag()
     _scroll_to_anchor_if_needed()
+    maybe_show_carousel_sample_dialog()
