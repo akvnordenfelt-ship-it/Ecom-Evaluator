@@ -22,6 +22,7 @@ def test_build_input_context_includes_computed_margin():
     )
     assert "Gross margin:" in text
     assert "Computed economics" in text
+    assert "Scoring anchors" in text
     assert "Web research" not in text or "Not available" in text
 
 

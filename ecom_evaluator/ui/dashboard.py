@@ -62,7 +62,7 @@ def make_overall_gauge(score: int) -> go.Figure:
 def make_metric_bars(result: ProductEvaluationResponse) -> go.Figure:
     labels = [
         "Logistics & Margin",
-        "Market Saturation",
+        "Market Opportunity",
         "Marketing Velocity",
         "Brandability & Longevity",
         "Seasonality",
@@ -180,7 +180,7 @@ def render_section_1(result: ProductEvaluationResponse) -> None:
             )
 
     notes = [
-        ("Market saturation", result.metric_market_saturation_note),
+        ("Market opportunity", result.metric_market_saturation_note),
         ("Marketing velocity", result.metric_marketing_velocity_note),
         ("Logistics & margin", result.metric_logistics_margin_note),
         ("Seasonality", result.metric_seasonality_note),

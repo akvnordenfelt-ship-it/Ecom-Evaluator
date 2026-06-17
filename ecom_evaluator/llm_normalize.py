@@ -88,7 +88,7 @@ def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
         "metric_market_saturation": saturation,
         "metric_market_saturation_note": _ensure_text(
             data.get("metric_market_saturation_note"),
-            "Estimated from category knowledge — unlock Premium for live competitor data.",
+            "Market opportunity estimated from category knowledge — lower scores mean heavier crowding.",
         ),
         "metric_marketing_velocity": velocity,
         "metric_marketing_velocity_note": _ensure_text(
