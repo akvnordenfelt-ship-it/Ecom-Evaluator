@@ -65,14 +65,14 @@ def wordmark_html(*, size: str = "md", with_logo: bool = False) -> str:
 
 
 def header_brand_html() -> str:
-    """Navbar / compact brand lockup with icon + wordmark."""
+    """Navbar brand lockup with icon + wordmark."""
     uri = html.escape(logo_data_uri(), quote=True)
     logo = (
         f'<img class="site-header__mark" src="{uri}" alt="" aria-hidden="true" />'
         if uri
         else ""
     )
-    return logo + wordmark_html(size="sm")
+    return logo + wordmark_html(size="header", with_logo=False)
 
 
 def auth_brand_html() -> str:
