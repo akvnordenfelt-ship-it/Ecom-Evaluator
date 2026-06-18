@@ -25,6 +25,7 @@ from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.branding import brand_page_title, logo_path
 from ecom_evaluator.ui.streamlit_chrome import (
     configure_streamlit_chrome,
+    inject_streamlit_branding_hide_css,
     install_streamlit_branding_hide_bridge,
 )
 from ecom_evaluator.ui.dashboard import render_dashboard
@@ -167,6 +168,8 @@ def main() -> None:
         layout="wide",
         initial_sidebar_state="collapsed",
     )
+    inject_streamlit_branding_hide_css()
+    install_streamlit_branding_hide_bridge()
 
     init_session_state()
     if restore_auth_from_browser_cookie():
@@ -181,7 +184,6 @@ def main() -> None:
     render_hidden_nav_buttons()
 
     inject_custom_css(saas_mode=True)
-    install_streamlit_branding_hide_bridge()
 
     install_in_app_nav_bridge()
     install_oauth_callback_bridge()
