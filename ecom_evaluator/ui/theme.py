@@ -6,6 +6,8 @@ import html
 
 import streamlit as st
 
+from ecom_evaluator.ui.streamlit_chrome import inject_streamlit_branding_hide_css
+
 PREMIUM_THEME_CSS = """
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
@@ -55,13 +57,7 @@ header[data-testid="stHeader"] { background: transparent !important; }
     margin: 0 !important;
 }
 
-/* Hide default Streamlit chrome for SaaS shell */
-#MainMenu { visibility: hidden; }
-footer { visibility: hidden; }
-[data-testid="stToolbar"] { display: none !important; }
-[data-testid="stDecoration"] { display: none !important; }
-.stAppDeployButton, [data-testid="stAppDeployButton"] { display: none !important; }
-button[kind="header"] { display: none !important; }
+/* Hide default Streamlit chrome — see streamlit_chrome.py for full rules */
 
 /* Cards & bordered containers */
 div[data-testid="stVerticalBlockBorderWrapper"] {
@@ -3478,6 +3474,7 @@ def inject_custom_css(*, saas_mode: bool = False) -> None:
     if saas_mode:
         css += SAAS_CHROME_CSS
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
+    inject_streamlit_branding_hide_css()
 
 
 def form_step_header(step: str, icon: str, title: str) -> str:
