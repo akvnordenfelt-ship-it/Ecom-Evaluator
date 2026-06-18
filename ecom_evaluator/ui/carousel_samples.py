@@ -54,7 +54,7 @@ def install_carousel_sample_bridge() -> None:
             doc.addEventListener(
                 "click",
                 function (event) {
-                    const link = event.target.closest("a[data-ps-sample-slug]");
+                    const link = event.target.closest("[data-ps-sample-slug]");
                     if (!link) return;
                     event.preventDefault();
                     event.stopImmediatePropagation();

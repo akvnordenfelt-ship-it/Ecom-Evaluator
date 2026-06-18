@@ -115,35 +115,107 @@ def _scan_card(product: dict[str, str | float | bool]) -> str:
     )
 
 
+_HERO_PREVIEW_SLUG = "usb-blender"
+
+_HERO_METRICS: tuple[tuple[str, str, int, str], ...] = (
+    ("demand", "Market Demand", 92, "blue"),
+    ("profit", "Profitability", 85, "blue"),
+    ("competition", "Competition", 71, "blue"),
+    ("saturation", "Saturation Risk", 38, "amber"),
+    ("supplier", "Supplier Score", 82, "blue"),
+)
+
+_METRIC_ICONS: dict[str, str] = {
+    "demand": (
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M4 19V5M4 19H20M8 15V11M12 15V7M16 15V9" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+        "</svg>"
+    ),
+    "profit": (
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M12 3V21M17 8H9.5a2.5 2.5 0 100 5H14a2.5 2.5 0 010 5H7" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>'
+        "</svg>"
+    ),
+    "competition": (
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M16 11c1.66 0 3-1.34 3-3S17.66 5 16 5s-3 1.34-3 3 1.34 3 3 3zM8 11c1.66 0 3-1.34 3-3S9.66 5 8 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5C15 14.17 10.33 13 8 13zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z" fill="currentColor"/>'
+        "</svg>"
+    ),
+    "saturation": (
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M12 3L3 20h18L12 3zm0 6.5a1 1 0 011 1v4a1 1 0 11-2 0v-4a1 1 0 011-1zm-1 8h2v2h-2v-2z" fill="currentColor"/>'
+        "</svg>"
+    ),
+    "supplier": (
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" stroke="currentColor" stroke-width="2"/>'
+        "</svg>"
+    ),
+}
+
+
+def _eval_metric_row(*, key: str, label: str, score: int, tone: str) -> str:
+    tone_class = "is-warn" if tone == "amber" else ""
+    icon = _METRIC_ICONS[key]
+    safe_label = html.escape(label)
+    return (
+        f'<button type="button" class="cm-eval-metric cm-eval-click" data-ps-sample-slug="{_HERO_PREVIEW_SLUG}">'
+        f'<span class="cm-eval-metric-icon">{icon}</span>'
+        f"<div class=\"cm-eval-metric-body\">"
+        f'<span class="cm-eval-metric-label">{safe_label}</span>'
+        f'<div class="cm-eval-metric-bar"><i class="{tone_class}" data-score="{score}"></i></div>'
+        f"</div>"
+        f'<span class="cm-eval-metric-score">{score}<span>/100</span></span>'
+        f"</button>"
+    )
+
+
 def _hero_card_html() -> str:
-    image_url = html.escape(carousel_image_data_uri(_HERO_SLUG), quote=True)
-    dots = "".join(
-        f'<span class="cm-hero-dot{" is-dim" if i > 8 else ""}"></span>' for i in range(10)
+    image_url = html.escape(carousel_image_data_uri(_HERO_PREVIEW_SLUG), quote=True)
+    slug = html.escape(_HERO_PREVIEW_SLUG, quote=True)
+    metrics = "".join(
+        _eval_metric_row(key=key, label=label, score=score, tone=tone)
+        for key, label, score, tone in _HERO_METRICS
     )
     return (
-        '<div class="cm-hero-card-wrap cm-animate-in cm-animate-in-delay-2">'
-        '<div class="cm-hero-card">'
-        '<div class="cm-hero-card-top">'
-        f'<img class="cm-hero-card-img" src="{image_url}" alt="Pet Travel Harness" loading="lazy" />'
-        '<div class="cm-hero-card-info">'
-        '<span class="cm-hero-card-tag">Trending</span>'
-        '<p class="cm-hero-card-name">Personalized Pet Travel Harness</p>'
-        '<div class="cm-hero-pills">'
-        '<span class="cm-pill">↗ +22% Demand</span>'
-        '<span class="cm-pill">Pet Niche</span>'
-        '<span class="cm-pill">Low Competition</span>'
-        "</div></div></div>"
-        '<div class="cm-hero-verdict-box">'
-        '<div class="cm-hero-verdict-score">86<small>/100</small></div>'
-        '<div class="cm-hero-verdict-label">GO — Strong Opportunity<br><span style="font-weight:500;color:#059669">92% confidence</span></div>'
+        '<div class="cm-eval-wrap cm-animate-in cm-animate-in-delay-2">'
+        f'<article class="cm-eval-card cm-reveal" data-eval-score="89" aria-label="Sample product evaluation">'
+        f'<a class="cm-eval-head cm-eval-click" href="#" data-ps-sample-slug="{slug}" target="_self">'
+        f'<img class="cm-eval-thumb" src="{image_url}" alt="Portable USB-C Rechargeable Blender" loading="lazy" />'
+        '<div class="cm-eval-meta">'
+        '<h3 class="cm-eval-name">Portable USB-C Rechargeable Blender</h3>'
+        '<div class="cm-eval-badges">'
+        '<span class="cm-eval-badge cm-eval-badge--score">8.4 / 10</span>'
+        '<span class="cm-eval-badge cm-eval-badge--trend">↗ +14% Demand this month</span>'
+        "</div></div></a>"
+        '<div class="cm-eval-financials">'
+        '<div class="cm-eval-fin-item">'
+        '<span class="cm-eval-fin-label">Est. Net Profit</span>'
+        '<strong class="cm-eval-fin-value cm-eval-fin-value--green">$920 / mo</strong>'
         "</div>"
-        f'<div class="cm-hero-dots">{dots}</div>'
-        '<div class="cm-hero-stats-row">'
-        '<div class="cm-hero-stat-mini"><label>Est. Profit</label><strong class="is-green">$18.20</strong></div>'
-        '<div class="cm-hero-stat-mini"><label>Margin</label><strong>65%</strong></div>'
-        '<div class="cm-hero-stat-mini"><label>Demand</label><strong class="is-green">+22%</strong></div>'
-        '<div class="cm-hero-stat-mini"><label>Risk</label><strong>Low</strong></div>'
+        '<div class="cm-eval-fin-divider" aria-hidden="true"></div>'
+        '<div class="cm-eval-fin-item">'
+        '<span class="cm-eval-fin-label">Gross Margin</span>'
+        '<strong class="cm-eval-fin-value">58%</strong>'
+        "</div></div>"
+        '<div class="cm-eval-score-panel">'
+        '<p class="cm-eval-score-kicker">Overall score</p>'
+        '<div class="cm-eval-score-row">'
+        '<div class="cm-eval-ring" data-target="89" aria-hidden="true">'
+        '<svg class="cm-eval-ring-svg" viewBox="0 0 120 120">'
+        '<circle class="cm-eval-ring-track" cx="60" cy="60" r="52" />'
+        '<circle class="cm-eval-ring-fill" cx="60" cy="60" r="52" />'
+        "</svg>"
+        '<span class="cm-eval-ring-value">89</span>'
+        "</div>"
+        '<div class="cm-eval-verdict">'
+        '<p class="cm-eval-verdict-title">High Potential</p>'
+        '<p class="cm-eval-verdict-copy">Strong product-market fit with low execution risk.</p>'
+        f'<a class="cm-eval-go cm-eval-click" href="#" data-ps-sample-slug="{slug}" target="_self">GO</a>'
         "</div></div></div>"
+        f'<div class="cm-eval-metrics">{metrics}</div>'
+        f'<a class="cm-eval-footer cm-eval-click" href="#" data-ps-sample-slug="{slug}" target="_self">View Full Report →</a>'
+        "</article></div>"
     )
 
 
@@ -155,6 +227,102 @@ def _report_nav_item(section_num: int, title: str, *, active: bool = False, lock
     if locked:
         classes += " is-locked"
     return f'<div class="{classes}"><span>{icon}</span>{html.escape(title)}</div>'
+
+
+def _install_eval_card_animations() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__cmEvalCardAnim) return;
+            win.__cmEvalCardAnim = true;
+
+            const RING_R = 52;
+            const RING_C = 2 * Math.PI * RING_R;
+
+            function animateCard(card) {
+                if (card.dataset.cmEvalAnimated) return;
+                card.dataset.cmEvalAnimated = "1";
+
+                const ring = card.querySelector(".cm-eval-ring-fill");
+                const target = parseInt(card.getAttribute("data-eval-score") || "89", 10);
+                if (ring) {
+                    const offset = RING_C * (1 - target / 100);
+                    ring.style.strokeDasharray = RING_C.toFixed(2);
+                    ring.style.strokeDashoffset = RING_C.toFixed(2);
+                    requestAnimationFrame(function () {
+                        ring.style.transition = "stroke-dashoffset 1.35s cubic-bezier(0.22, 1, 0.36, 1)";
+                        ring.style.strokeDashoffset = offset.toFixed(2);
+                    });
+                }
+
+                card.querySelectorAll(".cm-eval-metric-bar i").forEach(function (bar, index) {
+                    const score = parseInt(bar.getAttribute("data-score") || "0", 10);
+                    bar.style.width = "0%";
+                    win.setTimeout(function () {
+                        bar.style.width = score + "%";
+                    }, 180 + index * 90);
+                });
+
+                const valueNode = card.querySelector(".cm-eval-ring-value");
+                if (valueNode) {
+                    let current = 0;
+                    const step = Math.max(1, Math.round(target / 40));
+                    const timer = win.setInterval(function () {
+                        current += step;
+                        if (current >= target) {
+                            current = target;
+                            win.clearInterval(timer);
+                        }
+                        valueNode.textContent = String(current);
+                    }, 28);
+                }
+            }
+
+            function bindCard(card) {
+                if (card.dataset.cmEvalBound) return;
+                card.dataset.cmEvalBound = "1";
+                const io = new IntersectionObserver(
+                    function (entries) {
+                        entries.forEach(function (entry) {
+                            if (!entry.isIntersecting) return;
+                            animateCard(entry.target);
+                            io.unobserve(entry.target);
+                        });
+                    },
+                    { threshold: 0.35 }
+                );
+                io.observe(card);
+            }
+
+            function scan() {
+                doc.querySelectorAll(".cm-eval-card").forEach(bindCard);
+            }
+
+            scan();
+            new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const clicker = event.target.closest(".cm-eval-click");
+                    if (!clicker) return;
+                    const card = clicker.closest(".cm-eval-card");
+                    if (card) card.classList.add("is-pressed");
+                    win.setTimeout(function () {
+                        if (card) card.classList.remove("is-pressed");
+                    }, 180);
+                },
+                true
+            );
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
 
 
 def _install_landing_cta_bridge() -> None:
@@ -705,6 +873,7 @@ def render_landing_page() -> None:
     render_landing_footnote()
 
     _install_scroll_reveal()
+    _install_eval_card_animations()
     _install_scan_carousel()
     _scroll_to_anchor_if_needed()
     maybe_show_carousel_sample_dialog()
