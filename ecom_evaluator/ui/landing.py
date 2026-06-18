@@ -105,15 +105,17 @@ _REVIEWS: tuple[tuple[str, str, str], ...] = (
 )
 
 
-_ENGINE_SOURCES: tuple[str, ...] = (
-    "Amazon",
-    "Google Trends",
-    "TikTok Ads",
-    "Facebook Ads",
-    "YouTube Ads",
-    "AliExpress",
-    "Shopify",
+_ENGINE_SOURCES: tuple[tuple[str, str], ...] = (
+    ("Amazon", "https://cdn.simpleicons.org/amazon/FF9900"),
+    ("Google Trends", "https://cdn.simpleicons.org/google/4285F4"),
+    ("TikTok Ads", "https://cdn.simpleicons.org/tiktok/000000"),
+    ("Facebook Ads", "https://cdn.simpleicons.org/facebook/0866FF"),
+    ("YouTube Ads", "https://cdn.simpleicons.org/youtube/FF0000"),
+    ("AliExpress", "https://cdn.simpleicons.org/aliexpress/FF4747"),
+    ("Shopify", "https://cdn.simpleicons.org/shopify/7AB55C"),
 )
+
+_ORBIT_RADIUS_PX = 148
 
 _SIGNAL_LAYERS: tuple[tuple[str, str, str], ...] = (
     ("margin", "Margin stress-testing", "Models fees, shipping, and ad spend before you order inventory."),
@@ -166,22 +168,43 @@ def _platform_signal_html(*, key: str, title: str, body: str) -> str:
     )
 
 
-def _platform_orbit_html(source: str, index: int) -> str:
-    safe = html.escape(source)
-    return f'<span class="cm-platform-orbit cm-platform-orbit--{index + 1}">{safe}</span>'
+def _platform_orbit_html(*, label: str, logo_url: str, angle: float, index: int) -> str:
+    safe_label = html.escape(label)
+    safe_logo = html.escape(logo_url, quote=True)
+    angle_value = f"{angle:.4f}"
+    return (
+        f'<span class="cm-platform-orbit" data-orbit-index="{index}" '
+        f'style="--orbit-angle:{angle_value}deg">'
+        f'<img class="cm-platform-orbit-logo" src="{safe_logo}" alt="" loading="lazy" draggable="false" />'
+        f"<span>{safe_label}</span></span>"
+    )
 
 
 def _platform_hub_html() -> str:
-    orbits = "".join(_platform_orbit_html(source, i) for i, source in enumerate(_ENGINE_SOURCES))
+    count = len(_ENGINE_SOURCES)
+    step = 360.0 / count
+    orbits = "".join(
+        _platform_orbit_html(
+            label=label,
+            logo_url=logo_url,
+            angle=-90.0 + index * step,
+            index=index,
+        )
+        for index, (label, logo_url) in enumerate(_ENGINE_SOURCES)
+    )
     return (
-        '<div class="cm-platform-hub cm-reveal" aria-hidden="true">'
-        '<svg class="cm-platform-hub-lines" viewBox="0 0 420 420">'
+        '<div class="cm-platform-hub cm-reveal" data-cm-hub>'
+        '<div class="cm-platform-hub-stage">'
+        '<svg class="cm-platform-hub-lines" viewBox="0 0 420 420" aria-hidden="true">'
         '<circle cx="210" cy="210" r="118" fill="none" stroke="rgba(43,89,255,0.12)" stroke-width="1.5" stroke-dasharray="6 8"/>'
         '<circle cx="210" cy="210" r="158" fill="none" stroke="rgba(43,89,255,0.08)" stroke-width="1" stroke-dasharray="4 10"/>'
         "</svg>"
-        '<div class="cm-platform-hub-ring"></div>'
+        '<div class="cm-platform-hub-ring cm-platform-hub-ring--outer"></div>'
+        '<div class="cm-platform-hub-ring cm-platform-hub-ring--inner"></div>'
+        f'<div class="cm-platform-orbit-ring" style="--orbit-radius:{_ORBIT_RADIUS_PX}px">{orbits}</div>'
         '<div class="cm-platform-hub-core">Crow<br>Metrics<br>AI</div>'
-        f"{orbits}"
+        "</div>"
+        '<p class="cm-platform-hub-hint">Drag the ring to explore data sources</p>'
         "</div>"
     )
 
@@ -200,19 +223,117 @@ def _platform_step_html(*, num: str, title: str, body: str, timing: str, mock: s
     )
 
 
-def _install_platform_animations() -> None:
+def _install_platform_hub() -> None:
     components.html(
         """
         <script>
         (function () {
             const win = window.parent;
             const doc = win.document;
-            if (win.__cmPlatformAnim) return;
-            win.__cmPlatformAnim = true;
+            const FRICTION = 0.94;
+            const MIN_VELOCITY = 0.004;
 
-            doc.querySelectorAll(".cm-platform-orbit").forEach(function (node, index) {
-                node.style.animationDelay = (0.08 * index) + "s";
-            });
+            function initHub(hub) {
+                if (hub.dataset.cmHubReady) return;
+                const ring = hub.querySelector(".cm-platform-orbit-ring");
+                const outer = hub.querySelector(".cm-platform-hub-ring--outer");
+                if (!ring) return;
+                hub.dataset.cmHubReady = "1";
+
+                let rotation = 0;
+                let velocity = 0;
+                let dragging = false;
+                let lastAngle = 0;
+                let lastTime = 0;
+                let inertiaFrame = null;
+
+                function applyRotation() {
+                    ring.style.transform = "rotate(" + rotation + "deg)";
+                    if (outer) {
+                        outer.style.transform =
+                            "translate(-50%, -50%) rotate(" + (rotation * 0.45) + "deg)";
+                    }
+                }
+
+                function hubAngle(clientX, clientY) {
+                    const rect = hub.getBoundingClientRect();
+                    const cx = rect.left + rect.width * 0.5;
+                    const cy = rect.top + rect.height * 0.5;
+                    return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
+                }
+
+                function stopInertia() {
+                    if (inertiaFrame !== null) {
+                        cancelAnimationFrame(inertiaFrame);
+                        inertiaFrame = null;
+                    }
+                }
+
+                function runInertia() {
+                    stopInertia();
+                    function tick() {
+                        if (Math.abs(velocity) < MIN_VELOCITY) {
+                            inertiaFrame = null;
+                            return;
+                        }
+                        rotation += velocity * 18;
+                        velocity *= FRICTION;
+                        applyRotation();
+                        inertiaFrame = requestAnimationFrame(tick);
+                    }
+                    inertiaFrame = requestAnimationFrame(tick);
+                }
+
+                hub.addEventListener("pointerdown", function (event) {
+                    if (event.button !== 0 && event.pointerType === "mouse") return;
+                    dragging = true;
+                    stopInertia();
+                    velocity = 0;
+                    lastAngle = hubAngle(event.clientX, event.clientY);
+                    lastTime = performance.now();
+                    hub.setPointerCapture(event.pointerId);
+                    hub.classList.add("is-grabbing");
+                });
+
+                hub.addEventListener("pointermove", function (event) {
+                    if (!dragging) return;
+                    const angle = hubAngle(event.clientX, event.clientY);
+                    let delta = angle - lastAngle;
+                    if (delta > 180) delta -= 360;
+                    if (delta < -180) delta += 360;
+                    rotation += delta;
+                    applyRotation();
+                    const now = performance.now();
+                    const dt = now - lastTime;
+                    if (dt > 0) velocity = delta / dt;
+                    lastAngle = angle;
+                    lastTime = now;
+                });
+
+                function endDrag(event) {
+                    if (!dragging) return;
+                    dragging = false;
+                    hub.classList.remove("is-grabbing");
+                    try { hub.releasePointerCapture(event.pointerId); } catch (_) {}
+                    if (Math.abs(velocity) > 0.01) {
+                        runInertia();
+                    }
+                }
+
+                hub.addEventListener("pointerup", endDrag);
+                hub.addEventListener("pointercancel", endDrag);
+                applyRotation();
+            }
+
+            function scan() {
+                doc.querySelectorAll("[data-cm-hub]").forEach(initHub);
+            }
+
+            if (!win.__cmPlatformHub) {
+                win.__cmPlatformHub = { scan };
+                new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
+            }
+            requestAnimationFrame(function () { requestAnimationFrame(scan); });
         })();
         </script>
         """,
@@ -982,6 +1103,7 @@ def render_platform_section() -> None:
         "</div>"
         f'<div class="cm-platform-steps-track">{steps}</div>'
         "</div>"
+        "</div>"
         '<div class="cm-platform-stats cm-reveal">'
         '<div class="cm-platform-stats-brand">'
         '<span class="cm-platform-stats-icon">🛡</span>'
@@ -993,10 +1115,10 @@ def render_platform_section() -> None:
         '<div class="cm-platform-stat"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
         '<div class="cm-platform-stat"><strong>12+</strong><span>Risk categories screened</span></div>'
         "</div></div>"
-        "</div></section>",
+        "</section>",
         unsafe_allow_html=True,
     )
-    _install_platform_animations()
+    _install_platform_hub()
 
 
 def render_report_preview() -> None:

@@ -1164,10 +1164,17 @@ div[class*="st-key-landing_hero_cta"] {
     position: relative;
     width: 100%;
     max-width: 420px;
-    aspect-ratio: 1;
     margin: 0 auto;
-    display: grid;
-    place-items: center;
+    cursor: grab;
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.cm-platform-hub.is-grabbing { cursor: grabbing; }
+.cm-platform-hub-stage {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 1;
 }
 .cm-platform-hub-lines {
     position: absolute;
@@ -1178,21 +1185,39 @@ div[class*="st-key-landing_hero_cta"] {
 }
 .cm-platform-hub-ring {
     position: absolute;
-    width: 72%;
-    height: 72%;
+    top: 50%;
+    left: 50%;
     border-radius: 999px;
     border: 1px solid rgba(43, 89, 255, 0.14);
-    animation: cm-platform-ring-spin 48s linear infinite;
+    pointer-events: none;
+    transform: translate(-50%, -50%);
 }
-@keyframes cm-platform-ring-spin {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
+.cm-platform-hub-ring--outer {
+    width: 72%;
+    height: 72%;
+    transform: translate(-50%, -50%);
+    will-change: transform;
+}
+.cm-platform-hub-ring--inner {
+    width: 56%;
+    height: 56%;
+    border-color: rgba(43, 89, 255, 0.08);
+    border-style: dashed;
+}
+.cm-platform-orbit-ring {
+    position: absolute;
+    inset: 0;
+    transform: rotate(0deg);
+    will-change: transform;
 }
 .cm-platform-hub-core {
-    position: relative;
-    z-index: 2;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    z-index: 4;
     width: 5.5rem;
     height: 5.5rem;
+    margin: -2.75rem 0 0 -2.75rem;
     border-radius: 999px;
     background: linear-gradient(135deg, var(--cm-blue-bright), var(--cm-blue));
     color: #FFFFFF;
@@ -1202,6 +1227,7 @@ div[class*="st-key-landing_hero_cta"] {
     font-weight: 800;
     text-align: center;
     line-height: 1.2;
+    pointer-events: none;
     box-shadow: 0 0 0 14px rgba(0, 82, 255, 0.1), 0 20px 48px rgba(0, 82, 255, 0.28);
     animation: cm-platform-core-pulse 3.5s ease-in-out infinite;
 }
@@ -1211,33 +1237,55 @@ div[class*="st-key-landing_hero_cta"] {
 }
 .cm-platform-orbit {
     position: absolute;
+    top: 50%;
+    left: 50%;
     z-index: 3;
-    padding: 0.4rem 0.75rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 0.42rem 0.72rem 0.42rem 0.52rem;
     border-radius: 999px;
     font-size: 0.68rem;
     font-weight: 600;
     color: #334155;
-    background: rgba(255, 255, 255, 0.95);
+    background: rgba(255, 255, 255, 0.97);
     border: 1px solid #E2E8F0;
-    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.07);
+    box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
     white-space: nowrap;
-    animation: cm-platform-orbit-in 0.65s ease backwards, cm-platform-orbit-float 5s ease-in-out infinite;
+    pointer-events: none;
+    transform:
+        rotate(var(--orbit-angle))
+        translateX(var(--orbit-radius))
+        rotate(calc(-1 * var(--orbit-angle)))
+        translate(-50%, -50%);
+    animation: cm-platform-orbit-in 0.65s ease backwards;
 }
 @keyframes cm-platform-orbit-in {
-    from { opacity: 0; transform: scale(0.85) translateY(8px); }
-    to { opacity: 1; transform: scale(1) translateY(0); }
+    from { opacity: 0; filter: blur(2px); }
+    to { opacity: 1; filter: blur(0); }
 }
-@keyframes cm-platform-orbit-float {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-4px); }
+.cm-platform-orbit:nth-child(1) { animation-delay: 0.05s; }
+.cm-platform-orbit:nth-child(2) { animation-delay: 0.1s; }
+.cm-platform-orbit:nth-child(3) { animation-delay: 0.15s; }
+.cm-platform-orbit:nth-child(4) { animation-delay: 0.2s; }
+.cm-platform-orbit:nth-child(5) { animation-delay: 0.25s; }
+.cm-platform-orbit:nth-child(6) { animation-delay: 0.3s; }
+.cm-platform-orbit:nth-child(7) { animation-delay: 0.35s; }
+.cm-platform-orbit-logo {
+    width: 1rem;
+    height: 1rem;
+    object-fit: contain;
+    flex-shrink: 0;
 }
-.cm-platform-orbit--1 { top: 4%; left: 14%; }
-.cm-platform-orbit--2 { top: 2%; right: 8%; animation-delay: 0.08s, 0.4s; }
-.cm-platform-orbit--3 { top: 34%; left: -2%; animation-delay: 0.16s, 0.8s; }
-.cm-platform-orbit--4 { top: 38%; right: -4%; animation-delay: 0.24s, 1.2s; }
-.cm-platform-orbit--5 { bottom: 28%; left: 6%; animation-delay: 0.32s, 1.6s; }
-.cm-platform-orbit--6 { bottom: 8%; right: 6%; animation-delay: 0.4s, 2s; }
-.cm-platform-orbit--7 { bottom: 34%; left: 24%; animation-delay: 0.48s, 2.4s; }
+.cm-platform-hub-hint {
+    margin: 0.75rem 0 0;
+    text-align: center;
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #94A3B8;
+}
 .cm-platform-divider {
     display: flex;
     align-items: center;
@@ -1263,7 +1311,7 @@ div[class*="st-key-landing_hero_cta"] {
     border: 1px solid #E2E8F0;
     color: #1D4ED8;
 }
-.cm-platform-steps-block { margin-bottom: 2.5rem; }
+.cm-platform-steps-block { margin-bottom: 0; }
 .cm-platform-steps-head {
     text-align: center;
     max-width: 640px;
@@ -1444,18 +1492,18 @@ div[class*="st-key-landing_hero_cta"] {
     color: var(--cm-blue-bright);
 }
 .cm-platform-stats {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 0.5rem;
-    padding: 1.85rem max(1.5rem, calc(50vw - 590px));
-    margin-left: calc(-1 * max(1.5rem, calc(50vw - 590px)));
-    margin-right: calc(-1 * max(1.5rem, calc(50vw - 590px)));
+    margin-top: 3rem;
+    padding: 2rem max(1.5rem, calc(50vw - 590px));
     background: linear-gradient(135deg, #0A1128 0%, #1E293B 55%, #0F172A 100%);
     border-top: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 -12px 40px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 -16px 48px rgba(15, 23, 42, 0.08);
 }
 .cm-platform-stats-brand {
     display: flex;
@@ -1948,5 +1996,8 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
     .cm-catalog-grid { grid-template-columns: repeat(2, 1fr); }
     .cm-platform-stats-grid { grid-template-columns: 1fr; }
     .cm-platform-hub { max-width: 320px; }
+    .cm-platform-orbit-ring { --orbit-radius: 118px !important; }
+    .cm-platform-orbit { font-size: 0.62rem; padding: 0.35rem 0.55rem 0.35rem 0.45rem; }
+    .cm-platform-hub-hint { font-size: 0.66rem; }
 }
 """
