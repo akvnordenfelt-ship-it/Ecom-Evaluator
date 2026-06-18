@@ -509,109 +509,146 @@ def _hero_card_html() -> str:
     )
 
 
-def _report_nav_item(section_num: int, title: str, *, active: bool = False, locked: bool = False) -> str:
-    icon = "🔒" if locked else ("●" if active else "○")
-    classes = "cm-report-nav-item"
-    if active:
-        classes += " is-active"
+_RPT_SVG_LOCK = (
+    '<svg class="cm-rpt-nav-lock" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+    '<rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/>'
+    '<path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+    "</svg>"
+)
+_RPT_SVG_WARN = (
+    '<svg class="cm-rpt-risk-icon cm-rpt-risk-icon--warn" viewBox="0 0 20 20" fill="none" aria-hidden="true">'
+    '<path d="M10 7v4M10 14h.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+    '<path d="M8.6 3.8 2.4 15.1A1.5 1.5 0 003.8 17h12.4a1.5 1.5 0 001.4-1.9L11.4 3.8a1.5 1.5 0 00-2.8 0z" '
+    'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
+    "</svg>"
+)
+_RPT_SVG_OK = (
+    '<svg class="cm-rpt-risk-icon cm-rpt-risk-icon--ok" viewBox="0 0 20 20" fill="none" aria-hidden="true">'
+    '<path d="M5 10.5 8.2 13.7 15 6.8" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>'
+    "</svg>"
+)
+
+_RPT_NAV_LABELS: dict[str, str] = {
+    "product_profile": "Product Profile",
+    "red_flags": "Red Flag",
+    "margin_matrix": "Financial Matrix",
+    "marketing_teaser": "Marketing Viability",
+    "web_intelligence": "Live Web-Intelligence",
+    "competitor_sentiment": "Competitor Sentiment",
+}
+
+_RPT_KPIS: tuple[tuple[str, str, str], ...] = (
+    ("Est. profit", "$15.43/unit", ""),
+    ("Margin", "57%", ""),
+    ("Demand", "+22%", "up"),
+    ("Saturation", "Low", ""),
+    ("Overall risk", "Low", ""),
+)
+
+_RPT_RISKS: tuple[tuple[str, str], ...] = (
+    ("warn", "Seasonal spike in Q2 — plan inventory"),
+    ("warn", "2 competitors undercutting on Amazon"),
+    ("ok", "Strong supplier score on AliExpress"),
+)
+
+_RPT_BAR_HEIGHTS: tuple[int, ...] = (45, 55, 62, 78, 85, 92)
+
+
+def _rpt_nav_item(*, label: str, active: bool, locked: bool) -> str:
     if locked:
-        classes += " is-locked"
-    return f'<div class="{classes}"><span>{icon}</span>{html.escape(title)}</div>'
+        marker = _RPT_SVG_LOCK
+    elif active:
+        marker = '<span class="cm-rpt-nav-dot is-active" aria-hidden="true"></span>'
+    else:
+        marker = '<span class="cm-rpt-nav-dot" aria-hidden="true"></span>'
+    state = " is-active" if active else ""
+    state += " is-locked" if locked else ""
+    return (
+        f'<div class="cm-rpt-nav-item{state}">'
+        f"{marker}<span>{html.escape(label)}</span></div>"
+    )
 
 
-def _install_eval_card_animations() -> None:
-    components.html(
-        """
-        <script>
-        (function () {
-            const win = window.parent;
-            const doc = win.document;
-            if (win.__cmEvalCardAnim) return;
-            win.__cmEvalCardAnim = true;
+def _rpt_kpi_html(*, label: str, value: str, tone: str) -> str:
+    tone_class = f" cm-rpt-metric--{tone}" if tone else ""
+    return (
+        f'<div class="cm-rpt-metric{tone_class}">'
+        f'<span class="cm-rpt-metric-label">{html.escape(label)}</span>'
+        f"<strong>{html.escape(value)}</strong></div>"
+    )
 
-            const RING_R = 52;
-            const RING_C = 2 * Math.PI * RING_R;
 
-            function animateCard(card) {
-                if (card.dataset.cmEvalAnimated) return;
-                card.dataset.cmEvalAnimated = "1";
+def render_report_preview() -> None:
+    image_url = html.escape(carousel_image_data_uri(_HERO_SLUG), quote=True)
+    slug = html.escape(_HERO_SLUG, quote=True)
+    nav = "".join(
+        _rpt_nav_item(
+            label=_RPT_NAV_LABELS.get(section.id, section.title),
+            active=section.number == 1,
+            locked=section.number > 2,
+        )
+        for section in REPORT_SECTIONS
+    )
+    metrics = "".join(
+        _rpt_kpi_html(label=label, value=value, tone=tone) for label, value, tone in _RPT_KPIS
+    )
+    bars = "".join(
+        f'<span class="cm-rpt-bar" style="--bar-h:{height}%"></span>' for height in _RPT_BAR_HEIGHTS
+    )
+    risks = "".join(
+        f'<li class="cm-rpt-risk cm-rpt-risk--{kind}">'
+        f"{_RPT_SVG_WARN if kind == 'warn' else _RPT_SVG_OK}"
+        f"<span>{html.escape(text)}</span></li>"
+        for kind, text in _RPT_RISKS
+    )
 
-                const ring = card.querySelector(".cm-eval-ring-fill");
-                const target = parseInt(card.getAttribute("data-eval-score") || "89", 10);
-                if (ring) {
-                    const offset = RING_C * (1 - target / 100);
-                    ring.style.strokeDasharray = RING_C.toFixed(2);
-                    ring.style.strokeDashoffset = RING_C.toFixed(2);
-                    requestAnimationFrame(function () {
-                        ring.style.transition = "stroke-dashoffset 1.35s cubic-bezier(0.22, 1, 0.36, 1)";
-                        ring.style.strokeDashoffset = offset.toFixed(2);
-                    });
-                }
-
-                card.querySelectorAll(".cm-eval-metric-bar i").forEach(function (bar, index) {
-                    const score = parseInt(bar.getAttribute("data-score") || "0", 10);
-                    bar.style.width = "0%";
-                    win.setTimeout(function () {
-                        bar.style.width = score + "%";
-                    }, 180 + index * 90);
-                });
-
-                const valueNode = card.querySelector(".cm-eval-ring-value");
-                if (valueNode) {
-                    let current = 0;
-                    const step = Math.max(1, Math.round(target / 40));
-                    const timer = win.setInterval(function () {
-                        current += step;
-                        if (current >= target) {
-                            current = target;
-                            win.clearInterval(timer);
-                        }
-                        valueNode.textContent = String(current);
-                    }, 28);
-                }
-            }
-
-            function bindCard(card) {
-                if (card.dataset.cmEvalBound) return;
-                card.dataset.cmEvalBound = "1";
-                const io = new IntersectionObserver(
-                    function (entries) {
-                        entries.forEach(function (entry) {
-                            if (!entry.isIntersecting) return;
-                            animateCard(entry.target);
-                            io.unobserve(entry.target);
-                        });
-                    },
-                    { threshold: 0.35 }
-                );
-                io.observe(card);
-            }
-
-            function scan() {
-                doc.querySelectorAll(".cm-eval-card").forEach(bindCard);
-            }
-
-            scan();
-            new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
-
-            doc.addEventListener(
-                "click",
-                function (event) {
-                    const clicker = event.target.closest(".cm-eval-click");
-                    if (!clicker) return;
-                    const card = clicker.closest(".cm-eval-card");
-                    if (card) card.classList.add("is-pressed");
-                    win.setTimeout(function () {
-                        if (card) card.classList.remove("is-pressed");
-                    }, 180);
-                },
-                true
-            );
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
+    st.markdown(
+        '<section class="cm-rpt" id="section-sample">'
+        '<div class="cm-rpt-inner">'
+        '<header class="cm-rpt-head cm-reveal">'
+        '<span class="cm-rpt-badge">Report preview</span>'
+        '<h2 class="cm-rpt-title">Here\'s a preview of your<br><span>full report</span></h2>'
+        '<p class="cm-rpt-lead">Sections 1–2 ship free on every evaluation. Premium unlocks the '
+        "complete six-section investigation — financial verdict, marketing blueprint, live intel, and more.</p>"
+        "</header>"
+        '<div class="cm-rpt-device cm-reveal">'
+        '<div class="cm-rpt-window">'
+        '<div class="cm-rpt-toolbar" aria-hidden="true">'
+        '<span class="cm-rpt-dot cm-rpt-dot--red"></span>'
+        '<span class="cm-rpt-dot cm-rpt-dot--yellow"></span>'
+        '<span class="cm-rpt-dot cm-rpt-dot--green"></span>'
+        '<span class="cm-rpt-toolbar-title">Sample evaluation</span>'
+        "</div>"
+        f'<div class="cm-rpt-layout"><nav class="cm-rpt-nav">{nav}</nav>'
+        '<div class="cm-rpt-main">'
+        '<div class="cm-rpt-product">'
+        f'<img class="cm-rpt-product-img" src="{image_url}" alt="Personalized Pet Travel Harness" loading="lazy" />'
+        "<div>"
+        '<h3 class="cm-rpt-product-name">Personalized Pet Travel Harness</h3>'
+        '<p class="cm-rpt-product-meta">Pet Supplies · Travel niche · Low competition</p>'
+        "</div></div>"
+        '<div class="cm-rpt-verdict">'
+        '<div class="cm-rpt-verdict-main">'
+        '<p class="cm-rpt-verdict-score">86<span>/100</span></p>'
+        '<p class="cm-rpt-verdict-label">GO — Strong Opportunity</p>'
+        "</div>"
+        '<span class="cm-rpt-verdict-confidence">92% confidence</span>'
+        "</div>"
+        f'<div class="cm-rpt-metrics">{metrics}</div>'
+        '<div class="cm-rpt-panels">'
+        '<div class="cm-rpt-panel">'
+        '<p class="cm-rpt-panel-title">Demand over time</p>'
+        f'<div class="cm-rpt-bars">{bars}</div>'
+        "</div>"
+        '<div class="cm-rpt-panel">'
+        '<p class="cm-rpt-panel-title">Top risk factors</p>'
+        f'<ul class="cm-rpt-risks">{risks}</ul>'
+        "</div></div></div></div>"
+        '<div class="cm-rpt-footer">'
+        f'<a class="cm-rpt-sample-link" href="#" data-ps-sample-slug="{slug}" target="_self">'
+        "View full report sample</a>"
+        "</div></div></div></div></section>",
+        unsafe_allow_html=True,
     )
 
 
@@ -1115,70 +1152,6 @@ def render_site_stats_bar() -> None:
     )
 
 
-def render_report_preview() -> None:
-    image_url = html.escape(carousel_image_data_uri(_HERO_SLUG), quote=True)
-    nav = "".join(
-        _report_nav_item(
-            s.number,
-            s.title.split("&")[0].strip() if "&" in s.title else s.title,
-            active=s.number == 1,
-            locked=s.number > 2,
-        )
-        for s in REPORT_SECTIONS
-    )
-    st.markdown(
-        '<section class="cm-section" id="section-sample">'
-        '<div class="cm-page">'
-        '<div class="cm-section-head cm-reveal">'
-        '<span class="cm-kicker">Report preview</span>'
-        '<h2 class="cm-title">Here\'s a preview of your <span class="cm-accent">full report</span></h2>'
-        f'<p class="cm-lead">Sections 1–2 are free on every evaluation. Upgrade to Premium for the complete 6-section investigation.</p>'
-        "</div>"
-        '<div class="cm-report-shell cm-reveal">'
-        '<div class="cm-report-layout">'
-        f'<nav class="cm-report-nav">{nav}</nav>'
-        '<div class="cm-report-main">'
-        '<div class="cm-report-header">'
-        f'<img class="cm-report-product-img" src="{image_url}" alt="Pet Travel Harness" />'
-        "<div>"
-        '<p style="margin:0;font-weight:700;color:#0A1128">Personalized Pet Travel Harness</p>'
-        '<p style="margin:0.25rem 0 0;font-size:0.78rem;color:#64748B">Pet Supplies · Travel niche · Low competition</p>'
-        "</div></div>"
-        '<div class="cm-report-verdict">'
-        '<div><div class="cm-report-verdict-score">86<span style="font-size:0.9rem;color:#059669">/100</span></div>'
-        '<p style="margin:0.35rem 0 0;font-size:0.82rem;font-weight:700;color:#047857">GO — Strong Opportunity</p></div>'
-        '<p style="margin:0;font-size:0.78rem;color:#059669;font-weight:600">92% confidence</p>'
-        "</div>"
-        '<div class="cm-report-kpis">'
-        '<div class="cm-report-kpi"><label>Est. Profit</label><strong>$15.43/unit</strong></div>'
-        '<div class="cm-report-kpi"><label>Margin</label><strong>57%</strong></div>'
-        '<div class="cm-report-kpi"><label>Demand</label><strong style="color:#059669">+22%</strong></div>'
-        '<div class="cm-report-kpi"><label>Saturation</label><strong>Low</strong></div>'
-        '<div class="cm-report-kpi"><label>Overall Risk</label><strong>Low</strong></div>'
-        "</div>"
-        '<div class="cm-report-charts">'
-        '<div class="cm-chart-box"><p class="cm-chart-title">Demand over time</p>'
-        '<div class="cm-chart-bars">'
-        '<div class="cm-chart-bar" style="height:45%"></div>'
-        '<div class="cm-chart-bar" style="height:55%"></div>'
-        '<div class="cm-chart-bar" style="height:62%"></div>'
-        '<div class="cm-chart-bar" style="height:78%"></div>'
-        '<div class="cm-chart-bar" style="height:85%"></div>'
-        '<div class="cm-chart-bar" style="height:92%"></div>'
-        "</div></div>"
-        '<div class="cm-chart-box"><p class="cm-chart-title">Top risk factors</p>'
-        '<ul class="cm-risk-list">'
-        "<li>⚠ Seasonal spike in Q2 — plan inventory</li>"
-        "<li>⚠ 2 competitors undercutting on Amazon</li>"
-        "<li>✓ Strong supplier score on AliExpress</li>"
-        "</ul></div></div></div></div>"
-        '<div class="cm-report-footer">'
-        '<a href="#" data-ps-sample-slug="pet-travel-harness" target="_self">View full report sample →</a>'
-        "</div></div></div></section>",
-        unsafe_allow_html=True,
-    )
-
-
 _PRO_SVG_CHECK = (
     '<svg class="cm-pro-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">'
     '<path d="M5 10.5L8.2 13.7L15 6.8" stroke="currentColor" stroke-width="2" '
@@ -1461,6 +1434,102 @@ def render_final_cta() -> None:
         f'<a class="cm-cta cm-cta--lg" href="#">Start Your Free Evaluation →</a>'
         f"</div></section>",
         unsafe_allow_html=True,
+    )
+
+
+def _install_eval_card_animations() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__cmEvalCardAnim) return;
+            win.__cmEvalCardAnim = true;
+
+            const RING_R = 52;
+            const RING_C = 2 * Math.PI * RING_R;
+
+            function animateCard(card) {
+                if (card.dataset.cmEvalAnimated) return;
+                card.dataset.cmEvalAnimated = "1";
+
+                const ring = card.querySelector(".cm-eval-ring-fill");
+                const target = parseInt(card.getAttribute("data-eval-score") || "89", 10);
+                if (ring) {
+                    const offset = RING_C * (1 - target / 100);
+                    ring.style.strokeDasharray = RING_C.toFixed(2);
+                    ring.style.strokeDashoffset = RING_C.toFixed(2);
+                    requestAnimationFrame(function () {
+                        ring.style.transition = "stroke-dashoffset 1.35s cubic-bezier(0.22, 1, 0.36, 1)";
+                        ring.style.strokeDashoffset = offset.toFixed(2);
+                    });
+                }
+
+                card.querySelectorAll(".cm-eval-metric-bar i").forEach(function (bar, index) {
+                    const score = parseInt(bar.getAttribute("data-score") || "0", 10);
+                    bar.style.width = "0%";
+                    win.setTimeout(function () {
+                        bar.style.width = score + "%";
+                    }, 180 + index * 90);
+                });
+
+                const valueNode = card.querySelector(".cm-eval-ring-value");
+                if (valueNode) {
+                    let current = 0;
+                    const step = Math.max(1, Math.round(target / 40));
+                    const timer = win.setInterval(function () {
+                        current += step;
+                        if (current >= target) {
+                            current = target;
+                            win.clearInterval(timer);
+                        }
+                        valueNode.textContent = String(current);
+                    }, 28);
+                }
+            }
+
+            function bindCard(card) {
+                if (card.dataset.cmEvalBound) return;
+                card.dataset.cmEvalBound = "1";
+                const io = new IntersectionObserver(
+                    function (entries) {
+                        entries.forEach(function (entry) {
+                            if (!entry.isIntersecting) return;
+                            animateCard(entry.target);
+                            io.unobserve(entry.target);
+                        });
+                    },
+                    { threshold: 0.35 }
+                );
+                io.observe(card);
+            }
+
+            function scan() {
+                doc.querySelectorAll(".cm-eval-card").forEach(bindCard);
+            }
+
+            scan();
+            new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const clicker = event.target.closest(".cm-eval-click");
+                    if (!clicker) return;
+                    const card = clicker.closest(".cm-eval-card");
+                    if (card) card.classList.add("is-pressed");
+                    win.setTimeout(function () {
+                        if (card) card.classList.remove("is-pressed");
+                    }, 180);
+                },
+                true
+            );
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
