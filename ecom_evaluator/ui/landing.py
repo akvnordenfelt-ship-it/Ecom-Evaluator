@@ -105,6 +105,122 @@ _REVIEWS: tuple[tuple[str, str, str], ...] = (
 )
 
 
+_ENGINE_SOURCES: tuple[str, ...] = (
+    "Amazon",
+    "Google Trends",
+    "TikTok Ads",
+    "Facebook Ads",
+    "YouTube Ads",
+    "AliExpress",
+    "Shopify",
+)
+
+_SIGNAL_LAYERS: tuple[tuple[str, str, str], ...] = (
+    ("margin", "Margin stress-testing", "Models fees, shipping, and ad spend before you order inventory."),
+    ("supplier", "Supplier vetting", "Surfaces MOQ traps, slow ships, and unreliable vendors early."),
+    ("ads", "Ad saturation radar", "Spots creative fatigue and rising CPMs in your niche."),
+    ("reviews", "Review sentiment mining", "Extracts recurring complaints competitors ignore."),
+)
+
+_PLATFORM_STEPS: tuple[tuple[str, str, str, str, str], ...] = (
+    (
+        "1",
+        "Add your product",
+        "Paste a link or upload an image. Enter cost, sell price, and dimensions.",
+        "~60 sec",
+        '<span class="cm-step-chip">🔗 Product URL</span><span class="cm-step-chip">📷 Upload image</span>',
+    ),
+    (
+        "2",
+        "Crow Metrics investigates",
+        "Our engine cross-checks demand, competition, margins, suppliers, and risk signals.",
+        "~90 sec",
+        '<div class="cm-step-scan"><span class="cm-step-scan-line"></span>🔍 Scanning sources…</div>'
+        '<div class="cm-step-scan-tags">Amazon · Trends · Ads · Suppliers</div>',
+    ),
+    (
+        "3",
+        "Get your evaluation",
+        "Receive a scored report with GO/NO-GO verdict, red flags, and a launch plan.",
+        "Instant",
+        '<div class="cm-step-result"><strong>86</strong><span>/100</span><em>GO</em></div>'
+        '<span class="cm-step-result-link">View full report →</span>',
+    ),
+)
+
+_SIGNAL_ICONS: dict[str, str] = {
+    "margin": "📊",
+    "supplier": "🏭",
+    "ads": "📡",
+    "reviews": "💬",
+}
+
+
+def _platform_signal_html(*, key: str, title: str, body: str) -> str:
+    icon = _SIGNAL_ICONS.get(key, "•")
+    return (
+        f'<div class="cm-platform-signal cm-reveal">'
+        f'<span class="cm-platform-signal-icon">{icon}</span>'
+        f"<div><p class=\"cm-platform-signal-title\">{html.escape(title)}</p>"
+        f'<p class="cm-platform-signal-body">{html.escape(body)}</p></div></div>'
+    )
+
+
+def _platform_orbit_html(source: str, index: int) -> str:
+    safe = html.escape(source)
+    return f'<span class="cm-platform-orbit cm-platform-orbit--{index + 1}">{safe}</span>'
+
+
+def _platform_hub_html() -> str:
+    orbits = "".join(_platform_orbit_html(source, i) for i, source in enumerate(_ENGINE_SOURCES))
+    return (
+        '<div class="cm-platform-hub cm-reveal" aria-hidden="true">'
+        '<svg class="cm-platform-hub-lines" viewBox="0 0 420 420">'
+        '<circle cx="210" cy="210" r="118" fill="none" stroke="rgba(43,89,255,0.12)" stroke-width="1.5" stroke-dasharray="6 8"/>'
+        '<circle cx="210" cy="210" r="158" fill="none" stroke="rgba(43,89,255,0.08)" stroke-width="1" stroke-dasharray="4 10"/>'
+        "</svg>"
+        '<div class="cm-platform-hub-ring"></div>'
+        '<div class="cm-platform-hub-core">Crow<br>Metrics<br>AI</div>'
+        f"{orbits}"
+        "</div>"
+    )
+
+
+def _platform_step_html(*, num: str, title: str, body: str, timing: str, mock: str) -> str:
+    return (
+        f'<article class="cm-platform-step cm-reveal">'
+        f'<div class="cm-platform-step-top">'
+        f'<span class="cm-platform-step-num">{html.escape(num)}</span>'
+        f'<span class="cm-platform-step-time">{html.escape(timing)}</span>'
+        f"</div>"
+        f'<h3 class="cm-platform-step-title">{html.escape(title)}</h3>'
+        f'<p class="cm-platform-step-body">{html.escape(body)}</p>'
+        f'<div class="cm-platform-step-mock">{mock}</div>'
+        f"</article>"
+    )
+
+
+def _install_platform_animations() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__cmPlatformAnim) return;
+            win.__cmPlatformAnim = true;
+
+            doc.querySelectorAll(".cm-platform-orbit").forEach(function (node, index) {
+                node.style.animationDelay = (0.08 * index) + "s";
+            });
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def _hero_avatars_html() -> str:
     faces = []
     for avatar_id in _HERO_AVATAR_IDS:
@@ -834,90 +950,53 @@ def render_live_catalog_page() -> None:
     maybe_show_carousel_sample_dialog()
 
 
-def render_investigation_engine() -> None:
-    st.markdown(
-        '<section class="cm-section">'
-        '<div class="cm-page cm-engine-grid">'
-        '<div class="cm-reveal">'
-        '<h2 class="cm-title cm-section-head--left">We leave no stone unturned. That\'s how we stay <span class="cm-accent">brutally honest.</span></h2>'
-        '<p class="cm-lead">Our AI engine cross-references demand signals, ad intelligence, supplier data, and competitor sentiment before you spend a dollar.</p>'
-        "</div>"
-        '<div class="cm-engine-diagram cm-reveal">'
-        '<div class="cm-engine-core">Crow<br>Metrics<br>AI</div>'
-        '<span class="cm-engine-orbit">Amazon</span>'
-        '<span class="cm-engine-orbit">Google Trends</span>'
-        '<span class="cm-engine-orbit">TikTok Ads</span>'
-        '<span class="cm-engine-orbit">Facebook Ads</span>'
-        '<span class="cm-engine-orbit">YouTube Ads</span>'
-        '<span class="cm-engine-orbit">AliExpress</span>'
-        '<span class="cm-engine-orbit">Shopify</span>'
-        "</div>"
-        '<div class="cm-legend-card cm-reveal">'
-        '<p class="cm-legend-title">What your score means</p>'
-        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#15803D"></span>'
-        '<span class="cm-legend-label">90–100</span><span class="cm-legend-desc">Strong GO</span></div>'
-        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#22C55E"></span>'
-        '<span class="cm-legend-label">80–89</span><span class="cm-legend-desc">GO</span></div>'
-        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#FACC15"></span>'
-        '<span class="cm-legend-label">60–79</span><span class="cm-legend-desc">Caution</span></div>'
-        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#F97316"></span>'
-        '<span class="cm-legend-label">40–59</span><span class="cm-legend-desc">High risk</span></div>'
-        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#EF4444"></span>'
-        '<span class="cm-legend-label">0–39</span><span class="cm-legend-desc">Walk away</span></div>'
-        "</div></div></section>",
-        unsafe_allow_html=True,
+def render_platform_section() -> None:
+    signals = "".join(
+        _platform_signal_html(key=key, title=title, body=body) for key, title, body in _SIGNAL_LAYERS
+    )
+    steps = "".join(
+        _platform_step_html(num=num, title=title, body=body, timing=timing, mock=mock)
+        for num, title, body, timing, mock in _PLATFORM_STEPS
     )
 
-
-def render_how_it_works() -> None:
     st.markdown(
-        '<section class="cm-section cm-section--tight" id="section-process">'
-        '<div class="cm-page">'
-        '<div class="cm-section-head cm-reveal">'
-        '<span class="cm-kicker">How it works</span>'
-        '<h2 class="cm-title">Get your product evaluation in <span class="cm-accent">3 simple steps</span></h2>'
+        '<section class="cm-platform" id="section-process">'
+        '<div class="cm-platform-inner">'
+        '<div class="cm-platform-engine">'
+        '<div class="cm-platform-head cm-reveal">'
+        '<span class="cm-live-pulse"><span class="cm-live-pulse-dot"></span>AI investigation engine</span>'
+        '<h2 class="cm-platform-title">We leave no stone unturned. That\'s how we stay <span>brutally honest.</span></h2>'
+        '<p class="cm-platform-lead">Before you spend a dollar, our engine cross-references demand signals, ad intelligence, '
+        f"supplier data, and competitor sentiment — then runs proprietary checks you won't find in generic research tools.</p>"
         "</div>"
-        '<div class="cm-steps-grid">'
-        '<div class="cm-step-card cm-reveal">'
-        '<span class="cm-step-num">1</span>'
-        '<p class="cm-step-title">Add your product</p>'
-        '<p class="cm-step-body">Paste a product link or upload an image. Enter cost, sell price, and dimensions — takes 60 seconds.</p>'
-        '<div class="cm-step-mock">🔗 Product URL + 📷 Upload image</div>'
+        '<div class="cm-platform-engine-grid">'
+        f'<div class="cm-platform-signals">{signals}</div>'
+        f"{_platform_hub_html()}"
         "</div>"
-        '<div class="cm-step-card cm-reveal">'
-        '<span class="cm-step-num">2</span>'
-        '<p class="cm-step-title">Crow Metrics investigates</p>'
-        '<p class="cm-step-body">Our AI scans 10+ data sources — demand, competition, margins, suppliers, and risk signals.</p>'
-        '<div class="cm-step-mock">🔍 Scanning Amazon · Trends · Ads · Suppliers</div>'
         "</div>"
-        '<div class="cm-step-card cm-reveal">'
-        '<span class="cm-step-num">3</span>'
-        '<p class="cm-step-title">Get your evaluation</p>'
-        '<p class="cm-step-body">Receive a scored report with GO/NO-GO verdict, red flags, and an actionable launch plan.</p>'
-        '<div class="cm-step-mock">📊 86/100 · GO — View Report</div>'
+        '<div class="cm-platform-divider cm-reveal" aria-hidden="true"><span>How it works</span></div>'
+        '<div class="cm-platform-steps-block">'
+        '<div class="cm-platform-steps-head cm-reveal">'
+        f'<h3 class="cm-platform-steps-title">Get your product evaluation in <span>3 simple steps</span></h3>'
+        f'<p class="cm-platform-steps-lead">From product link to launch decision in under two minutes — no spreadsheets, no guesswork.</p>'
         "</div>"
-        "</div></div></section>",
+        f'<div class="cm-platform-steps-track">{steps}</div>'
+        "</div>"
+        '<div class="cm-platform-stats cm-reveal">'
+        '<div class="cm-platform-stats-brand">'
+        '<span class="cm-platform-stats-icon">🛡</span>'
+        '<p>Brutal by design.<br>Built to save you money.</p>'
+        "</div>"
+        '<div class="cm-platform-stats-grid">'
+        '<div class="cm-platform-stat"><strong>10M+</strong><span>Data points analyzed daily</span></div>'
+        '<div class="cm-platform-stat"><strong>70+</strong><span>Proprietary signals</span></div>'
+        '<div class="cm-platform-stat"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
+        '<div class="cm-platform-stat"><strong>12+</strong><span>Risk categories screened</span></div>'
+        "</div></div>"
+        "</div></section>",
         unsafe_allow_html=True,
     )
-
-
-def render_stats_bar() -> None:
-    st.markdown(
-        '<section class="cm-section cm-section--tight">'
-        '<div class="cm-page">'
-        '<div class="cm-stats-bar cm-reveal">'
-        '<div class="cm-stats-brand">'
-        '<span class="cm-stats-brand-icon">🛡</span>'
-        '<p class="cm-stats-brand-text">Brutal by design.<br>Built to save you money.</p>'
-        "</div>"
-        '<div class="cm-stats-grid">'
-        '<div class="cm-stat-item"><strong>10M+</strong><span>Data points analyzed daily</span></div>'
-        '<div class="cm-stat-item"><strong>70+</strong><span>Proprietary signals</span></div>'
-        '<div class="cm-stat-item"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
-        '<div class="cm-stat-item"><strong>1,000+</strong><span>Products analyzed every day</span></div>'
-        "</div></div></div></section>",
-        unsafe_allow_html=True,
-    )
+    _install_platform_animations()
 
 
 def render_report_preview() -> None:
@@ -1158,9 +1237,7 @@ def render_landing_page() -> None:
     st.markdown("</div>", unsafe_allow_html=True)
 
     render_live_scan_section()
-    render_investigation_engine()
-    render_how_it_works()
-    render_stats_bar()
+    render_platform_section()
     render_report_preview()
     render_unlock_premium()
     render_score_legend()
