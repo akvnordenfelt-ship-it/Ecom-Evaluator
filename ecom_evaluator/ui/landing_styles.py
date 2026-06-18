@@ -1072,7 +1072,7 @@ div[class*="st-key-landing_hero_cta"] {
     width: 100vw;
     margin-left: calc(50% - 50vw);
     margin-right: calc(50% - 50vw);
-    padding: 3.75rem max(1.5rem, calc(50vw - 590px)) 0;
+    padding: 3.75rem max(1.5rem, calc(50vw - 590px)) 3.5rem;
     background:
         radial-gradient(ellipse 70% 55% at 85% 5%, rgba(43, 89, 255, 0.1) 0%, transparent 58%),
         radial-gradient(ellipse 55% 45% at 5% 35%, rgba(6, 182, 212, 0.07) 0%, transparent 52%),
@@ -1165,12 +1165,7 @@ div[class*="st-key-landing_hero_cta"] {
     width: 100%;
     max-width: 420px;
     margin: 0 auto;
-    cursor: grab;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
 }
-.cm-platform-hub.is-grabbing { cursor: grabbing; }
 .cm-platform-hub-stage {
     position: relative;
     width: 100%;
@@ -1196,7 +1191,6 @@ div[class*="st-key-landing_hero_cta"] {
     width: 72%;
     height: 72%;
     transform: translate(-50%, -50%);
-    will-change: transform;
 }
 .cm-platform-hub-ring--inner {
     width: 56%;
@@ -1204,11 +1198,10 @@ div[class*="st-key-landing_hero_cta"] {
     border-color: rgba(43, 89, 255, 0.08);
     border-style: dashed;
 }
-.cm-platform-orbit-ring {
+.cm-platform-orbit-field {
     position: absolute;
     inset: 0;
-    transform: rotate(0deg);
-    will-change: transform;
+    pointer-events: none;
 }
 .cm-platform-hub-core {
     position: absolute;
@@ -1253,11 +1246,12 @@ div[class*="st-key-landing_hero_cta"] {
     box-shadow: 0 4px 14px rgba(15, 23, 42, 0.08);
     white-space: nowrap;
     pointer-events: none;
+    will-change: transform;
     transform:
         rotate(var(--orbit-angle))
         translateX(var(--orbit-radius))
         rotate(calc(-1 * var(--orbit-angle)))
-        translate(-50%, -50%);
+        translate(calc(-50% + var(--repel-x, 0px)), calc(-50% + var(--repel-y, 0px)));
     animation: cm-platform-orbit-in 0.65s ease backwards;
 }
 @keyframes cm-platform-orbit-in {
@@ -1276,15 +1270,6 @@ div[class*="st-key-landing_hero_cta"] {
     height: 1rem;
     object-fit: contain;
     flex-shrink: 0;
-}
-.cm-platform-hub-hint {
-    margin: 0.75rem 0 0;
-    text-align: center;
-    font-size: 0.72rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #94A3B8;
 }
 .cm-platform-divider {
     display: flex;
@@ -1491,28 +1476,32 @@ div[class*="st-key-landing_hero_cta"] {
     font-weight: 600;
     color: var(--cm-blue-bright);
 }
-.cm-platform-stats {
+.cm-site-stats {
     position: relative;
-    z-index: 1;
+    width: 100vw;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 2rem max(1.5rem, calc(50vw - 590px)) 1.25rem;
+    background: linear-gradient(135deg, #0A1128 0%, #1E293B 55%, #0F172A 100%);
+    border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+.cm-site-stats-inner {
+    max-width: 1180px;
+    margin: 0 auto;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1.5rem;
     flex-wrap: wrap;
-    margin-top: 3rem;
-    padding: 2rem max(1.5rem, calc(50vw - 590px));
-    background: linear-gradient(135deg, #0A1128 0%, #1E293B 55%, #0F172A 100%);
-    border-top: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 -16px 48px rgba(15, 23, 42, 0.08);
 }
-.cm-platform-stats-brand {
+.cm-site-stats-brand {
     display: flex;
     align-items: center;
     gap: 0.85rem;
     max-width: 280px;
 }
-.cm-platform-stats-icon { font-size: 1.6rem; }
-.cm-platform-stats-brand p {
+.cm-site-stats-icon { font-size: 1.6rem; }
+.cm-site-stats-brand p {
     margin: 0;
     font-size: 0.82rem;
     font-weight: 700;
@@ -1521,23 +1510,30 @@ div[class*="st-key-landing_hero_cta"] {
     color: #E2E8F0;
     line-height: 1.45;
 }
-.cm-platform-stats-grid {
+.cm-site-stats-grid {
     display: grid;
     grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 1.25rem;
     flex: 1;
 }
-.cm-platform-stat strong {
+.cm-site-stat strong {
     display: block;
     font-size: 1.1rem;
     font-weight: 800;
     color: #FFFFFF;
     margin-bottom: 0.15rem;
 }
-.cm-platform-stat span {
+.cm-site-stat span {
     font-size: 0.72rem;
     color: #94A3B8;
     line-height: 1.4;
+}
+.cm-site-stats-foot {
+    max-width: 1180px;
+    margin: 1.25rem auto 0;
+    text-align: center;
+    font-size: 0.74rem;
+    color: #64748B;
 }
 
 /* Report preview */
@@ -1975,8 +1971,8 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
     .cm-brutal-grid,
     .cm-report-layout { grid-template-columns: 1fr; }
     .cm-platform-steps-track::before { display: none; }
-    .cm-platform-stats { flex-direction: column; align-items: flex-start; }
-    .cm-platform-stats-grid { grid-template-columns: 1fr 1fr; width: 100%; }
+    .cm-site-stats-inner { flex-direction: column; align-items: flex-start; }
+    .cm-site-stats-grid { grid-template-columns: 1fr 1fr; width: 100%; }
     .cm-eval-score-row { grid-template-columns: 1fr; justify-items: start; }
     .cm-eval-financials { grid-template-columns: 1fr 1fr; }
     .cm-eval-fin-divider { display: none; }
@@ -1996,8 +1992,8 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
     .cm-catalog-grid { grid-template-columns: repeat(2, 1fr); }
     .cm-platform-stats-grid { grid-template-columns: 1fr; }
     .cm-platform-hub { max-width: 320px; }
-    .cm-platform-orbit-ring { --orbit-radius: 118px !important; }
+    .cm-platform-orbit-field { --orbit-radius: 118px !important; }
     .cm-platform-orbit { font-size: 0.62rem; padding: 0.35rem 0.55rem 0.35rem 0.45rem; }
-    .cm-platform-hub-hint { font-size: 0.66rem; }
+    .cm-site-stats-grid { grid-template-columns: 1fr; }
 }
 """

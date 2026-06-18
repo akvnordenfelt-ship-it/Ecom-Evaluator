@@ -201,10 +201,9 @@ def _platform_hub_html() -> str:
         "</svg>"
         '<div class="cm-platform-hub-ring cm-platform-hub-ring--outer"></div>'
         '<div class="cm-platform-hub-ring cm-platform-hub-ring--inner"></div>'
-        f'<div class="cm-platform-orbit-ring" style="--orbit-radius:{_ORBIT_RADIUS_PX}px">{orbits}</div>'
+        f'<div class="cm-platform-orbit-field" style="--orbit-radius:{_ORBIT_RADIUS_PX}px">{orbits}</div>'
         '<div class="cm-platform-hub-core">Crow<br>Metrics<br>AI</div>'
         "</div>"
-        '<p class="cm-platform-hub-hint">Drag the ring to explore data sources</p>'
         "</div>"
     )
 
@@ -230,99 +229,85 @@ def _install_platform_hub() -> None:
         (function () {
             const win = window.parent;
             const doc = win.document;
-            const FRICTION = 0.94;
-            const MIN_VELOCITY = 0.004;
+            const REPULSE_RADIUS = 112;
+            const REPULSE_PUSH = 54;
+            const LERP = 0.13;
 
             function initHub(hub) {
                 if (hub.dataset.cmHubReady) return;
-                const ring = hub.querySelector(".cm-platform-orbit-ring");
-                const outer = hub.querySelector(".cm-platform-hub-ring--outer");
-                if (!ring) return;
+                const stage = hub.querySelector(".cm-platform-hub-stage");
+                const field = hub.querySelector(".cm-platform-orbit-field");
+                const orbits = hub.querySelectorAll(".cm-platform-orbit");
+                if (!stage || !field || !orbits.length) return;
                 hub.dataset.cmHubReady = "1";
 
-                let rotation = 0;
-                let velocity = 0;
-                let dragging = false;
-                let lastAngle = 0;
-                let lastTime = 0;
-                let inertiaFrame = null;
+                const pills = Array.prototype.map.call(orbits, function (el) {
+                    const angle = parseFloat(el.style.getPropertyValue("--orbit-angle")) || 0;
+                    return { el: el, angle: angle, x: 0, y: 0, tx: 0, ty: 0 };
+                });
 
-                function applyRotation() {
-                    ring.style.transform = "rotate(" + rotation + "deg)";
-                    if (outer) {
-                        outer.style.transform =
-                            "translate(-50%, -50%) rotate(" + (rotation * 0.45) + "deg)";
-                    }
+                function orbitRadius() {
+                    const raw = win.getComputedStyle(field).getPropertyValue("--orbit-radius").trim();
+                    return parseFloat(raw) || 148;
                 }
 
-                function hubAngle(clientX, clientY) {
-                    const rect = hub.getBoundingClientRect();
+                function setTargets(clientX, clientY) {
+                    const rect = stage.getBoundingClientRect();
                     const cx = rect.left + rect.width * 0.5;
                     const cy = rect.top + rect.height * 0.5;
-                    return Math.atan2(clientY - cy, clientX - cx) * (180 / Math.PI);
-                }
+                    const radius = orbitRadius();
 
-                function stopInertia() {
-                    if (inertiaFrame !== null) {
-                        cancelAnimationFrame(inertiaFrame);
-                        inertiaFrame = null;
-                    }
-                }
-
-                function runInertia() {
-                    stopInertia();
-                    function tick() {
-                        if (Math.abs(velocity) < MIN_VELOCITY) {
-                            inertiaFrame = null;
-                            return;
+                    pills.forEach(function (pill) {
+                        const rad = (pill.angle * Math.PI) / 180;
+                        const bx = cx + Math.cos(rad) * radius;
+                        const by = cy + Math.sin(rad) * radius;
+                        const dx = bx - clientX;
+                        const dy = by - clientY;
+                        const dist = Math.hypot(dx, dy);
+                        if (dist < REPULSE_RADIUS && dist > 1) {
+                            const falloff = 1 - dist / REPULSE_RADIUS;
+                            const force = falloff * falloff * REPULSE_PUSH;
+                            pill.tx = (dx / dist) * force;
+                            pill.ty = (dy / dist) * force;
+                        } else {
+                            pill.tx = 0;
+                            pill.ty = 0;
                         }
-                        rotation += velocity * 18;
-                        velocity *= FRICTION;
-                        applyRotation();
-                        inertiaFrame = requestAnimationFrame(tick);
-                    }
-                    inertiaFrame = requestAnimationFrame(tick);
+                    });
                 }
 
-                hub.addEventListener("pointerdown", function (event) {
-                    if (event.button !== 0 && event.pointerType === "mouse") return;
-                    dragging = true;
-                    stopInertia();
-                    velocity = 0;
-                    lastAngle = hubAngle(event.clientX, event.clientY);
-                    lastTime = performance.now();
-                    hub.setPointerCapture(event.pointerId);
-                    hub.classList.add("is-grabbing");
-                });
-
-                hub.addEventListener("pointermove", function (event) {
-                    if (!dragging) return;
-                    const angle = hubAngle(event.clientX, event.clientY);
-                    let delta = angle - lastAngle;
-                    if (delta > 180) delta -= 360;
-                    if (delta < -180) delta += 360;
-                    rotation += delta;
-                    applyRotation();
-                    const now = performance.now();
-                    const dt = now - lastTime;
-                    if (dt > 0) velocity = delta / dt;
-                    lastAngle = angle;
-                    lastTime = now;
-                });
-
-                function endDrag(event) {
-                    if (!dragging) return;
-                    dragging = false;
-                    hub.classList.remove("is-grabbing");
-                    try { hub.releasePointerCapture(event.pointerId); } catch (_) {}
-                    if (Math.abs(velocity) > 0.01) {
-                        runInertia();
-                    }
+                function resetTargets() {
+                    pills.forEach(function (pill) {
+                        pill.tx = 0;
+                        pill.ty = 0;
+                    });
                 }
 
-                hub.addEventListener("pointerup", endDrag);
-                hub.addEventListener("pointercancel", endDrag);
-                applyRotation();
+                function tick() {
+                    pills.forEach(function (pill) {
+                        pill.x += (pill.tx - pill.x) * LERP;
+                        pill.y += (pill.ty - pill.y) * LERP;
+                        pill.el.style.setProperty("--repel-x", pill.x.toFixed(2) + "px");
+                        pill.el.style.setProperty("--repel-y", pill.y.toFixed(2) + "px");
+                    });
+                    requestAnimationFrame(tick);
+                }
+                tick();
+
+                stage.addEventListener("mousemove", function (event) {
+                    setTargets(event.clientX, event.clientY);
+                });
+                stage.addEventListener("mouseleave", resetTargets);
+                stage.addEventListener(
+                    "touchmove",
+                    function (event) {
+                        if (!event.touches.length) return;
+                        setTargets(event.touches[0].clientX, event.touches[0].clientY);
+                    },
+                    { passive: true }
+                );
+                stage.addEventListener("touchend", resetTargets);
+                stage.addEventListener("touchcancel", resetTargets);
             }
 
             function scan() {
@@ -1103,22 +1088,31 @@ def render_platform_section() -> None:
         "</div>"
         f'<div class="cm-platform-steps-track">{steps}</div>'
         "</div>"
-        "</div>"
-        '<div class="cm-platform-stats cm-reveal">'
-        '<div class="cm-platform-stats-brand">'
-        '<span class="cm-platform-stats-icon">🛡</span>'
-        '<p>Brutal by design.<br>Built to save you money.</p>'
-        "</div>"
-        '<div class="cm-platform-stats-grid">'
-        '<div class="cm-platform-stat"><strong>10M+</strong><span>Data points analyzed daily</span></div>'
-        '<div class="cm-platform-stat"><strong>70+</strong><span>Proprietary signals</span></div>'
-        '<div class="cm-platform-stat"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
-        '<div class="cm-platform-stat"><strong>12+</strong><span>Risk categories screened</span></div>'
-        "</div></div>"
-        "</section>",
+        "</div></section>",
         unsafe_allow_html=True,
     )
     _install_platform_hub()
+
+
+def render_site_stats_bar() -> None:
+    brand = html.escape(BRAND_NAME)
+    st.markdown(
+        '<section class="cm-site-stats cm-reveal">'
+        '<div class="cm-site-stats-inner">'
+        '<div class="cm-site-stats-brand">'
+        '<span class="cm-site-stats-icon">🛡</span>'
+        '<p>Brutal by design.<br>Built to save you money.</p>'
+        "</div>"
+        '<div class="cm-site-stats-grid">'
+        '<div class="cm-site-stat"><strong>10M+</strong><span>Data points analyzed daily</span></div>'
+        '<div class="cm-site-stat"><strong>70+</strong><span>Proprietary signals</span></div>'
+        '<div class="cm-site-stat"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
+        '<div class="cm-site-stat"><strong>12+</strong><span>Risk categories screened</span></div>'
+        "</div></div>"
+        f'<p class="cm-site-stats-foot">{brand} · Built for e-commerce operators who demand the truth</p>'
+        "</section>",
+        unsafe_allow_html=True,
+    )
 
 
 def render_report_preview() -> None:
@@ -1366,7 +1360,7 @@ def render_landing_page() -> None:
     render_reviews_section()
     render_faq_section()
     render_final_cta()
-    render_landing_footnote()
+    render_site_stats_bar()
 
     _install_scroll_reveal()
     _install_eval_card_animations()
