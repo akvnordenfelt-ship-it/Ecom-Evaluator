@@ -22,6 +22,7 @@ from ecom_evaluator.product_links import validate_product_url
 from ecom_evaluator.product_validation import product_name_error_message
 from ecom_evaluator.settings import resolve_api_key
 from ecom_evaluator.ui.auth_screen import render_auth_screen
+from ecom_evaluator.ui.branding import brand_page_title, logo_path
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_evaluation_form
 from ecom_evaluator.ui.landing import render_landing_page
@@ -154,9 +155,10 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
 
 
 def main() -> None:
+    page_icon = str(logo_path()) if logo_path() else "📊"
     st.set_page_config(
-        page_title="ProductScore — E-commerce Evaluator",
-        page_icon="🦈",
+        page_title=brand_page_title(),
+        page_icon=page_icon,
         layout="wide",
         initial_sidebar_state="collapsed",
     )

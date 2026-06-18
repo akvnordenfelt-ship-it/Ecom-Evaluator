@@ -1,4 +1,4 @@
-# ProductScore
+# Crow Metrics
 
 **E-commerce Product Evaluator & Go-To-Market Planner** — evaluate product ideas with AI-powered scoring, live competitor research, and a full go-to-market plan.
 
@@ -79,7 +79,7 @@ pytest
 
 ### Public hosting (shared API key + rate limits)
 
-ProductScore is set up for **free public access** with your Groq key on the server and **per-session rate limits**.
+Crow Metrics is set up for **free public access** with your Groq key on the server and **per-session rate limits**.
 
 **Defaults:** 3 evaluations per browser session, 45 seconds between runs.
 
@@ -99,8 +99,8 @@ RATE_LIMIT_ENABLED = "true"
 ### Docker
 
 ```powershell
-docker build -t productscore .
-docker run -p 8501:8501 -e GROQ_API_KEY=your_key productscore
+docker build -t crowmetrics .
+docker run -p 8501:8501 -e GROQ_API_KEY=your_key crowmetrics
 ```
 
 ## Environment variables

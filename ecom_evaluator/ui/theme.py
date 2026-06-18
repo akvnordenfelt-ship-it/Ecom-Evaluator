@@ -7,7 +7,7 @@ import html
 import streamlit as st
 
 PREMIUM_THEME_CSS = """
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 
 :root {
     --ps-bg: #F8F9FA;
@@ -15,18 +15,18 @@ PREMIUM_THEME_CSS = """
     --ps-border: #E9ECEF;
     --ps-text: #0F172A;
     --ps-muted: #64748B;
-    --ps-blue: #3B82F6;
-    --ps-blue-deep: #1E40AF;
-    --ps-indigo: #4338CA;
-    --ps-pill-bg: #E3F2FD;
-    --ps-pill-text: #0D47A1;
+    --ps-blue: #2B59FF;
+    --ps-blue-deep: #1E3A8A;
+    --ps-indigo: #2B59FF;
+    --ps-pill-bg: #EEF2FF;
+    --ps-pill-text: #1E3A8A;
     --ps-success: #10B981;
     --ps-radius: 12px;
     --ps-shadow: 0 1px 2px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.06);
     --ps-nav-h: 72px;
-    --ps-nav-accent: #7C3AED;
+    --ps-nav-accent: #2B59FF;
     --ps-nav-cta: #0F172A;
-    --lp-panel-gradient: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);
+    --lp-panel-gradient: linear-gradient(135deg, #0B1F4B 0%, #2B59FF 52%, #1E3A8A 100%);
 }
 
 /* Global canvas */
@@ -103,15 +103,43 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border-bottom: 1px solid var(--ps-border);
     margin-bottom: 1.75rem;
 }
-.brand-lockup { display: flex; flex-direction: column; gap: 0.15rem; }
-.brand-name {
-    font-size: 1.15rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    color: var(--ps-text);
-    margin: 0;
-}
+.brand-lockup { display: flex; flex-direction: column; gap: 0.35rem; }
 .brand-tagline { font-size: 0.82rem; color: var(--ps-muted); margin: 0; }
+
+/* Crow Metrics wordmark — bold CROW + light METRICS */
+.crow-wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.55rem;
+    line-height: 1;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #000000;
+}
+.crow-wordmark__text {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 0.35rem;
+}
+.crow-wordmark__crow {
+    font-weight: 800;
+    letter-spacing: 0.02em;
+}
+.crow-wordmark__metrics {
+    font-weight: 300;
+    letter-spacing: 0.06em;
+}
+.crow-wordmark__logo {
+    display: block;
+    object-fit: contain;
+    flex-shrink: 0;
+}
+.crow-wordmark--sm { font-size: 0.95rem; }
+.crow-wordmark--sm .crow-wordmark__logo { width: 1.35rem; height: 1.35rem; }
+.crow-wordmark--md { font-size: 1.15rem; }
+.crow-wordmark--md .crow-wordmark__logo { width: 1.65rem; height: 1.65rem; }
+.crow-wordmark--lg { font-size: 1.35rem; }
+.crow-wordmark--lg .crow-wordmark__logo { width: 2rem; height: 2rem; }
 
 /* Site header — Jungle Scout-style fixed top bar */
 .site-header {
@@ -158,15 +186,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     text-decoration: none !important;
 }
 .site-header__mark {
-    font-size: 1.2rem;
-    line-height: 1;
+    display: block;
+    width: 1.65rem;
+    height: 1.65rem;
+    object-fit: contain;
+    flex-shrink: 0;
 }
-.site-header__name {
-    font-size: 1.125rem;
-    font-weight: 700;
-    letter-spacing: -0.03em;
-    line-height: 1;
-    color: #000000;
+.site-header__brand .crow-wordmark {
+    font-size: 0.92rem;
 }
 .site-header__nav {
     display: flex;
@@ -196,7 +223,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .site-header__bar a.site-header__link,
 .site-header__bar a.site-header__login,
 .site-header__bar a.site-header__text-action,
-.site-header__bar .site-header__name,
+.site-header__bar .crow-wordmark,
 .site-header__bar .site-header__user,
 .site-header__bar .site-header__quota,
 .site-header__bar .site-header__chevron,
@@ -518,17 +545,16 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
     margin: 0 auto 1.35rem;
-    border-radius: 10px;
-    background: #111111;
-    border: 1px solid #222222;
-    box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.03) inset;
 }
-.auth-brand-mark__glyph {
-    font-size: 1.15rem;
-    line-height: 1;
+.auth-brand-mark__logo {
+    display: block;
+    width: 3.25rem;
+    height: 3.25rem;
+    object-fit: contain;
+}
+.auth-brand-mark .crow-wordmark {
+    color: #FFFFFF;
 }
 .auth-form-title {
     margin: 0 0 0.65rem;

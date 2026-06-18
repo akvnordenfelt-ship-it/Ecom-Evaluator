@@ -24,6 +24,7 @@ from ecom_evaluator.auth.session import (
     verify_signup_code,
 )
 from ecom_evaluator.exceptions import AnalysisError, SignupPendingConfirmation
+from ecom_evaluator.ui.branding import BRAND_NAME, auth_brand_html
 from ecom_evaluator.ui.subscription import complete_post_auth_navigation, open_auth_screen
 
 _GOOGLE_ICON_SVG = (
@@ -52,8 +53,8 @@ def _auth_title() -> str:
     if mode == "verify":
         return "Verify your email"
     if mode == "signup":
-        return "Create a ProductScore account"
-    return "Sign in to ProductScore"
+        return f"Create a {BRAND_NAME} account"
+    return f"Sign in to {BRAND_NAME}"
 
 
 def _auth_subtitle_html() -> str:
@@ -102,7 +103,7 @@ def _render_auth_header() -> None:
     st.markdown(
         '<div class="auth-form-header">'
         '<div class="auth-brand-mark" aria-hidden="true">'
-        '<span class="auth-brand-mark__glyph">🦈</span>'
+        f"{auth_brand_html()}"
         "</div>"
         f'<h1 class="auth-form-title">{title}</h1>'
         f'<p class="auth-form-lead">{subtitle}</p>'

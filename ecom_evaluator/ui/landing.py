@@ -10,6 +10,7 @@ import streamlit.components.v1 as components
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
 from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
+from ecom_evaluator.ui.branding import BRAND_NAME
 from ecom_evaluator.ui.carousel_assets import carousel_image_data_uri
 from ecom_evaluator.ui.carousel_samples import (
     install_carousel_sample_bridge,
@@ -305,7 +306,7 @@ def render_landing_product_carousel() -> None:
         '<div class="lp-carousel-header">'
         '<span class="lp-band-label">Live preview</span>'
         '<h2 class="lp-carousel-title">Trending products analyzed right now</h2>'
-        '<p class="lp-carousel-lead">Realistic profit estimates and ProductScores from live niches. Auto-scrolls — click and drag to explore.</p>'
+        '<p class="lp-carousel-lead">Realistic profit estimates and Crow Metrics scores from live niches. Auto-scrolls — click and drag to explore.</p>'
         "</div>"
         f'<div class="lp-carousel-shell"><div class="lp-carousel-viewport">{track}</div></div>'
         "</section>",
@@ -865,7 +866,7 @@ def render_landing_final_cta(*, show_buttons: bool = True) -> None:
 
 def render_landing_footnote() -> None:
     st.markdown(
-        '<p class="landing-footnote lp-reveal">ProductScore · Built for e-commerce operators</p>',
+        f'<p class="landing-footnote lp-reveal">{html.escape(BRAND_NAME)} · Built for e-commerce operators</p>',
         unsafe_allow_html=True,
     )
 

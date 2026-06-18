@@ -8,6 +8,7 @@ from ecom_evaluator.plans import PlanTier, coerce_plan_tier
 from ecom_evaluator.report_sections import has_section_access
 from ecom_evaluator.models import ProductEvaluationResponse
 from ecom_evaluator.scoring import verdict_status
+from ecom_evaluator.ui.branding import BRAND_NAME
 
 
 def slugify_filename(name: str) -> str:
@@ -27,7 +28,7 @@ def build_markdown_report(
     tier = coerce_plan_tier(tier)
     verdict = verdict_status(result.overall_score)
     lines = [
-        f"# ProductScore — {product_name}",
+        f"# {BRAND_NAME} — {product_name}",
         "",
         f"*Generated: {analyzed_at}*",
         "",

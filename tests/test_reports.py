@@ -23,7 +23,7 @@ def test_build_markdown_report_contains_sections():
         analyzed_at="2026-06-02T12:00:00+00:00",
         tier=PlanTier.PREMIUM,
     )
-    assert "# ProductScore — Test Widget" in md
+    assert f"# Crow Metrics — Test Widget" in md
     assert "## Section 2 — Red flags" in md
     assert "## Section 3 — Verdict" in md
     assert "## Section 4 — Marketing teaser" in md

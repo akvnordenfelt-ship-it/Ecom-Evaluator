@@ -18,6 +18,7 @@ from ecom_evaluator.ui.subscription import (
     show_paywall,
     user_can_run,
 )
+from ecom_evaluator.ui.branding import BRAND_TAGLINE, wordmark_html
 from ecom_evaluator.ui.theme import form_section_header, tool_workspace_hero
 
 
@@ -25,11 +26,11 @@ def render_app_header(*, hide_api_status: bool = False) -> None:
     top_left, top_right = st.columns([3, 1])
     with top_left:
         st.markdown(
-            """
+            f"""
             <div class="app-topbar">
                 <div class="brand-lockup">
-                    <p class="brand-name">ProductScore</p>
-                    <p class="brand-tagline">E-commerce evaluator & go-to-market planner</p>
+                    {wordmark_html(size="md", with_logo=True)}
+                    <p class="brand-tagline">{html.escape(BRAND_TAGLINE)}</p>
                 </div>
             </div>
             """,

@@ -9,6 +9,7 @@ import streamlit.components.v1 as components
 
 from ecom_evaluator.auth.session import get_current_user, is_authenticated, logout_user
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
+from ecom_evaluator.ui.branding import header_brand_html
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
     APP_VIEW_LANDING,
@@ -281,10 +282,7 @@ def _build_site_header_html(*, actions_html: str) -> str:
         + _nav_action_link(
             action="home",
             class_name="site-header__brand",
-            text=(
-                '<span class="site-header__mark" aria-hidden="true">🦈</span>'
-                '<span class="site-header__name">ProductScore</span>'
-            ),
+            text=header_brand_html(),
         )
         + '<nav class="site-header__nav" aria-label="Primary">'
         + _nav_anchor_link(anchor="pricing", class_name="site-header__link", text="Pricing")

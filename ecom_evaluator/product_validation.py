@@ -6,6 +6,7 @@ import re
 from dataclasses import dataclass
 
 from ecom_evaluator.product_links import ProductLinkInfo
+from ecom_evaluator.ui.branding import BRAND_NAME
 
 _PRODUCT_EXAMPLES = (
     "Portable neck fan",
@@ -221,7 +222,7 @@ def validate_product_name(
         word = words[0] if words else lowered
         if word in _NON_PRODUCT_TERMS or word in _VAGUE_PRODUCT_TERMS:
             reason = (
-                f'"{name}" is too vague to evaluate. ProductScore needs a specific product '
+                f'"{name}" is too vague to evaluate. {BRAND_NAME} needs a specific product '
                 "you could source and sell — not a generic word or category."
             )
         else:
@@ -310,7 +311,7 @@ def _invalid_name_message(*, entered: str, reason: str) -> str:
         "",
         f'You entered: "{entered}"',
         "",
-        "ProductScore only runs on identifiable products — not guesses. "
+        f"{BRAND_NAME} only runs on identifiable products — not guesses. "
         "Use a specific listing-style title such as "
         f"{examples}.",
     ]
