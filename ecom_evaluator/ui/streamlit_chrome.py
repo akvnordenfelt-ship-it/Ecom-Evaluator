@@ -83,16 +83,6 @@ a[href*="streamlit.io/community/profile"],
     opacity: 0 !important;
     pointer-events: none !important;
 }
-#ps-cloud-corner-cover {
-    position: fixed !important;
-    right: 0 !important;
-    bottom: 0 !important;
-    width: 80px !important;
-    height: 80px !important;
-    background: #ffffff !important;
-    z-index: 2147483646 !important;
-    pointer-events: none !important;
-}
 """
 
 STREAMLIT_BRANDING_HIDE_CSS = APP_STREAMLIT_HIDE_CSS + CLOUD_BADGE_HIDE_CSS
@@ -126,7 +116,6 @@ _BRANDING_JS = r"""
 (function () {
     const APP_STYLE_ID = "ps-hide-streamlit-app-chrome";
     const CLOUD_STYLE_ID = "ps-hide-streamlit-cloud-badge";
-    const COVER_ID = "ps-cloud-corner-cover";
 
     function injectStyle(doc, css, id) {
         if (!doc || doc.getElementById(id)) return;
@@ -161,21 +150,19 @@ _BRANDING_JS = r"""
         }
     }
 
-    function ensureCornerCover(doc) {
-        if (!doc || !doc.body || isAppDocument(doc)) return;
-        if (doc.getElementById(COVER_ID)) return;
-        const cover = doc.createElement("div");
-        cover.id = COVER_ID;
-        cover.setAttribute("aria-hidden", "true");
-        doc.body.appendChild(cover);
+    function removeLegacyCornerCovers(doc) {
+        if (!doc) return;
+        try {
+            doc.querySelectorAll("#ps-cloud-corner-cover").forEach(function (el) {
+                el.remove();
+            });
+        } catch (e) {}
     }
 
     function hideCloudProfileChips(doc) {
         if (!doc || isAppDocument(doc)) return;
 
         doc.querySelectorAll("a, button, div").forEach(function (el) {
-            if (el.id === COVER_ID) return;
-
             let style;
             try {
                 style = doc.defaultView.getComputedStyle(el);
@@ -241,7 +228,7 @@ _BRANDING_JS = r"""
             injectStyle(doc, cloudCss, CLOUD_STYLE_ID);
             hideMatches(doc, badgeSelectors);
             hideCloudProfileChips(doc);
-            ensureCornerCover(doc);
+            removeLegacyCornerCovers(doc);
         });
     };
 })();

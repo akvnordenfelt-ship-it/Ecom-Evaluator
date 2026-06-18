@@ -19,7 +19,6 @@ def test_cloud_badge_css_is_narrow():
     css = CLOUD_BADGE_HIDE_CSS
     assert "viewerBadge" in css
     assert "creatorBadge" in css or "CreatorBadge" in css
-    assert "ps-cloud-corner-cover" in css
     assert "footer" not in css
     assert "stHeader" not in css
 
