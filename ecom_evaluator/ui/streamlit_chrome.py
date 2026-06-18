@@ -48,7 +48,7 @@ button[kind="header"],
 }
 """
 
-# Streamlit Cloud shell (parent frame) — badge/profile only, never app layout rules.
+# Streamlit Cloud shell (parent frame) — badges + creator profile chip only.
 CLOUD_BADGE_HIDE_CSS = """
 [class*="viewerBadge_container"],
 [class*="viewerBadge_link"],
@@ -57,6 +57,22 @@ CLOUD_BADGE_HIDE_CSS = """
 [class*="viewerBadge"],
 [class*="StyledManageApp"],
 [class*="MadeWithStreamlit"],
+[class*="creatorBadge"],
+[class*="CreatorBadge"],
+[class*="profileBadge"],
+[class*="ProfileBadge"],
+[class*="userBadge"],
+[class*="UserBadge"],
+[class*="userAvatar"],
+[class*="UserAvatar"],
+[class*="creatorChip"],
+[class*="CreatorChip"],
+[data-testid*="creator"],
+[data-testid*="Creator"],
+[data-testid*="profileBadge"],
+a[href*="discuss.streamlit.io/u/"],
+a[href*="share.streamlit.io/"],
+a[href*="streamlit.io/community/profile"],
 .viewerBadge_container__67w8K,
 .viewerBadge_container__1QSob,
 .styles_viewerBadge__1yB5_,
@@ -65,6 +81,16 @@ CLOUD_BADGE_HIDE_CSS = """
     display: none !important;
     visibility: hidden !important;
     opacity: 0 !important;
+    pointer-events: none !important;
+}
+#ps-cloud-corner-cover {
+    position: fixed !important;
+    right: 0 !important;
+    bottom: 0 !important;
+    width: 80px !important;
+    height: 80px !important;
+    background: #ffffff !important;
+    z-index: 2147483646 !important;
     pointer-events: none !important;
 }
 """
@@ -79,12 +105,28 @@ _BADGE_SELECTORS = [
     '[class*="viewerBadge"]',
     '[class*="StyledManageApp"]',
     '[class*="MadeWithStreamlit"]',
+    '[class*="creatorBadge"]',
+    '[class*="CreatorBadge"]',
+    '[class*="profileBadge"]',
+    '[class*="ProfileBadge"]',
+    '[class*="userBadge"]',
+    '[class*="UserBadge"]',
+    '[class*="userAvatar"]',
+    '[class*="UserAvatar"]',
+    '[class*="creatorChip"]',
+    '[class*="CreatorChip"]',
+    '[data-testid*="creator"]',
+    '[data-testid*="Creator"]',
+    '[data-testid*="profileBadge"]',
+    'a[href*="discuss.streamlit.io/u/"]',
+    'a[href*="share.streamlit.io/"]',
 ]
 
 _BRANDING_JS = r"""
 (function () {
     const APP_STYLE_ID = "ps-hide-streamlit-app-chrome";
     const CLOUD_STYLE_ID = "ps-hide-streamlit-cloud-badge";
+    const COVER_ID = "ps-cloud-corner-cover";
 
     function injectStyle(doc, css, id) {
         if (!doc || doc.getElementById(id)) return;
@@ -94,23 +136,86 @@ _BRANDING_JS = r"""
         (doc.head || doc.documentElement).appendChild(style);
     }
 
+    function hideNode(el) {
+        if (!el) return;
+        el.style.setProperty("display", "none", "important");
+        el.style.setProperty("visibility", "hidden", "important");
+        el.style.setProperty("opacity", "0", "important");
+        el.style.setProperty("pointer-events", "none", "important");
+    }
+
     function hideMatches(doc, selectors) {
         if (!doc) return;
         selectors.forEach(function (sel) {
             try {
-                doc.querySelectorAll(sel).forEach(function (el) {
-                    el.style.setProperty("display", "none", "important");
-                    el.style.setProperty("visibility", "hidden", "important");
-                    el.style.setProperty("pointer-events", "none", "important");
-                });
+                doc.querySelectorAll(sel).forEach(hideNode);
             } catch (e) {}
+        });
+    }
+
+    function isAppDocument(doc) {
+        try {
+            return !!doc.querySelector('[data-testid="stApp"], .stApp');
+        } catch (e) {
+            return false;
+        }
+    }
+
+    function ensureCornerCover(doc) {
+        if (!doc || !doc.body || isAppDocument(doc)) return;
+        if (doc.getElementById(COVER_ID)) return;
+        const cover = doc.createElement("div");
+        cover.id = COVER_ID;
+        cover.setAttribute("aria-hidden", "true");
+        doc.body.appendChild(cover);
+    }
+
+    function hideCloudProfileChips(doc) {
+        if (!doc || isAppDocument(doc)) return;
+
+        doc.querySelectorAll("a, button, div").forEach(function (el) {
+            if (el.id === COVER_ID) return;
+
+            let style;
+            try {
+                style = doc.defaultView.getComputedStyle(el);
+            } catch (e) {
+                return;
+            }
+
+            if (style.position !== "fixed" && style.position !== "absolute") return;
+
+            const rect = el.getBoundingClientRect();
+            if (rect.width > 96 || rect.height > 96 || rect.width < 6) return;
+
+            const vw = doc.documentElement.clientWidth || 0;
+            const vh = doc.documentElement.clientHeight || 0;
+            if (rect.right < vw - 100 || rect.bottom < vh - 100) return;
+
+            const href = (el.getAttribute("href") || "").toLowerCase();
+            const aria = (el.getAttribute("aria-label") || "").toLowerCase();
+            const title = (el.getAttribute("title") || "").toLowerCase();
+            const cls = String(el.className || "").toLowerCase();
+            const meta = href + " " + aria + " " + title + " " + cls;
+            const hasAvatar = el.querySelector(
+                'img, svg, picture, [class*="avatar"], [class*="Avatar"]'
+            );
+
+            if (
+                /discuss\.streamlit|share\.streamlit|viewerbadge|creator|profile|user-badge|userbadge/.test(
+                    meta
+                ) ||
+                (hasAvatar && rect.width <= 80 && rect.height <= 80)
+            ) {
+                hideNode(el);
+            }
         });
     }
 
     function parentDocuments() {
         const docs = [];
         let win = window;
-        for (let i = 0; i < 6; i += 1) {
+        for (let i = 0; i < 8; i += 1) {
             try {
                 if (win.document && !docs.includes(win.document)) docs.push(win.document);
                 if (!win.parent || win.parent === win) break;
@@ -119,6 +224,11 @@ _BRANDING_JS = r"""
                 break;
             }
         }
+        try {
+            if (window.top && window.top.document && !docs.includes(window.top.document)) {
+                docs.push(window.top.document);
+            }
+        } catch (e) {}
         return docs;
     }
 
@@ -130,6 +240,8 @@ _BRANDING_JS = r"""
             if (doc === document) return;
             injectStyle(doc, cloudCss, CLOUD_STYLE_ID);
             hideMatches(doc, badgeSelectors);
+            hideCloudProfileChips(doc);
+            ensureCornerCover(doc);
         });
     };
 })();
@@ -149,7 +261,7 @@ def inject_streamlit_branding_hide_css() -> None:
 
 
 def install_streamlit_branding_hide_bridge() -> None:
-    """Hide in-app chrome + Cloud badge in parent frame without touching app layout."""
+    """Hide in-app chrome + Cloud badge/profile in parent frame without touching app layout."""
     components.html(
         f"""
         <script>
@@ -168,9 +280,19 @@ def install_streamlit_branding_hide_bridge() -> None:
             const fast = setInterval(function () {{
                 run();
                 ticks += 1;
-                if (ticks >= 12) clearInterval(fast);
-            }}, 500);
+                if (ticks >= 16) clearInterval(fast);
+            }}, 400);
             setInterval(run, 3000);
+            try {{
+                const win = window.parent;
+                const doc = win.document;
+                if (doc.body) {{
+                    new MutationObserver(run).observe(doc.body, {{
+                        childList: true,
+                        subtree: true,
+                    }});
+                }}
+            }} catch (e) {{}}
         }})();
         </script>
         """,
