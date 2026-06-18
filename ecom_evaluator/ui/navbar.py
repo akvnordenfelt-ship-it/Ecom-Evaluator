@@ -192,6 +192,44 @@ def install_in_app_nav_bridge() -> None:
                 },
                 true
             );
+
+            function setMobileNavOpen(open) {
+                const header = doc.querySelector(".site-header");
+                const btn = doc.querySelector(".site-header__menu-btn");
+                const drawer = doc.querySelector(".site-header__mobile-drawer");
+                const backdrop = doc.querySelector(".site-header__mobile-backdrop");
+                if (!header || !btn) return;
+                header.classList.toggle("is-mobile-open", open);
+                btn.setAttribute("aria-expanded", open ? "true" : "false");
+                if (drawer) drawer.setAttribute("aria-hidden", open ? "false" : "true");
+                if (backdrop) backdrop.setAttribute("aria-hidden", open ? "false" : "true");
+                doc.documentElement.classList.toggle("ps-nav-open", open);
+            }
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const menuBtn = event.target.closest(".site-header__menu-btn");
+                    if (menuBtn) {
+                        event.preventDefault();
+                        const header = doc.querySelector(".site-header");
+                        setMobileNavOpen(header && !header.classList.contains("is-mobile-open"));
+                        return;
+                    }
+                    if (event.target.closest(".site-header__mobile-backdrop")) {
+                        setMobileNavOpen(false);
+                        return;
+                    }
+                    if (
+                        event.target.closest(
+                            ".site-header__mobile-drawer a[data-ps-nav-action], .site-header__mobile-drawer a[data-ps-nav-anchor]"
+                        )
+                    ) {
+                        setMobileNavOpen(false);
+                    }
+                },
+                true
+            );
         })();
         </script>
         """,
@@ -274,7 +312,48 @@ def _authenticated_actions_html(*, email: str, status_label: str, status_class: 
     )
 
 
-def _build_site_header_html(*, actions_html: str) -> str:
+def _mobile_nav_links_html() -> str:
+    return (
+        _nav_anchor_link(anchor="pricing", class_name="site-header__mobile-link", text="Pricing")
+        + _nav_anchor_link(anchor="process", class_name="site-header__mobile-link", text="How it works")
+        + _nav_anchor_link(anchor="sample", class_name="site-header__mobile-link", text="Sample report")
+        + _nav_anchor_link(anchor="resources", class_name="site-header__mobile-link", text="FAQ")
+    )
+
+
+def _guest_mobile_bar_html() -> str:
+    return _nav_action_link(
+        action="signup",
+        class_name="site-header__cta site-header__cta--mobile-bar",
+        text="Start",
+    )
+
+
+def _auth_mobile_bar_html() -> str:
+    return _nav_action_link(
+        action="tool",
+        class_name="site-header__cta site-header__cta--mobile-bar",
+        text="Run",
+    )
+
+
+def _mobile_shell_html(*, drawer_actions_html: str) -> str:
+    return (
+        '<button type="button" class="site-header__menu-btn" aria-label="Open menu" aria-expanded="false">'
+        '<span class="site-header__menu-bar" aria-hidden="true"></span>'
+        '<span class="site-header__menu-bar" aria-hidden="true"></span>'
+        '<span class="site-header__menu-bar" aria-hidden="true"></span>'
+        "</button>"
+        '<div class="site-header__mobile-drawer" aria-hidden="true">'
+        f'<nav class="site-header__mobile-nav" aria-label="Mobile">{_mobile_nav_links_html()}</nav>'
+        f'<div class="site-header__mobile-actions">{drawer_actions_html}</div>'
+        "</div>"
+        '<div class="site-header__mobile-backdrop" aria-hidden="true"></div>'
+    )
+
+
+def _build_site_header_html(*, actions_html: str, logged_in: bool) -> str:
+    mobile_bar = _auth_mobile_bar_html() if logged_in else _guest_mobile_bar_html()
     return (
         '<header class="site-header">'
         '<div class="site-header__bar">'
@@ -284,12 +363,14 @@ def _build_site_header_html(*, actions_html: str) -> str:
             class_name="site-header__brand",
             text=header_brand_html(),
         )
-        + '<nav class="site-header__nav" aria-label="Primary">'
+        + '<nav class="site-header__nav site-header__nav--desktop" aria-label="Primary">'
         + _nav_anchor_link(anchor="pricing", class_name="site-header__link", text="Pricing")
         + f"{_resources_dropdown_html()}"
         + "</nav>"
-        f'<div class="site-header__actions">{actions_html}</div>'
-        "</div>"
+        f'<div class="site-header__actions site-header__actions--desktop">{actions_html}</div>'
+        f'<div class="site-header__actions site-header__actions--mobile">{mobile_bar}</div>'
+        + _mobile_shell_html(drawer_actions_html=actions_html)
+        + "</div>"
         "</div>"
         "</header>"
         '<div class="site-header__spacer" aria-hidden="true"></div>'
@@ -311,4 +392,4 @@ def render_site_navbar() -> None:
         else _guest_actions_html()
     )
 
-    _render_header_html(_build_site_header_html(actions_html=actions))
+    _render_header_html(_build_site_header_html(actions_html=actions, logged_in=logged_in))

@@ -289,17 +289,17 @@ def _render_streamlit_authenticator() -> None:
 def render_auth_screen() -> None:
     """Resend-style centered auth — login and signup."""
     _render_auth_shell_start()
-    _, center, _ = st.columns([1, 1, 1])
-    with center:
-        _render_auth_header()
-        render_auth_error()
+    st.markdown('<div class="auth-form-shell">', unsafe_allow_html=True)
+    _render_auth_header()
+    render_auth_error()
 
-        settings = get_auth_settings()
-        if settings.provider == "streamlit_authenticator":
-            _render_streamlit_authenticator()
-        elif settings.provider == "supabase":
-            _render_supabase_auth()
-        else:
-            _render_dev_auth()
+    settings = get_auth_settings()
+    if settings.provider == "streamlit_authenticator":
+        _render_streamlit_authenticator()
+    elif settings.provider == "supabase":
+        _render_supabase_auth()
+    else:
+        _render_dev_auth()
 
-        _render_auth_footer()
+    _render_auth_footer()
+    st.markdown("</div>", unsafe_allow_html=True)

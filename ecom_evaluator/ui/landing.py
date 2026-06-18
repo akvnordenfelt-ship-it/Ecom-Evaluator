@@ -858,10 +858,10 @@ def render_landing_final_cta(*, show_buttons: bool = True) -> None:
 
     if show_buttons:
         st.markdown('<div class="lp-final-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-        _, bottom_cta, _ = st.columns([1, 1.4, 1])
-        with bottom_cta:
-            if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
-                request_free_evaluation()
+        st.markdown('<div class="lp-primary-cta-wrap">', unsafe_allow_html=True)
+        if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
+            request_free_evaluation()
+        st.markdown("</div>", unsafe_allow_html=True)
 
 
 def render_landing_footnote() -> None:
@@ -878,10 +878,10 @@ def render_landing_page() -> None:
     render_landing_product_carousel()
 
     st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-    _, hero_cta, _ = st.columns([1, 1.4, 1])
-    with hero_cta:
-        if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
-            request_free_evaluation()
+    st.markdown('<div class="lp-primary-cta-wrap">', unsafe_allow_html=True)
+    if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
+        request_free_evaluation()
+    st.markdown("</div>", unsafe_allow_html=True)
 
     render_landing_at_a_glance()
     render_landing_body()

@@ -23,6 +23,7 @@ from ecom_evaluator.ui.theme import form_section_header, tool_workspace_hero
 
 
 def render_app_header(*, hide_api_status: bool = False) -> None:
+    st.markdown('<div class="app-header-marker"></div>', unsafe_allow_html=True)
     top_left, top_right = st.columns([3, 1])
     with top_left:
         st.markdown(
