@@ -65,6 +65,8 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     ),
 )
 
+_HERO_AVATAR_IDS: tuple[int, ...] = (12, 32, 45, 68)
+
 _REVIEWS: tuple[tuple[str, str, str], ...] = (
     (
         "Crow Metrics saved me from launching a saturated product. The red-flag section alone was worth it.",
@@ -82,6 +84,14 @@ _REVIEWS: tuple[tuple[str, str, str], ...] = (
         "DTC founder",
     ),
 )
+
+
+def _hero_avatars_html() -> str:
+    faces = []
+    for avatar_id in _HERO_AVATAR_IDS:
+        src = html.escape(f"https://i.pravatar.cc/96?img={avatar_id}", quote=True)
+        faces.append(f'<img class="cm-avatar" src="{src}" alt="" loading="lazy" />')
+    return f'<span class="cm-avatars" aria-hidden="true">{"".join(faces)}</span>'
 
 
 def _score_tone(score: int) -> str:
@@ -495,7 +505,7 @@ def render_landing_hero() -> None:
         '<div class="cm-hero-grid">'
         '<div class="cm-hero-copy">'
         '<span class="cm-kicker cm-animate-in">🛡 Brutally honest AI product evaluations</span>'
-        '<h1 class="cm-title cm-animate-in cm-animate-in-delay-1">No Hype. No Bias. Just <span class="cm-accent">Brutal</span> Truth.</h1>'
+        '<h1 class="cm-title cm-title--hero cm-animate-in cm-animate-in-delay-1">Know if a<br>product is<br><span class="cm-accent">worth selling.</span></h1>'
         f'<p class="cm-lead cm-animate-in cm-animate-in-delay-2">Stop wasting money on products that look good on paper. {brand} uses real market data from 10+ sources to tell you what to launch — and what to walk away from.</p>'
         '<ul class="cm-hero-bullets cm-animate-in cm-animate-in-delay-2">'
         "<li><span>✓</span> Real data from 10+ sources</li>"
@@ -504,11 +514,8 @@ def render_landing_hero() -> None:
         "</ul>"
         '<a class="cm-cta cm-cta--lg cm-animate-in cm-animate-in-delay-3" href="#">Start Your Free Evaluation →</a>'
         '<div class="cm-hero-social cm-animate-in cm-animate-in-delay-4">'
-        '<span class="cm-avatars" aria-hidden="true">'
-        '<span class="cm-avatar"></span><span class="cm-avatar cm-avatar--b"></span>'
-        '<span class="cm-avatar cm-avatar--c"></span><span class="cm-avatar cm-avatar--d"></span>'
-        "</span>"
-        '<span class="cm-stars">★★★★★</span>'
+        + _hero_avatars_html()
+        + '<span class="cm-stars">★★★★★</span>'
         '<span class="cm-social-text">Join 25,000+ entrepreneurs</span>'
         "</div></div>"
         + _hero_card_html()

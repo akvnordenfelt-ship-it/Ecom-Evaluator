@@ -76,10 +76,11 @@ LANDING_V2_CSS = """
 .cm-section--dark .cm-title { color: #FFFFFF; }
 .cm-title em, .cm-title .cm-accent {
     font-style: normal;
-    background: linear-gradient(135deg, var(--cm-blue) 0%, var(--cm-cyan) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    color: transparent;
+    color: var(--cm-blue-bright);
+}
+.cm-title--hero {
+    font-size: clamp(2.1rem, 4.5vw, 3rem);
+    line-height: 1.06;
 }
 .cm-lead {
     font-size: 1.05rem;
@@ -126,7 +127,7 @@ LANDING_V2_CSS = """
 
 /* Hero */
 .cm-hero {
-    padding: 2rem 0 0;
+    padding: 0.35rem 0 0;
     overflow: hidden;
 }
 .cm-hero-grid {
@@ -167,12 +168,12 @@ LANDING_V2_CSS = """
     margin-left: -0.5rem;
     border-radius: 999px;
     border: 2px solid #FFFFFF;
-    background: linear-gradient(135deg, #93C5FD, #3B82F6);
+    object-fit: cover;
+    background: #E2E8F0;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+    flex-shrink: 0;
 }
 .cm-avatar:first-child { margin-left: 0; }
-.cm-avatar--b { background: linear-gradient(135deg, #F9A8D4, #EC4899); }
-.cm-avatar--c { background: linear-gradient(135deg, #86EFAC, #22C55E); }
-.cm-avatar--d { background: linear-gradient(135deg, #FDE68A, #F59E0B); }
 .cm-stars { color: #FBBF24; font-size: 0.85rem; letter-spacing: 0.05em; }
 .cm-social-text { font-size: 0.84rem; color: var(--cm-muted); font-weight: 500; }
 
@@ -228,13 +229,13 @@ LANDING_V2_CSS = """
     background: #F8FAFC;
 }
 .cm-eval-thumb {
-    width: 3.35rem;
-    height: 3.35rem;
-    border-radius: 12px;
+    width: 5.25rem;
+    height: 5.25rem;
+    border-radius: 14px;
     object-fit: cover;
     background: #F8FAFC;
     flex-shrink: 0;
-    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 2px 10px rgba(15, 23, 42, 0.1);
     transition: transform 0.25s ease;
 }
 .cm-eval-head:hover .cm-eval-thumb { transform: scale(1.04); }

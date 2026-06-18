@@ -330,7 +330,7 @@ def _guest_mobile_bar_html() -> str:
     return _nav_action_link(
         action="signup",
         class_name="site-header__cta site-header__cta--mobile-bar",
-        text="Start",
+        text="Start Free →",
     )
 
 

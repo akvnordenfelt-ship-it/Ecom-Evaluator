@@ -401,21 +401,22 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     align-items: center;
     justify-content: center;
     padding: 0.62rem 1.2rem;
-    border-radius: 999px;
+    border-radius: 12px;
     font-size: 0.9375rem;
     font-weight: 600;
     color: #FFFFFF !important;
     text-decoration: none !important;
     line-height: 1;
     white-space: nowrap;
-    background: linear-gradient(135deg, #2563EB 0%, #1E40AF 52%, #4338CA 100%);
-    box-shadow: 0 1px 2px rgba(30, 64, 175, 0.2), 0 8px 20px rgba(37, 99, 235, 0.28);
+    background: linear-gradient(135deg, #2B59FF 0%, #0052FF 100%);
+    border: 1px solid rgba(0, 82, 255, 0.12);
+    box-shadow: 0 1px 2px rgba(0, 82, 255, 0.15), 0 8px 20px rgba(43, 89, 255, 0.22);
     transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
 }
 .site-header__cta:hover {
-    filter: brightness(1.06);
+    filter: brightness(1.04);
     transform: translateY(-1px);
-    box-shadow: 0 2px 4px rgba(30, 64, 175, 0.22), 0 12px 28px rgba(37, 99, 235, 0.32);
+    box-shadow: 0 2px 4px rgba(0, 82, 255, 0.18), 0 12px 28px rgba(43, 89, 255, 0.28);
     text-decoration: none !important;
 }
 .site-header__cta--compact {
@@ -1134,6 +1135,19 @@ div[data-testid="stTextArea"] textarea:focus {
 .stApp:has(.landing-hero),
 .stApp:has(.cm-page) {
     background-color: #FFFFFF !important;
+}
+.stApp:has(.cm-hero) section[data-testid="stMain"] > div {
+    padding-top: 0 !important;
+}
+.stApp:has(.cm-hero) .block-container {
+    padding-top: 0 !important;
+}
+[data-testid="stMarkdownContainer"]:has(.cm-hero) {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+[data-testid="stVerticalBlock"]:has(.cm-hero) {
+    gap: 0 !important;
 }
 .lp-hero-cta-gap {
     height: 2rem;
