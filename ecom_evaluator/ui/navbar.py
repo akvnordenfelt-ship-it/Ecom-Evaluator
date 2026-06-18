@@ -31,7 +31,7 @@ _NavAction = str | None
 _NavAnchor = str | None
 
 NAV_ACTIONS = ("home", "login", "signup", "tool", "logout")
-NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources")
+NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources", "live-catalog")
 
 
 def _nav_action_link(*, action: str, class_name: str, text: str) -> str:

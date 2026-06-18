@@ -37,15 +37,30 @@ _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
 )
 
 _SCAN_PRODUCTS: tuple[dict[str, str | float | bool], ...] = (
-    {"name": "Massage Gun", "slug": "resistance-bands", "score": 78, "profit": "$12.40", "demand": "+18%"},
-    {"name": "Jewelry Organizer", "slug": "cable-organizer", "score": 63, "profit": "$8.20", "demand": "+6%"},
-    {"name": "USB Blender", "slug": "usb-blender", "score": 84, "profit": "$9.20", "demand": "+14%"},
-    {"name": "Smart Scale", "slug": "smart-scale", "score": 87, "profit": "$21.00", "demand": "+22%"},
-    {"name": "Sleep Mask Headphones", "slug": "sleep-mask-headphones", "score": 32, "profit": "-$2.50", "demand": "-28%"},
-    {"name": "Camping Pillow", "slug": "camping-pillow", "score": 85, "profit": "$13.20", "demand": "+33%"},
-    {"name": "Flame Diffuser", "slug": "flame-diffuser", "score": 89, "profit": "$14.50", "demand": "+41%"},
-    {"name": "Peephole Camera", "slug": "peephole-camera", "score": 88, "profit": "$24.50", "demand": "+52%"},
+    {"name": "Flame Effect Essential Oil Diffuser", "slug": "flame-diffuser", "score": 94, "profit": "$14.50", "demand": "+41%", "category": "HOME & DECOR"},
+    {"name": "Personalized Pet Travel Harness", "slug": "pet-travel-harness", "score": 91, "profit": "$18.20", "demand": "+22%", "category": "PET SUPPLIES"},
+    {"name": "Smart Wireless Peephole Camera", "slug": "peephole-camera", "score": 88, "profit": "$24.50", "demand": "+52%", "category": "HOME SECURITY"},
+    {"name": "Portable USB-C Rechargeable Blender", "slug": "usb-blender", "score": 84, "profit": "$9.20", "demand": "+14%", "category": "SMART KITCHEN"},
+    {"name": "Silicone Baby Bibs with Food Catcher", "slug": "baby-bibs", "score": 81, "profit": "$9.80", "demand": "+19%", "category": "BABY SUPPLIES"},
+    {"name": "Sleep-Tech Smart Scales", "slug": "smart-scale", "score": 76, "profit": "$21.00", "demand": "+22%", "category": "HEALTH & TECH"},
+    {"name": "Electric Jar Opener", "slug": "electric-jar-opener", "score": 69, "profit": "$11.00", "demand": "+18%", "category": "KITCHEN"},
+    {"name": "Inflatable Camping Pillow", "slug": "camping-pillow", "score": 64, "profit": "$13.20", "demand": "+33%", "category": "OUTDOOR"},
+    {"name": "Magnetic Cable Organizer", "slug": "cable-organizer", "score": 52, "profit": "$7.50", "demand": "+6%", "category": "OFFICE"},
+    {"name": "Resistance Loop Bands", "slug": "resistance-bands", "score": 44, "profit": "$0.80", "demand": "-12%", "category": "FITNESS"},
+    {"name": "Bluetooth Sleep Mask Headphones", "slug": "sleep-mask-headphones", "score": 29, "profit": "-$2.50", "demand": "-28%", "category": "ELECTRONICS"},
+    {"name": "Ultrasonic Skin Scrubber", "slug": "skin-scrubber", "score": 18, "profit": "-$4.00", "demand": "-35%", "category": "BEAUTY"},
 )
+
+_LIVE_CATALOG_AISLES: tuple[tuple[str, str, tuple[str, ...]], ...] = (
+    ("Strong opportunities", "strong", ("flame-diffuser", "pet-travel-harness", "peephole-camera", "usb-blender", "baby-bibs")),
+    ("Worth a closer look", "go", ("smart-scale", "electric-jar-opener", "camping-pillow")),
+    ("Proceed with caution", "caution", ("cable-organizer",)),
+    ("High risk — walk away", "walk", ("resistance-bands", "sleep-mask-headphones", "skin-scrubber")),
+)
+
+_LIVE_PRODUCT_BY_SLUG: dict[str, dict[str, str | float | bool]] = {
+    str(item["slug"]): item for item in _SCAN_PRODUCTS
+}
 
 _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     (
@@ -95,33 +110,72 @@ def _hero_avatars_html() -> str:
 
 
 def _score_tone(score: int) -> str:
+    if score >= 90:
+        return "strong"
     if score >= 80:
         return "go"
     if score >= 60:
         return "caution"
-    return "risk"
+    if score >= 40:
+        return "risk"
+    return "walk"
 
 
-def _scan_card(product: dict[str, str | float | bool]) -> str:
+def _score_verdict(score: int) -> str:
+    tone = _score_tone(score)
+    return {
+        "strong": "Strong GO",
+        "go": "GO",
+        "caution": "Caution",
+        "risk": "High Risk",
+        "walk": "Walk Away",
+    }[tone]
+
+
+def _live_product_card_html(*, product: dict[str, str | float | bool], compact: bool = False) -> str:
     score = int(product["score"])
     tone = _score_tone(score)
+    slug_raw = str(product["slug"])
+    slug = html.escape(slug_raw, quote=True)
     name = html.escape(str(product["name"]))
-    slug = html.escape(str(product["slug"]))
+    category = html.escape(str(product.get("category", "PRODUCT")))
     profit = html.escape(str(product["profit"]))
     demand = html.escape(str(product["demand"]))
-    image_url = html.escape(carousel_image_data_uri(str(product["slug"])), quote=True)
+    verdict = html.escape(_score_verdict(score))
+    image_url = html.escape(carousel_image_data_uri(slug_raw), quote=True)
+    profit_class = "is-loss" if str(product["profit"]).strip().startswith("-") else ""
+
+    if compact:
+        return (
+            f'<button type="button" class="cm-catalog-item cm-reveal" data-ps-sample-slug="{slug_raw}" '
+            f'data-score-tier="{tone}">'
+            f'<div class="cm-catalog-item-img">'
+            f'<img src="{image_url}" alt="{name}" loading="lazy" />'
+            f'<span class="cm-catalog-item-score cm-live-card-score--{tone}">{score}</span>'
+            f"</div>"
+            f'<div class="cm-catalog-item-body">'
+            f'<p class="cm-catalog-item-name">{name}</p>'
+            f'<p class="cm-catalog-item-tag">{verdict} · {category}</p>'
+            f"</div></button>"
+        )
+
+    loss_attr = f' class="{profit_class}"' if profit_class else ""
     return (
-        f'<article class="cm-scan-card cm-reveal">'
-        f'<span class="cm-scan-score cm-scan-score--{tone}">{score}</span>'
-        f'<div class="cm-scan-img-wrap">'
+        f'<button type="button" class="cm-live-card cm-reveal" data-ps-sample-slug="{slug_raw}">'
+        f'<span class="cm-live-card-score cm-live-card-score--{tone}">{score}</span>'
+        f'<div class="cm-live-card-img">'
         f'<img src="{image_url}" alt="{name}" loading="lazy" draggable="false" />'
+        f'<span class="cm-live-card-category">{category}</span>'
         f"</div>"
-        f'<div class="cm-scan-body">'
-        f'<h3 class="cm-scan-name">{name}</h3>'
-        f'<div class="cm-scan-meta">'
-        f"<span>Est. Profit <strong>{profit}</strong></span>"
-        f"<span>Demand <strong>{demand}</strong></span>"
-        f"</div></div></article>"
+        f'<div class="cm-live-card-body">'
+        f'<p class="cm-live-card-name">{name}</p>'
+        f'<span class="cm-live-card-verdict cm-live-card-verdict--{tone}">{verdict}</span>'
+        f'<div class="cm-live-card-meta">'
+        f"<span>Est. Profit<strong{loss_attr}>{profit}</strong></span>"
+        f"<span>Demand<strong>{demand}</strong></span>"
+        f"</div>"
+        f'<span class="cm-live-card-action">View evaluation →</span>'
+        f"</div></button>"
     )
 
 
@@ -524,22 +578,88 @@ def render_landing_hero() -> None:
     )
 
 
+def _install_live_catalog_filters() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__cmCatalogFilters) return;
+            win.__cmCatalogFilters = true;
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const btn = event.target.closest(".cm-catalog-filter");
+                    if (!btn) return;
+                    event.preventDefault();
+                    const filter = btn.getAttribute("data-filter") || "all";
+                    doc.querySelectorAll(".cm-catalog-filter").forEach(function (chip) {
+                        chip.classList.toggle("is-active", chip === btn);
+                    });
+                    doc.querySelectorAll(".cm-catalog-item").forEach(function (item) {
+                        const tier = item.getAttribute("data-score-tier") || "";
+                        const show = filter === "all" || tier === filter;
+                        item.classList.toggle("is-hidden", !show);
+                    });
+                },
+                true
+            );
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def render_live_scan_section() -> None:
-    cards = "".join(_scan_card(p) for p in _SCAN_PRODUCTS)
-    track = f'<div class="cm-scan-track">{cards}{cards}</div>'
+    carousel_cards = "".join(_live_product_card_html(product=p) for p in _SCAN_PRODUCTS)
+    track = f'<div class="cm-scan-track">{carousel_cards}{carousel_cards}</div>'
+
+    catalog_items: list[str] = []
+    for aisle_label, _aisle_key, slugs in _LIVE_CATALOG_AISLES:
+        catalog_items.append(f'<p class="cm-catalog-aisle cm-reveal">{html.escape(aisle_label)}</p>')
+        for slug in slugs:
+            product = _LIVE_PRODUCT_BY_SLUG.get(slug)
+            if product:
+                catalog_items.append(_live_product_card_html(product=product, compact=True))
+
+    filter_chips = (
+        '<button type="button" class="cm-catalog-filter is-active" data-filter="all">All products</button>'
+        '<button type="button" class="cm-catalog-filter" data-filter="strong">Strong GO</button>'
+        '<button type="button" class="cm-catalog-filter" data-filter="go">GO</button>'
+        '<button type="button" class="cm-catalog-filter" data-filter="caution">Caution</button>'
+        '<button type="button" class="cm-catalog-filter" data-filter="risk">High risk</button>'
+        '<button type="button" class="cm-catalog-filter" data-filter="walk">Walk away</button>'
+    )
+
     st.markdown(
-        '<section class="cm-section cm-section--tight">'
-        '<div class="cm-page">'
-        '<div class="cm-scan-head cm-reveal">'
-        "<div>"
-        '<span class="cm-kicker">Live market scan</span>'
-        '<h2 class="cm-title" style="font-size:1.65rem;margin-bottom:0.35rem">Products being evaluated right now</h2>'
-        '<p class="cm-lead">Real products. Real data. Updated continuously.</p>'
+        '<section class="cm-live-market">'
+        '<div class="cm-live-inner">'
+        '<div class="cm-live-head cm-reveal">'
+        '<div class="cm-live-head-main">'
+        '<span class="cm-live-pulse"><span class="cm-live-pulse-dot"></span>Live market scan</span>'
+        '<h2 class="cm-live-title">Products being evaluated <span>right now</span></h2>'
+        '<p class="cm-live-lead">Real products. Real data. Updated continuously — click any card to open a full sample evaluation.</p>'
         "</div>"
-        '<a class="cm-scan-link" href="#" data-ps-nav-anchor="sample" target="_self">View all live products →</a>'
+        '<a class="cm-live-cta-link cm-reveal" href="#" data-ps-nav-anchor="live-catalog" target="_self">View all live products →</a>'
+        "</div>"
+        '<div class="cm-live-stats cm-reveal">'
+        '<div class="cm-live-stat"><strong>12</strong><span>Live niches tracked</span></div>'
+        '<div class="cm-live-stat"><strong>1,000+</strong><span>Evaluated today</span></div>'
+        '<div class="cm-live-stat"><strong>94–18</strong><span>Score range (full spread)</span></div>'
+        '<div class="cm-live-stat"><strong>~30 sec</strong><span>Per evaluation</span></div>'
         "</div>"
         f'<div class="cm-scan-shell cm-reveal"><div class="cm-scan-viewport">{track}</div></div>'
-        "</div></section>",
+        '<div class="cm-live-catalog" id="section-live-catalog">'
+        '<div class="cm-catalog-head cm-reveal">'
+        '<h3 class="cm-catalog-title">Live product <span>marketplace</span></h3>'
+        f'<div class="cm-catalog-filters">{filter_chips}</div>'
+        "</div>"
+        f'<div class="cm-catalog-grid">{"".join(catalog_items)}</div>'
+        "</div></div></section>",
         unsafe_allow_html=True,
     )
 
@@ -882,5 +1002,6 @@ def render_landing_page() -> None:
     _install_scroll_reveal()
     _install_eval_card_animations()
     _install_scan_carousel()
+    _install_live_catalog_filters()
     _scroll_to_anchor_if_needed()
     maybe_show_carousel_sample_dialog()
