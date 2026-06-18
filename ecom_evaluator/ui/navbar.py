@@ -1,4 +1,4 @@
-"""Global site navigation bar — fixed top header with drawer navigation."""
+"""Global site navigation bar — Jungle Scout-style SaaS header."""
 
 from __future__ import annotations
 
@@ -291,74 +291,69 @@ def _resources_dropdown_html() -> str:
     )
 
 
-def _guest_primary_cta_html() -> str:
-    return _nav_action_link(action="signup", class_name="site-header__cta", text="Start Free")
-
-
-def _auth_primary_cta_html() -> str:
-    return _nav_action_link(
-        action="tool",
-        class_name="site-header__cta site-header__cta--compact",
-        text="Run evaluation",
-    )
-
-
-def _guest_drawer_actions_html() -> str:
+def _guest_actions_html() -> str:
     return (
         _nav_action_link(action="login", class_name="site-header__login", text="Log in")
-        + _nav_action_link(action="signup", class_name="site-header__cta", text="Start Free")
+        + _nav_action_link(action="signup", class_name="site-header__cta", text="Get started")
     )
 
 
-def _authenticated_drawer_actions_html(*, email: str, status_label: str, status_class: str) -> str:
+def _authenticated_actions_html(*, email: str, status_label: str, status_class: str) -> str:
     return (
-        f'<div class="site-header__mobile-meta">'
         f'<span class="site-header__user">{html.escape(email)}</span>'
         f'<span class="check-row check-row--{status_class} site-header__quota">'
         f'<span class="check-dot"></span>{html.escape(status_label)}</span>'
-        f"</div>"
-        + _auth_primary_cta_html()
+        + _nav_action_link(
+            action="tool",
+            class_name="site-header__cta site-header__cta--compact",
+            text="Run evaluation",
+        )
         + _nav_action_link(action="logout", class_name="site-header__text-action", text="Log out")
     )
 
 
 def _mobile_nav_links_html() -> str:
     return (
-        '<p class="site-header__mobile-kicker">Explore</p>'
-        + _nav_anchor_link(anchor="pricing", class_name="site-header__mobile-link", text="Pricing")
+        _nav_anchor_link(anchor="pricing", class_name="site-header__mobile-link", text="Pricing")
         + _nav_anchor_link(anchor="process", class_name="site-header__mobile-link", text="How it works")
         + _nav_anchor_link(anchor="sample", class_name="site-header__mobile-link", text="Sample report")
         + _nav_anchor_link(anchor="resources", class_name="site-header__mobile-link", text="FAQ")
-        + _nav_action_link(action="tool", class_name="site-header__mobile-link", text="Run evaluation")
     )
 
 
-def _menu_button_html() -> str:
+def _guest_mobile_bar_html() -> str:
+    return _nav_action_link(
+        action="signup",
+        class_name="site-header__cta site-header__cta--mobile-bar",
+        text="Start",
+    )
+
+
+def _auth_mobile_bar_html() -> str:
+    return _nav_action_link(
+        action="tool",
+        class_name="site-header__cta site-header__cta--mobile-bar",
+        text="Run",
+    )
+
+
+def _mobile_shell_html(*, drawer_actions_html: str) -> str:
     return (
         '<button type="button" class="site-header__menu-btn" aria-label="Open menu" aria-expanded="false">'
         '<span class="site-header__menu-bar" aria-hidden="true"></span>'
         '<span class="site-header__menu-bar" aria-hidden="true"></span>'
         '<span class="site-header__menu-bar" aria-hidden="true"></span>'
         "</button>"
-    )
-
-
-def _mobile_drawer_shell_html(*, drawer_actions_html: str) -> str:
-    return (
         '<div class="site-header__mobile-drawer" aria-hidden="true">'
-        f'<nav class="site-header__mobile-nav" aria-label="Site">{_mobile_nav_links_html()}</nav>'
+        f'<nav class="site-header__mobile-nav" aria-label="Mobile">{_mobile_nav_links_html()}</nav>'
         f'<div class="site-header__mobile-actions">{drawer_actions_html}</div>'
         "</div>"
         '<div class="site-header__mobile-backdrop" aria-hidden="true"></div>'
     )
 
 
-def _header_controls_html(*, logged_in: bool) -> str:
-    primary = _auth_primary_cta_html() if logged_in else _guest_primary_cta_html()
-    return f'<div class="site-header__controls">{primary}{_menu_button_html()}</div>'
-
-
-def _build_site_header_html(*, drawer_actions_html: str, logged_in: bool) -> str:
+def _build_site_header_html(*, actions_html: str, logged_in: bool) -> str:
+    mobile_bar = _auth_mobile_bar_html() if logged_in else _guest_mobile_bar_html()
     return (
         '<header class="site-header">'
         '<div class="site-header__bar">'
@@ -368,8 +363,13 @@ def _build_site_header_html(*, drawer_actions_html: str, logged_in: bool) -> str
             class_name="site-header__brand",
             text=header_brand_html(),
         )
-        + _header_controls_html(logged_in=logged_in)
-        + _mobile_drawer_shell_html(drawer_actions_html=drawer_actions_html)
+        + '<nav class="site-header__nav site-header__nav--desktop" aria-label="Primary">'
+        + _nav_anchor_link(anchor="pricing", class_name="site-header__link", text="Pricing")
+        + f"{_resources_dropdown_html()}"
+        + "</nav>"
+        f'<div class="site-header__actions site-header__actions--desktop">{actions_html}</div>'
+        f'<div class="site-header__actions site-header__actions--mobile">{mobile_bar}</div>'
+        + _mobile_shell_html(drawer_actions_html=actions_html)
         + "</div>"
         "</div>"
         "</header>"
@@ -378,20 +378,18 @@ def _build_site_header_html(*, drawer_actions_html: str, logged_in: bool) -> str
 
 
 def render_site_navbar() -> None:
-    """Render the fixed top navigation bar."""
+    """Render a fixed Jungle Scout-style top navigation bar."""
     logged_in = is_authenticated()
     user = get_current_user()
 
-    drawer_actions = (
-        _authenticated_drawer_actions_html(
+    actions = (
+        _authenticated_actions_html(
             email=user.email,
             status_label=evaluations_status_label(),
             status_class="done" if user_can_run() else "pending",
         )
         if logged_in and user
-        else _guest_drawer_actions_html()
+        else _guest_actions_html()
     )
 
-    _render_header_html(
-        _build_site_header_html(drawer_actions_html=drawer_actions, logged_in=logged_in and user is not None)
-    )
+    _render_header_html(_build_site_header_html(actions_html=actions, logged_in=logged_in))

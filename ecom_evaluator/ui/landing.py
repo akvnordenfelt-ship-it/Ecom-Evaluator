@@ -677,7 +677,141 @@ def _install_scroll_reveal() -> None:
     )
 
 
-def _scroll_to_anchor_if_needed() -> None:
+_HERO_PREVIEW_SLUG = "usb-blender"
+
+_HERO_METRICS: tuple[tuple[str, str, int, str], ...] = (
+    ("📈", "Market Demand", 92, "blue"),
+    ("💰", "Profitability", 85, "blue"),
+    ("⚔️", "Competition", 71, "blue"),
+    ("⚠️", "Saturation Risk", 38, "amber"),
+    ("🏭", "Supplier Score", 82, "blue"),
+)
+
+
+def _hero_metric_row(*, icon: str, label: str, score: int, tone: str) -> str:
+    tone_class = "is-amber" if tone == "amber" else ""
+    return (
+        f'<div class="lp-hero-metric">'
+        f'<span class="lp-hero-metric-icon">{html.escape(icon)}</span>'
+        f"<div>"
+        f'<p class="lp-hero-metric-label">{html.escape(label)}</p>'
+        f'<div class="lp-hero-metric-bar"><i class="{tone_class}" style="width:{score}%"></i></div>'
+        f"</div>"
+        f'<span class="lp-hero-metric-score">{score}/100</span>'
+        f"</div>"
+    )
+
+
+def _hero_preview_card_html() -> str:
+    image_url = html.escape(carousel_image_data_uri(_HERO_PREVIEW_SLUG), quote=True)
+    metrics = "".join(
+        _hero_metric_row(icon=icon, label=label, score=score, tone=tone)
+        for icon, label, score, tone in _HERO_METRICS
+    )
+    return (
+        '<div class="lp-hero-preview">'
+        '<div class="lp-hero-card">'
+        '<div class="lp-hero-card-head">'
+        f'<img class="lp-hero-card-thumb" src="{image_url}" alt="Portable USB-C Rechargeable Blender" loading="lazy" />'
+        '<div class="lp-hero-card-meta">'
+        '<p class="lp-hero-card-name">Portable USB-C Rechargeable Blender</p>'
+        '<div class="lp-hero-card-badges">'
+        '<span class="lp-hero-score-pill">8.4 / 10</span>'
+        '<span class="lp-hero-trend-pill">↗ +14% Demand this month</span>'
+        "</div></div></div>"
+        '<div class="lp-hero-card-stats">'
+        '<div><p class="lp-hero-stat-label">Est. Net Profit</p>'
+        '<p class="lp-hero-stat-value lp-hero-stat-value--green">$920 / mo</p></div>'
+        '<div><p class="lp-hero-stat-label">Gross Margin</p>'
+        '<p class="lp-hero-stat-value">58%</p></div>'
+        "</div>"
+        '<div class="lp-hero-card-body">'
+        '<div class="lp-hero-score-ring" style="--score:89"><span>89</span></div>'
+        "<div>"
+        '<p class="lp-hero-verdict-kicker">Overall score</p>'
+        '<p class="lp-hero-verdict-title">High potential</p>'
+        '<p class="lp-hero-verdict-copy">Strong demand and healthy margins with manageable competition.</p>'
+        '<span class="lp-hero-go-pill">GO</span>'
+        "</div></div>"
+        f'<div class="lp-hero-metrics">{metrics}</div>'
+        '<a class="lp-hero-card-footer" href="#" data-ps-nav-anchor="sample" target="_self">View Full Report →</a>'
+        "</div></div>"
+    )
+
+
+def _hero_features_html() -> str:
+    return (
+        '<div class="lp-hero-features">'
+        '<div class="lp-hero-feature">'
+        '<span class="lp-hero-feature-icon">⏱</span>'
+        '<p class="lp-hero-feature-title">~30 seconds</p>'
+        '<p class="lp-hero-feature-desc">From upload to full preview</p>'
+        "</div>"
+        '<div class="lp-hero-feature">'
+        '<span class="lp-hero-feature-icon">📋</span>'
+        '<p class="lp-hero-feature-title">2 sections free</p>'
+        '<p class="lp-hero-feature-desc">Profile, core metrics &amp; red flags</p>'
+        "</div>"
+        f'<div class="lp-hero-feature">'
+        f'<span class="lp-hero-feature-icon">🎁</span>'
+        f'<p class="lp-hero-feature-title">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations</p>'
+        f'<p class="lp-hero-feature-desc">Per account, no credit card</p>'
+        f"</div>"
+        '<div class="lp-hero-feature">'
+        '<span class="lp-hero-feature-icon">🛡</span>'
+        '<p class="lp-hero-feature-title">Upgrade anytime</p>'
+        '<p class="lp-hero-feature-desc">Unlock full report, unlimited evaluations</p>'
+        "</div></div>"
+    )
+
+
+def _install_landing_hero_cta_bridge() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (win.__psLandingHeroCtaInstalled) return;
+            win.__psLandingHeroCtaInstalled = true;
+
+            function clickHeroCta(attempt) {
+                const tries = attempt || 0;
+                const host = doc.querySelector('[class*="st-key-landing_hero_cta"]');
+                if (!host) {
+                    if (tries < 8) {
+                        win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
+                    }
+                    return;
+                }
+                const button = host.querySelector("button");
+                if (!button) {
+                    if (tries < 8) {
+                        win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
+                    }
+                    return;
+                }
+                button.click();
+            }
+
+            doc.addEventListener(
+                "click",
+                function (event) {
+                    const link = event.target.closest(".lp-hero-cta");
+                    if (!link) return;
+                    event.preventDefault();
+                    event.stopImmediatePropagation();
+                    clickHeroCta(0);
+                },
+                true
+            );
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
     anchor = st.session_state.pop("landing_anchor", None)
     if not anchor:
         return
@@ -699,43 +833,55 @@ def _scroll_to_anchor_if_needed() -> None:
 
 
 def render_landing_hero() -> None:
+    brand = html.escape(BRAND_NAME)
     st.markdown(
-        f'<div class="landing-wrap"><div class="landing-hero">'
-        f'<p class="landing-kicker lp-reveal-hero">Shark Tank-grade analysis</p>'
-        f'<h1 class="landing-title lp-reveal-hero lp-reveal-delay-1">Know if your product can win — before you spend a dollar</h1>'
-        f'<p class="landing-lead lp-reveal-hero lp-reveal-delay-2">Upload your product, enter your numbers, and get a sharp profile + red-flag analysis in ~30 seconds. '
-        f"Free preview covers Sections 1–2. Upgrade to Premium for the financial verdict and full execution stack.</p>"
-        f'<div class="lp-hero-badges lp-reveal-hero lp-reveal-delay-3">'
-        f'<span class="lp-hero-badge">~30 sec preview</span>'
-        f'<span class="lp-hero-badge">{FREE_EVALUATIONS_PER_ACCOUNT} free evals / account</span>'
-        f'<span class="lp-hero-badge">2 sections free</span>'
-        f'<span class="lp-hero-badge">Premium · $29/mo</span>'
-        f"</div></div></div>",
+        '<div class="landing-wrap"><section class="landing-hero">'
+        '<div class="lp-hero-grid">'
+        '<div class="lp-hero-copy">'
+        '<span class="lp-hero-tag lp-reveal-hero">AI Product Evaluation</span>'
+        '<h1 class="lp-hero-title lp-reveal-hero lp-reveal-delay-1">Know if a product is <em>worth selling.</em></h1>'
+        f'<p class="lp-hero-lead lp-reveal-hero lp-reveal-delay-2">Upload any ecommerce product and <strong>{brand}</strong> uses AI to evaluate demand, profitability, competition, suppliers, and risk before you invest.</p>'
+        '<a class="lp-hero-cta lp-reveal-hero lp-reveal-delay-3" href="#">Start Free Evaluation →</a>'
+        '<div class="lp-hero-trust lp-reveal-hero lp-reveal-delay-3">'
+        '<span class="lp-hero-trust-item"><span class="lp-hero-trust-icon">⚡</span>~30 sec preview</span>'
+        '<span class="lp-hero-trust-item"><span class="lp-hero-trust-icon">★</span>No credit card required</span>'
+        "</div>"
+        '<div class="lp-hero-social lp-reveal-hero lp-reveal-delay-3">'
+        '<span class="lp-hero-avatars" aria-hidden="true">'
+        '<span class="lp-hero-avatar lp-hero-avatar--a"></span>'
+        '<span class="lp-hero-avatar lp-hero-avatar--b"></span>'
+        '<span class="lp-hero-avatar lp-hero-avatar--c"></span>'
+        '<span class="lp-hero-avatar lp-hero-avatar--d"></span>'
+        "</span>"
+        '<span class="lp-hero-stars" aria-hidden="true">★★★★★</span>'
+        '<span class="lp-hero-social-text">Trusted by ecommerce founders</span>'
+        "</div></div>"
+        + _hero_preview_card_html()
+        + "</div>"
+        + _hero_features_html()
+        + "</section></div>",
         unsafe_allow_html=True,
     )
 
 
-def render_landing_at_a_glance() -> None:
-    st.markdown(
-        _band_open("glance")
-        + '<div class="lp-section-header lp-reveal"><span class="lp-band-label">At a glance</span>'
-        + '<h2 class="lp-section-header-title">Everything you need to decide fast</h2></div>'
-        + '<div class="lp-value-grid">'
-        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-1"><span class="lp-value-icon">⚡</span>'
-        + '<p class="lp-value-title">~30 seconds</p>'
-        + '<p class="lp-value-desc">From upload to your free profile + red-flag preview</p></div>'
-        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-2"><span class="lp-value-icon">📋</span>'
-        + '<p class="lp-value-title">2 sections free</p>'
-        + '<p class="lp-value-desc">Product profile, core metrics, and Shark Tank red flags</p></div>'
-        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-3"><span class="lp-value-icon">💳</span>'
-        + '<p class="lp-value-title">$0 to start</p>'
-        + f'<p class="lp-value-desc">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations per account — no credit card required</p></div>'
-        + '<div class="lp-value-tile lp-reveal lp-reveal-delay-4"><span class="lp-value-icon">📊</span>'
-        + '<p class="lp-value-title">5 scored metrics</p>'
-        + '<p class="lp-value-desc">Saturation, velocity, logistics, seasonality, and brandability</p></div>'
-        + "</div>"
-        + _band_close(),
-        unsafe_allow_html=True,
+def _scroll_to_anchor_if_needed() -> None:
+    anchor = st.session_state.pop("landing_anchor", None)
+    if not anchor:
+        return
+    components.html(
+        f"""
+        <script>
+        (function () {{
+            const doc = window.parent.document;
+            const el = doc.getElementById("section-{anchor}");
+            if (el) {{
+                el.scrollIntoView({{ behavior: "smooth", block: "start" }});
+            }}
+        }})();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
@@ -874,16 +1020,15 @@ def render_landing_footnote() -> None:
 def render_landing_page() -> None:
     render_hidden_carousel_sample_buttons()
     install_carousel_sample_bridge()
+    _install_landing_hero_cta_bridge()
     render_landing_hero()
-    render_landing_product_carousel()
 
-    st.markdown('<div class="lp-hero-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="lp-primary-cta-wrap">', unsafe_allow_html=True)
-    if st.button("Run your free evaluation →", type="primary", use_container_width=True, key="landing_hero_cta"):
+    st.markdown('<div class="lp-hero-cta-host">', unsafe_allow_html=True)
+    if st.button("Start Free Evaluation →", type="primary", key="landing_hero_cta"):
         request_free_evaluation()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    render_landing_at_a_glance()
+    render_landing_product_carousel()
     render_landing_body()
     render_landing_final_cta()
     render_landing_footnote()
