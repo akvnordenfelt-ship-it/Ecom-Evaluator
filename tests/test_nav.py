@@ -44,9 +44,14 @@ def test_apply_nav_state_anchor(monkeypatch):
 
 
 def test_build_site_header_includes_mobile_menu():
-    from ecom_evaluator.ui.navbar import _build_site_header_html, _guest_actions_html
+    from ecom_evaluator.ui.navbar import _build_site_header_html, _guest_drawer_actions_html
 
-    html = _build_site_header_html(actions_html=_guest_actions_html(), logged_in=False)
+    html = _build_site_header_html(
+        drawer_actions_html=_guest_drawer_actions_html(),
+        logged_in=False,
+    )
+    assert "site-header__controls" in html
+    assert "Start Free" in html
     assert "site-header__menu-btn" in html
     assert "site-header__mobile-drawer" in html
     assert "site-header__mobile-link" in html
