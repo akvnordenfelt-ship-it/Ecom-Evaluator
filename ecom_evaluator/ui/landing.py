@@ -1179,55 +1179,185 @@ def render_report_preview() -> None:
     )
 
 
+_PRO_SVG_CHECK = (
+    '<svg class="cm-pro-icon" viewBox="0 0 20 20" fill="none" aria-hidden="true">'
+    '<path d="M5 10.5L8.2 13.7L15 6.8" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round"/>'
+    "</svg>"
+)
+_PRO_SVG_MINUS = (
+    '<svg class="cm-pro-icon cm-pro-icon--muted" viewBox="0 0 20 20" fill="none" aria-hidden="true">'
+    '<path d="M6 10h8" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+    "</svg>"
+)
+_PRO_SVG_LOCK = (
+    '<svg class="cm-pro-lock-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+    '<rect x="5" y="11" width="14" height="10" rx="2" stroke="currentColor" stroke-width="1.75"/>'
+    '<path d="M8 11V8a4 4 0 118 0v3" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+    "</svg>"
+)
+
+_PRO_SECTION_ICONS: dict[str, str] = {
+    "product_profile": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M12 3L4 7v10l8 4 8-4V7l-8-4z" stroke="currentColor" stroke-width="1.6" '
+        'stroke-linejoin="round"/>'
+        "</svg>"
+    ),
+    "red_flags": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M12 8v5M12 16h.01" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+        '<path d="M10.3 4.5 2.6 18.1A1.5 1.5 0 004 20h16a1.5 1.5 0 001.4-1.9L13.7 4.5a1.5 1.5 0 00-2.8 0z" '
+        'stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/>'
+        "</svg>"
+    ),
+    "margin_matrix": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M4 19V5M4 19h16M8 15V9M12 15V7M16 15v-3" stroke="currentColor" stroke-width="1.75" '
+        'stroke-linecap="round"/>'
+        "</svg>"
+    ),
+    "marketing_teaser": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M4 10v4l12 4V6L4 10zm12 0 4-2v8l-4-2" stroke="currentColor" stroke-width="1.6" '
+        'stroke-linejoin="round"/>'
+        "</svg>"
+    ),
+    "web_intelligence": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<circle cx="12" cy="12" r="9" stroke="currentColor" stroke-width="1.6"/>'
+        '<path d="M3 12h18M12 3a14 14 0 010 18M12 3a14 14 0 000 18" stroke="currentColor" stroke-width="1.6"/>'
+        "</svg>"
+    ),
+    "competitor_sentiment": (
+        '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true">'
+        '<path d="M7 9h10M7 13h6" stroke="currentColor" stroke-width="1.75" stroke-linecap="round"/>'
+        '<path d="M6 4h12a2 2 0 012 2v11l-3-2H6a2 2 0 01-2-2V6a2 2 0 012-2z" stroke="currentColor" '
+        'stroke-width="1.6" stroke-linejoin="round"/>'
+        "</svg>"
+    ),
+}
+
+
+def _pro_feature_row(*, label: str, included: bool) -> str:
+    icon = _PRO_SVG_CHECK if included else _PRO_SVG_MINUS
+    state = "is-included" if included else "is-muted"
+    return (
+        f'<li class="cm-pro-feature {state}">{icon}'
+        f"<span>{html.escape(label)}</span></li>"
+    )
+
+
+def _pro_section_short_title(title: str) -> str:
+    if "&" in title:
+        return title.split("&", maxsplit=1)[0].strip()
+    return title
+
+
+def _pro_section_tile(*, section_id: str, number: int, title: str, subtitle: str, locked: bool) -> str:
+    icon = _PRO_SECTION_ICONS.get(section_id, _PRO_SECTION_ICONS["product_profile"])
+    short = html.escape(_pro_section_short_title(title))
+    sub = html.escape(subtitle)
+    lock_class = " is-locked" if locked else ""
+    lock_overlay = (
+        f'<div class="cm-pro-tile-lock">{_PRO_SVG_LOCK}<span>Premium</span></div>'
+        '<div class="cm-pro-tile-shimmer" aria-hidden="true"></div>'
+        if locked
+        else ""
+    )
+    preview = (
+        '<div class="cm-pro-tile-preview" aria-hidden="true">'
+        '<span></span><span></span><span></span>'
+        "</div>"
+        if locked
+        else f'<p class="cm-pro-tile-sub">{sub}</p>'
+    )
+    return (
+        f'<article class="cm-pro-tile{lock_class} cm-reveal">'
+        f'<div class="cm-pro-tile-icon">{icon}</div>'
+        f'<p class="cm-pro-tile-num">Section {number}</p>'
+        f'<h4 class="cm-pro-tile-title">{short}</h4>'
+        f"{preview}"
+        f"{lock_overlay}"
+        f"</article>"
+    )
+
+
 def render_unlock_premium() -> None:
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
-    free_checks = (
-        '<div class="cm-check-row"><span>✓</span> Sections 1–2 (profile + red flags)</div>'
-        '<div class="cm-check-row"><span>✓</span> Weighted 5-metric score</div>'
-        f'<div class="cm-check-row"><span>✓</span> {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations</div>'
-        '<div class="cm-check-row is-no"><span>—</span> Financial GO/NO-GO verdict</div>'
-        '<div class="cm-check-row is-no"><span>—</span> Live web intelligence</div>'
+    free_features = (
+        _pro_feature_row(label="Sections 1–2 (profile + red flags)", included=True),
+        _pro_feature_row(label="Weighted 5-metric score", included=True),
+        _pro_feature_row(
+            label=f"{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations",
+            included=True,
+        ),
+        _pro_feature_row(label="Financial GO/NO-GO verdict", included=False),
+        _pro_feature_row(label="Live web intelligence", included=False),
     )
-    premium_checks = (
-        '<div class="cm-check-row"><span>✓</span> All 6 sections unlocked</div>'
-        '<div class="cm-check-row"><span>✓</span> Unlimited evaluations</div>'
-        '<div class="cm-check-row"><span>✓</span> Full financial matrix</div>'
-        '<div class="cm-check-row"><span>✓</span> Marketing blueprint + ad intel</div>'
-        '<div class="cm-check-row"><span>✓</span> Competitor sentiment analysis</div>'
+    premium_features = (
+        _pro_feature_row(label="All 6 sections unlocked", included=True),
+        _pro_feature_row(label="Unlimited evaluations", included=True),
+        _pro_feature_row(label="Full financial matrix", included=True),
+        _pro_feature_row(label="Marketing blueprint + ad intel", included=True),
+        _pro_feature_row(label="Competitor sentiment analysis", included=True),
     )
-    section_cards = ""
-    for section in REPORT_SECTIONS:
-        locked = section.number > 2
-        section_cards += (
-            f'<div class="cm-section-mini{" is-locked" if locked else ""}">'
-            f'<p class="cm-section-mini-num">Section {section.number}</p>'
-            f'<p class="cm-section-mini-title">{html.escape(section.title.split("&")[0].strip())}</p>'
-            f"</div>"
+    section_tiles = "".join(
+        _pro_section_tile(
+            section_id=section.id,
+            number=section.number,
+            title=section.title,
+            subtitle=section.subtitle,
+            locked=section.number > 2,
         )
+        for section in REPORT_SECTIONS
+    )
+    price = premium.price_usd_monthly
+
     st.markdown(
-        f'<section class="cm-section cm-section--tight" id="section-pricing">'
-        f'<div class="cm-page">'
-        f'<div class="cm-section-head cm-reveal">'
-        f'<span class="cm-kicker">Premium</span>'
-        f'<h2 class="cm-title">Go beyond the preview. Get the <span class="cm-accent">full investigation</span></h2>'
+        f'<section class="cm-pro" id="section-pricing">'
+        f'<div class="cm-pro-inner">'
+        f'<header class="cm-pro-head cm-reveal">'
+        f'<span class="cm-pro-badge">Premium</span>'
+        f'<h2 class="cm-pro-title">Go beyond the preview.<br><span>Get the full investigation.</span></h2>'
+        f'<p class="cm-pro-lead">Every evaluation ships with brutal honesty built in. Premium unlocks the '
+        f"complete six-section dossier — margin math, marketing intel, live web data, and competitor sentiment.</p>"
+        f"</header>"
+        f'<div class="cm-pro-showcase cm-reveal">'
+        f'<div class="cm-pro-compare">'
+        f'<article class="cm-pro-plan cm-pro-plan--premium">'
+        f'<span class="cm-pro-plan-ribbon">Recommended</span>'
+        f'<p class="cm-pro-plan-label">Premium</p>'
+        f'<p class="cm-pro-plan-price">${price}<span>/mo</span></p>'
+        f'<ul class="cm-pro-features">{"".join(premium_features)}</ul>'
+        f"</article>"
+        f'<article class="cm-pro-plan cm-pro-plan--free">'
+        f'<p class="cm-pro-plan-label">Free</p>'
+        f'<p class="cm-pro-plan-price">$0</p>'
+        f'<ul class="cm-pro-features">{"".join(free_features)}</ul>'
+        f"</article>"
         f"</div>"
-        f'<div class="cm-premium-grid">'
-        f'<div class="cm-reveal">'
-        f'<div class="cm-premium-checklist" style="margin-bottom:1rem"><h3>Free</h3>{free_checks}</div>'
-        f'<div class="cm-premium-checklist"><h3>Premium</h3>{premium_checks}</div>'
+        f'<div class="cm-pro-sections">'
+        f'<div class="cm-pro-sections-head">'
+        f'<p class="cm-pro-sections-kicker">Report architecture</p>'
+        f'<h3 class="cm-pro-sections-title">Six sections. One verdict.</h3>'
         f"</div>"
-        f'<div class="cm-section-cards cm-reveal">{section_cards}</div>'
+        f'<div class="cm-pro-tile-grid">{section_tiles}</div>'
         f"</div>"
-        f'<div class="cm-pricing-bar cm-reveal">'
-        f'<div class="cm-pricing-points">'
-        f"<span>✓ Unlimited product evaluations</span>"
-        f"<span>✓ All 6 sections for every report</span>"
-        f"<span>✓ Cancel anytime</span>"
         f"</div>"
-        f'<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">'
-        f'<p class="cm-pricing-price">Only ${premium.price_usd_monthly}<span>/month</span></p>'
-        f'<a class="cm-cta" href="#">Unlock Full Report →</a>'
-        f"</div></div></div></section>",
+        f'<div class="cm-pro-cta cm-reveal">'
+        f'<div class="cm-pro-cta-copy">'
+        f'<p class="cm-pro-cta-kicker">Upgrade when the preview is not enough</p>'
+        f'<p class="cm-pro-cta-price">${price}<span>/month</span></p>'
+        f'<ul class="cm-pro-cta-points">'
+        f"<li>{_PRO_SVG_CHECK}<span>Unlimited product evaluations</span></li>"
+        f"<li>{_PRO_SVG_CHECK}<span>All 6 sections on every report</span></li>"
+        f"<li>{_PRO_SVG_CHECK}<span>Cancel anytime</span></li>"
+        f"</ul>"
+        f"</div>"
+        f'<a class="cm-pro-cta-btn" href="#">Unlock Full Report</a>'
+        f"</div>"
+        f"</div></section>",
         unsafe_allow_html=True,
     )
 
