@@ -11,6 +11,7 @@ from ecom_evaluator.plans import PLAN_CONFIG, PlanTier, coerce_plan_tier, get_pl
 APP_VIEW_LANDING = "landing"
 APP_VIEW_AUTH = "auth"
 APP_VIEW_TOOL = "tool"
+APP_VIEW_LIVE_CATALOG = "live_catalog"
 
 
 def get_subscription_tier() -> PlanTier:

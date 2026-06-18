@@ -13,6 +13,7 @@ from ecom_evaluator.ui.branding import header_brand_html
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
     APP_VIEW_LANDING,
+    APP_VIEW_LIVE_CATALOG,
     APP_VIEW_TOOL,
     evaluations_status_label,
     user_can_run,
@@ -30,8 +31,8 @@ _CHEVRON_SVG = (
 _NavAction = str | None
 _NavAnchor = str | None
 
-NAV_ACTIONS = ("home", "login", "signup", "tool", "logout")
-NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources", "live-catalog")
+NAV_ACTIONS = ("home", "login", "signup", "tool", "logout", "live_catalog")
+NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources")
 
 
 def _nav_action_link(*, action: str, class_name: str, text: str) -> str:
@@ -69,6 +70,8 @@ def apply_nav_state(*, action: _NavAction = None, anchor: _NavAnchor = None) -> 
         st.session_state["auth_mode"] = "signup"
     elif action == "tool":
         st.session_state["app_view"] = APP_VIEW_TOOL
+    elif action == "live_catalog":
+        st.session_state["app_view"] = APP_VIEW_LIVE_CATALOG
     elif action == "logout":
         logout_user()
         st.session_state["app_view"] = APP_VIEW_LANDING

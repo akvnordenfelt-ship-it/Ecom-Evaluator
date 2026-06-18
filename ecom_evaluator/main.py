@@ -30,7 +30,7 @@ from ecom_evaluator.ui.streamlit_chrome import (
 )
 from ecom_evaluator.ui.dashboard import render_dashboard
 from ecom_evaluator.ui.form import render_evaluation_form
-from ecom_evaluator.ui.landing import render_landing_page
+from ecom_evaluator.ui.landing import render_landing_page, render_live_catalog_page
 from ecom_evaluator.ui.navbar import (
     handle_nav_query,
     install_in_app_nav_bridge,
@@ -48,6 +48,7 @@ from ecom_evaluator.ui.session import (
 )
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
+    APP_VIEW_LIVE_CATALOG,
     APP_VIEW_TOOL,
     get_subscription_tier,
     is_tool_view,
@@ -196,6 +197,8 @@ def main() -> None:
         view = st.session_state.get("app_view", "landing")
         if view == APP_VIEW_AUTH:
             render_auth_screen()
+        elif view == APP_VIEW_LIVE_CATALOG:
+            render_live_catalog_page()
         else:
             render_landing_page()
         return
@@ -203,7 +206,11 @@ def main() -> None:
     sync_user_evaluation_quota()
 
     if not is_tool_view():
-        render_landing_page()
+        view = st.session_state.get("app_view", "landing")
+        if view == APP_VIEW_LIVE_CATALOG:
+            render_live_catalog_page()
+        else:
+            render_landing_page()
         return
 
     has_report = st.session_state.get("analysis_result") is not None

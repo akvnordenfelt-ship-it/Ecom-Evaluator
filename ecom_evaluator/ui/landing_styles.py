@@ -895,6 +895,41 @@ div[class*="st-key-landing_hero_cta"] {
 }
 
 /* Live product catalog (grocery store) */
+.cm-catalog-page {
+    padding: 1.25rem 0 4.5rem;
+    background: linear-gradient(180deg, #F8FAFF 0%, #FFFFFF 38%, #F8FAFC 100%);
+}
+.cm-catalog-back {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-bottom: 1.5rem;
+    font-size: 0.88rem;
+    font-weight: 600;
+    color: #475569;
+    text-decoration: none !important;
+    transition: color 0.2s ease;
+}
+.cm-catalog-back:hover { color: var(--cm-blue-bright); }
+.cm-catalog-page-hero {
+    max-width: 720px;
+    margin-bottom: 2rem;
+}
+.cm-catalog-page-title {
+    margin: 0.75rem 0 0.65rem;
+    font-size: clamp(1.85rem, 4vw, 2.5rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    color: #0A1128;
+    line-height: 1.1;
+}
+.cm-catalog-page-title span { color: var(--cm-blue-bright); }
+.cm-catalog-page-lead {
+    margin: 0;
+    font-size: 1.02rem;
+    line-height: 1.65;
+    color: #64748B;
+}
 .cm-live-catalog {
     scroll-margin-top: calc(var(--ps-nav-h, 76px) + 1rem);
 }

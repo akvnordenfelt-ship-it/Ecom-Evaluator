@@ -17,6 +17,10 @@ from ecom_evaluator.ui.carousel_samples import (
     maybe_show_carousel_sample_dialog,
     render_hidden_carousel_sample_buttons,
 )
+from ecom_evaluator.ui.live_market_stats import (
+    evaluated_today_ticker,
+    format_count,
+)
 from ecom_evaluator.ui.subscription import request_free_evaluation
 
 _HERO_SLUG = "pet-travel-harness"
@@ -479,6 +483,8 @@ def _install_scan_carousel() -> None:
             const win = window.parent;
             const doc = win.document;
             const AUTO_SPEED = 0.35;
+            const FRICTION = 0.94;
+            const MIN_VELOCITY = 0.15;
 
             function initViewport(viewport) {
                 if (viewport.dataset.cmScanReady) return;
@@ -489,6 +495,14 @@ def _install_scan_carousel() -> None:
                 let position = 0;
                 let loopWidth = 0;
                 let paused = false;
+                let dragging = false;
+                let startX = 0;
+                let startPos = 0;
+                let moved = 0;
+                let velocity = 0;
+                let lastX = 0;
+                let lastTime = 0;
+                let momentumId = null;
                 let frame = null;
 
                 function measure() {
@@ -502,20 +516,107 @@ def _install_scan_carousel() -> None:
                 function render() {
                     track.style.transform = "translate3d(" + position + "px,0,0)";
                 }
+                function resumeAuto() {
+                    if (!dragging && momentumId === null) paused = false;
+                }
                 function step() {
-                    if (!paused) {
+                    if (!paused && !dragging && momentumId === null) {
                         position -= AUTO_SPEED;
                         wrap();
                         render();
                     }
                     frame = requestAnimationFrame(step);
                 }
-                viewport.addEventListener("mouseenter", () => { paused = true; });
-                viewport.addEventListener("mouseleave", () => { paused = false; });
+                function stopMomentum() {
+                    if (momentumId !== null) {
+                        cancelAnimationFrame(momentumId);
+                        momentumId = null;
+                    }
+                }
+                function runMomentum() {
+                    let speed = velocity * 18;
+                    function tick() {
+                        if (Math.abs(speed) < MIN_VELOCITY) {
+                            momentumId = null;
+                            resumeAuto();
+                            return;
+                        }
+                        position += speed;
+                        speed *= FRICTION;
+                        wrap();
+                        render();
+                        momentumId = requestAnimationFrame(tick);
+                    }
+                    momentumId = requestAnimationFrame(tick);
+                }
+
+                viewport.addEventListener("pointerdown", function (event) {
+                    if (event.button !== 0 && event.pointerType === "mouse") return;
+                    dragging = true;
+                    paused = true;
+                    moved = 0;
+                    startX = event.clientX;
+                    startPos = position;
+                    lastX = event.clientX;
+                    lastTime = performance.now();
+                    velocity = 0;
+                    stopMomentum();
+                    viewport.setPointerCapture(event.pointerId);
+                    viewport.classList.add("is-grabbing");
+                });
+                viewport.addEventListener("pointermove", function (event) {
+                    if (!dragging) return;
+                    const dx = event.clientX - startX;
+                    moved = Math.max(moved, Math.abs(dx));
+                    position = startPos + dx;
+                    wrap();
+                    render();
+                    const now = performance.now();
+                    const dt = now - lastTime;
+                    if (dt > 0) {
+                        velocity = (event.clientX - lastX) / dt;
+                        lastX = event.clientX;
+                        lastTime = now;
+                    }
+                });
+                function endDrag(event) {
+                    if (!dragging) return;
+                    dragging = false;
+                    viewport.classList.remove("is-grabbing");
+                    try { viewport.releasePointerCapture(event.pointerId); } catch (_) {}
+                    if (moved > 8) {
+                        viewport.dataset.cmDragged = "1";
+                        win.setTimeout(function () { delete viewport.dataset.cmDragged; }, 120);
+                    }
+                    if (Math.abs(velocity) > 0.02) {
+                        runMomentum();
+                    } else {
+                        resumeAuto();
+                    }
+                }
+                viewport.addEventListener("pointerup", endDrag);
+                viewport.addEventListener("pointercancel", endDrag);
+                viewport.addEventListener("mouseenter", function () { paused = true; });
+                viewport.addEventListener("mouseleave", function () {
+                    dragging = false;
+                    stopMomentum();
+                    resumeAuto();
+                });
+                track.addEventListener(
+                    "click",
+                    function (event) {
+                        if (viewport.dataset.cmDragged) {
+                            event.preventDefault();
+                            event.stopImmediatePropagation();
+                        }
+                    },
+                    true
+                );
+
                 measure();
                 render();
                 frame = requestAnimationFrame(step);
-                win.addEventListener("resize", () => { measure(); wrap(); render(); });
+                win.addEventListener("resize", function () { measure(); wrap(); render(); });
             }
 
             function scan() {
@@ -525,8 +626,47 @@ def _install_scan_carousel() -> None:
                 win.__cmScan = { scan };
                 new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
             }
-            requestAnimationFrame(() => requestAnimationFrame(scan));
+            requestAnimationFrame(function () { requestAnimationFrame(scan); });
         })();
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
+def _install_evaluated_today_ticker(*, day_start_ms: int, target: int) -> None:
+    components.html(
+        f"""
+        <script>
+        (function () {{
+            const win = window.parent;
+            const doc = win.document;
+            const DAY_START_MS = {day_start_ms};
+            const TARGET = {target};
+
+            function liveCount() {{
+                const elapsed = Date.now() - DAY_START_MS;
+                const fraction = Math.min(1, Math.max(0, elapsed / 86400000));
+                return Math.floor(TARGET * Math.pow(fraction, 0.88));
+            }}
+            function formatCount(value) {{
+                return value.toLocaleString("en-GB");
+            }}
+            function tick() {{
+                const value = liveCount();
+                doc.querySelectorAll("[data-cm-eval-today]").forEach(function (el) {{
+                    el.textContent = formatCount(value);
+                }});
+            }}
+            if (!win.__cmEvalTicker) {{
+                win.__cmEvalTicker = true;
+                tick();
+                win.setInterval(tick, 15000);
+            }} else {{
+                tick();
+            }}
+        }})();
         </script>
         """,
         height=0,
@@ -614,10 +754,7 @@ def _install_live_catalog_filters() -> None:
     )
 
 
-def render_live_scan_section() -> None:
-    carousel_cards = "".join(_live_product_card_html(product=p) for p in _SCAN_PRODUCTS)
-    track = f'<div class="cm-scan-track">{carousel_cards}{carousel_cards}</div>'
-
+def _live_catalog_grid_html() -> str:
     catalog_items: list[str] = []
     for aisle_label, _aisle_key, slugs in _LIVE_CATALOG_AISLES:
         catalog_items.append(f'<p class="cm-catalog-aisle cm-reveal">{html.escape(aisle_label)}</p>')
@@ -635,6 +772,21 @@ def render_live_scan_section() -> None:
         '<button type="button" class="cm-catalog-filter" data-filter="walk">Walk away</button>'
     )
 
+    return (
+        '<div class="cm-catalog-head cm-reveal">'
+        '<h3 class="cm-catalog-title">Live product <span>marketplace</span></h3>'
+        f'<div class="cm-catalog-filters">{filter_chips}</div>'
+        "</div>"
+        f'<div class="cm-catalog-grid">{"".join(catalog_items)}</div>'
+    )
+
+
+def render_live_scan_section() -> None:
+    ticker = evaluated_today_ticker()
+    evaluated_label = format_count(ticker["count"])
+    carousel_cards = "".join(_live_product_card_html(product=p) for p in _SCAN_PRODUCTS)
+    track = f'<div class="cm-scan-track">{carousel_cards}{carousel_cards}</div>'
+
     st.markdown(
         '<section class="cm-live-market">'
         '<div class="cm-live-inner">'
@@ -642,26 +794,44 @@ def render_live_scan_section() -> None:
         '<div class="cm-live-head-main">'
         '<span class="cm-live-pulse"><span class="cm-live-pulse-dot"></span>Live market scan</span>'
         '<h2 class="cm-live-title">Products being evaluated <span>right now</span></h2>'
-        '<p class="cm-live-lead">Real products. Real data. Updated continuously — click any card to open a full sample evaluation.</p>'
+        '<p class="cm-live-lead">Real products. Real data. Updated continuously — click any card to open a full sample evaluation. Drag the carousel to browse.</p>'
         "</div>"
-        '<a class="cm-live-cta-link cm-reveal" href="#" data-ps-nav-anchor="live-catalog" target="_self">View all live products →</a>'
+        '<a class="cm-live-cta-link cm-reveal" href="#" data-ps-nav-action="live_catalog" target="_self">View all live products →</a>'
         "</div>"
         '<div class="cm-live-stats cm-reveal">'
-        '<div class="cm-live-stat"><strong>12</strong><span>Live niches tracked</span></div>'
-        '<div class="cm-live-stat"><strong>1,000+</strong><span>Evaluated today</span></div>'
+        '<div class="cm-live-stat"><strong>250+</strong><span>Live niches tracked</span></div>'
+        f'<div class="cm-live-stat"><strong data-cm-eval-today>{evaluated_label}</strong><span>Evaluated today</span></div>'
         '<div class="cm-live-stat"><strong>94–18</strong><span>Score range (full spread)</span></div>'
         '<div class="cm-live-stat"><strong>~30 sec</strong><span>Per evaluation</span></div>'
         "</div>"
         f'<div class="cm-scan-shell cm-reveal"><div class="cm-scan-viewport">{track}</div></div>'
-        '<div class="cm-live-catalog" id="section-live-catalog">'
-        '<div class="cm-catalog-head cm-reveal">'
-        '<h3 class="cm-catalog-title">Live product <span>marketplace</span></h3>'
-        f'<div class="cm-catalog-filters">{filter_chips}</div>'
-        "</div>"
-        f'<div class="cm-catalog-grid">{"".join(catalog_items)}</div>'
-        "</div></div></section>",
+        "</div></section>",
         unsafe_allow_html=True,
     )
+    _install_evaluated_today_ticker(day_start_ms=ticker["day_start_ms"], target=ticker["target"])
+
+
+def render_live_catalog_page() -> None:
+    render_hidden_carousel_sample_buttons()
+    install_carousel_sample_bridge()
+
+    st.markdown(
+        '<div class="cm-catalog-page">'
+        '<div class="cm-page">'
+        '<a class="cm-catalog-back cm-reveal" href="#" data-ps-nav-action="home" target="_self">← Back to home</a>'
+        '<div class="cm-catalog-page-hero cm-reveal">'
+        '<span class="cm-live-pulse"><span class="cm-live-pulse-dot"></span>Live marketplace</span>'
+        '<h1 class="cm-catalog-page-title">Live product <span>marketplace</span></h1>'
+        '<p class="cm-catalog-page-lead">Browse every niche we are tracking right now. Filter by score tier and click any product to open a full sample evaluation.</p>'
+        "</div>"
+        f'<div class="cm-live-catalog">{_live_catalog_grid_html()}</div>'
+        "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+    _install_live_catalog_filters()
+    _install_scroll_reveal()
+    maybe_show_carousel_sample_dialog()
 
 
 def render_investigation_engine() -> None:
@@ -1002,6 +1172,5 @@ def render_landing_page() -> None:
     _install_scroll_reveal()
     _install_eval_card_animations()
     _install_scan_carousel()
-    _install_live_catalog_filters()
     _scroll_to_anchor_if_needed()
     maybe_show_carousel_sample_dialog()

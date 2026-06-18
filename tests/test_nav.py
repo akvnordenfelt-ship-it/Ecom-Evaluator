@@ -3,7 +3,7 @@
 import streamlit as st
 
 from ecom_evaluator.ui.navbar import _nav_action_link, _nav_anchor_link, apply_nav_state
-from ecom_evaluator.ui.subscription import APP_VIEW_AUTH, APP_VIEW_LANDING, APP_VIEW_TOOL
+from ecom_evaluator.ui.subscription import APP_VIEW_AUTH, APP_VIEW_LANDING, APP_VIEW_LIVE_CATALOG, APP_VIEW_TOOL
 
 
 def test_nav_action_link_avoids_query_href():
@@ -53,6 +53,13 @@ def test_build_site_header_includes_mobile_menu():
     assert "Reviews" in html_out
     assert "Start Free Evaluation" in html_out
     assert "site-header__menu-btn" in html_out
+
+
+def test_apply_nav_state_live_catalog(monkeypatch):
+    state = {"app_view": APP_VIEW_LANDING}
+    monkeypatch.setattr(st, "session_state", state, raising=False)
+    assert apply_nav_state(action="live_catalog") is True
+    assert state["app_view"] == APP_VIEW_LIVE_CATALOG
 
 
 def test_apply_nav_state_unknown_action(monkeypatch):
