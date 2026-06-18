@@ -46,12 +46,13 @@ def test_apply_nav_state_anchor(monkeypatch):
 def test_build_site_header_includes_mobile_menu():
     from ecom_evaluator.ui.navbar import _build_site_header_html, _guest_actions_html
 
-    html = _build_site_header_html(actions_html=_guest_actions_html(), logged_in=False)
-    assert "site-header__nav--desktop" in html
-    assert "Pricing" in html
-    assert "Resources" in html
-    assert "site-header__menu-btn" in html
-    assert "site-header__mobile-drawer" in html
+    html_out = _build_site_header_html(actions_html=_guest_actions_html(), logged_in=False)
+    assert "site-header__nav--desktop" in html_out
+    assert "How it works" in html_out
+    assert "Report preview" in html_out
+    assert "Reviews" in html_out
+    assert "Start Free Evaluation" in html_out
+    assert "site-header__menu-btn" in html_out
 
 
 def test_apply_nav_state_unknown_action(monkeypatch):

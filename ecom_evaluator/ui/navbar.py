@@ -31,7 +31,7 @@ _NavAction = str | None
 _NavAnchor = str | None
 
 NAV_ACTIONS = ("home", "login", "signup", "tool", "logout")
-NAV_ANCHORS = ("process", "sample", "pricing", "resources")
+NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources")
 
 
 def _nav_action_link(*, action: str, class_name: str, text: str) -> str:
@@ -294,7 +294,11 @@ def _resources_dropdown_html() -> str:
 def _guest_actions_html() -> str:
     return (
         _nav_action_link(action="login", class_name="site-header__login", text="Log in")
-        + _nav_action_link(action="signup", class_name="site-header__cta", text="Get started")
+        + _nav_action_link(
+            action="signup",
+            class_name="site-header__cta",
+            text="Start Free Evaluation →",
+        )
     )
 
 
@@ -314,9 +318,10 @@ def _authenticated_actions_html(*, email: str, status_label: str, status_class: 
 
 def _mobile_nav_links_html() -> str:
     return (
-        _nav_anchor_link(anchor="pricing", class_name="site-header__mobile-link", text="Pricing")
-        + _nav_anchor_link(anchor="process", class_name="site-header__mobile-link", text="How it works")
-        + _nav_anchor_link(anchor="sample", class_name="site-header__mobile-link", text="Sample report")
+        _nav_anchor_link(anchor="process", class_name="site-header__mobile-link", text="How it works")
+        + _nav_anchor_link(anchor="sample", class_name="site-header__mobile-link", text="Report preview")
+        + _nav_anchor_link(anchor="pricing", class_name="site-header__mobile-link", text="Pricing")
+        + _nav_anchor_link(anchor="reviews", class_name="site-header__mobile-link", text="Reviews")
         + _nav_anchor_link(anchor="resources", class_name="site-header__mobile-link", text="FAQ")
     )
 
@@ -364,8 +369,11 @@ def _build_site_header_html(*, actions_html: str, logged_in: bool) -> str:
             text=header_brand_html(),
         )
         + '<nav class="site-header__nav site-header__nav--desktop" aria-label="Primary">'
+        + _nav_anchor_link(anchor="process", class_name="site-header__link", text="How it works")
+        + _nav_anchor_link(anchor="sample", class_name="site-header__link", text="Report preview")
         + _nav_anchor_link(anchor="pricing", class_name="site-header__link", text="Pricing")
-        + f"{_resources_dropdown_html()}"
+        + _nav_anchor_link(anchor="reviews", class_name="site-header__link", text="Reviews")
+        + _nav_anchor_link(anchor="resources", class_name="site-header__link", text="FAQ")
         + "</nav>"
         f'<div class="site-header__actions site-header__actions--desktop">{actions_html}</div>'
         f'<div class="site-header__actions site-header__actions--mobile">{mobile_bar}</div>'

@@ -1,4 +1,4 @@
-"""Marketing landing page."""
+"""Marketing landing page — Crow Metrics SaaS redesign."""
 
 from __future__ import annotations
 
@@ -9,7 +9,7 @@ import streamlit.components.v1 as components
 
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.plans import PLAN_CONFIG, PlanTier
-from ecom_evaluator.report_sections import REPORT_SECTIONS, ReportSection
+from ecom_evaluator.report_sections import REPORT_SECTIONS
 from ecom_evaluator.ui.branding import BRAND_NAME
 from ecom_evaluator.ui.carousel_assets import carousel_image_data_uri
 from ecom_evaluator.ui.carousel_samples import (
@@ -19,184 +19,32 @@ from ecom_evaluator.ui.carousel_samples import (
 )
 from ecom_evaluator.ui.subscription import request_free_evaluation
 
-SECTION_VISUALS: dict[str, dict[str, str]] = {
-    "product_profile": {
-        "icon": "📦",
-        "accent": "#3B82F6",
-        "accent_soft": "#EFF6FF",
-        "highlight": "Overall score + 5 core e-commerce metrics",
-    },
-    "red_flags": {
-        "icon": "🚨",
-        "accent": "#EF4444",
-        "accent_soft": "#FEF2F2",
-        "highlight": "Brutal Shark Tank-style deal-breakers",
-    },
-    "margin_matrix": {
-        "icon": "📊",
-        "accent": "#10B981",
-        "accent_soft": "#ECFDF5",
-        "highlight": "Python-calculated ROI, scaling matrix, and GO/NO-GO verdict",
-    },
-    "marketing_teaser": {
-        "icon": "🎯",
-        "accent": "#8B5CF6",
-        "accent_soft": "#F5F3FF",
-        "highlight": "Channel fit, hook index and buyer persona",
-    },
-    "web_intelligence": {
-        "icon": "🌐",
-        "accent": "#0EA5E9",
-        "accent_soft": "#F0F9FF",
-        "highlight": "Live Amazon, AliExpress and Shopify intel",
-    },
-    "competitor_sentiment": {
-        "icon": "📊",
-        "accent": "#F59E0B",
-        "accent_soft": "#FFFBEB",
-        "highlight": "Competitor review sentiment and product improvement directives",
-    },
-}
+_HERO_SLUG = "pet-travel-harness"
 
 _CAROUSEL_PRODUCTS: tuple[dict[str, str | float], ...] = (
-    {
-        "name": "Flame Effect Essential Oil Diffuser",
-        "slug": "flame-diffuser",
-        "category": "HOME & DECOR",
-        "icon": "🕯️",
-        "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F97316 100%)",
-        "score": 8.9,
-        "trend": "↗ +41% Demand this month",
-        "profit": "$1,450",
-        "margin": "72%",
-    },
-    {
-        "name": "Personalized Pet Travel Harness",
-        "slug": "pet-travel-harness",
-        "category": "PET SUPPLIES",
-        "icon": "🦮",
-        "gradient": "linear-gradient(135deg, #FFE4E6 0%, #FB7185 100%)",
-        "score": 9.2,
-        "trend": "↗ Hot Trend (Peak Summer)",
-        "profit": "$1,820",
-        "margin": "65%",
-    },
-    {
-        "name": "Cheap Bluetooth Sleep Mask Headphones",
-        "slug": "sleep-mask-headphones",
-        "category": "ELECTRONICS",
-        "icon": "😴",
-        "gradient": "linear-gradient(135deg, #E5E7EB 0%, #6B7280 100%)",
-        "score": 4.2,
-        "trend": "↘ -28% Market Saturation",
-        "profit": "-$250",
-        "margin": "35%",
-        "fail": True,
-        "note": "High Return Rate — 18% of customers report battery failure within 2 weeks.",
-    },
-    {
-        "name": "Portable USB-C Rechargeable Blender",
-        "slug": "usb-blender",
-        "category": "SMART KITCHEN",
-        "icon": "🥤",
-        "gradient": "linear-gradient(135deg, #DCFCE7 0%, #06B6D4 100%)",
-        "score": 8.4,
-        "trend": "↗ +14% Demand this month",
-        "profit": "$920",
-        "margin": "58%",
-    },
-    {
-        "name": "Sleep-Tech Smart Scales (Cloud Sync)",
-        "slug": "smart-scale",
-        "category": "HEALTH & TECH",
-        "icon": "⚖️",
-        "gradient": "linear-gradient(135deg, #E0E7FF 0%, #4F46E5 100%)",
-        "score": 8.7,
-        "trend": "↗ +22% Search Volume",
-        "profit": "$2,100",
-        "margin": "61%",
-    },
-    {
-        "name": "Heavy Latex Resistance Loop Bands",
-        "slug": "resistance-bands",
-        "category": "FITNESS & GEAR",
-        "icon": "💪",
-        "gradient": "linear-gradient(135deg, #FEE2E2 0%, #EF4444 100%)",
-        "score": 5.1,
-        "trend": "→ Brutal Price War",
-        "profit": "$80",
-        "margin": "12%",
-        "fail": True,
-        "note": "Zero Margin — Oversaturated niche on Amazon, advertising cost eats all profit.",
-    },
-    {
-        "name": "Automatic Electric Jar Opener",
-        "slug": "electric-jar-opener",
-        "category": "KITCHEN & GADGETS",
-        "icon": "🫙",
-        "gradient": "linear-gradient(135deg, #FFEDD5 0%, #EA580C 100%)",
-        "score": 8.1,
-        "trend": "↗ +18% Search Volume",
-        "profit": "$1,100",
-        "margin": "64%",
-    },
-    {
-        "name": "DIY Ultrasonic Skin Scrubber",
-        "slug": "skin-scrubber",
-        "category": "BEAUTY & COSMETICS",
-        "icon": "⚠️",
-        "gradient": "linear-gradient(135deg, #FEF2F2 0%, #DC2626 100%)",
-        "score": 3.8,
-        "trend": "↘ Legal / Liability Risk",
-        "profit": "-$400",
-        "margin": "48%",
-        "fail": True,
-        "note": "High Liability — Severe customer complaints regarding skin burns and lack of CE certification.",
-    },
-    {
-        "name": "Magnetic Desktop Cable Organizer",
-        "slug": "cable-organizer",
-        "category": "OFFICE & PRODUCTIVITY",
-        "icon": "🧲",
-        "gradient": "linear-gradient(135deg, #F5F5F4 0%, #78716C 100%)",
-        "score": 7.9,
-        "trend": "↗ Steady Growth",
-        "profit": "$750",
-        "margin": "70%",
-    },
-    {
-        "name": "Ultra-Lightweight Inflatable Camping Pillow",
-        "slug": "camping-pillow",
-        "category": "TRAVEL & OUTDOOR",
-        "icon": "🏕️",
-        "gradient": "linear-gradient(135deg, #D1FAE5 0%, #059669 100%)",
-        "score": 8.5,
-        "trend": "↗ +33% Seasonal Spike",
-        "profit": "$1,320",
-        "margin": "67%",
-    },
-    {
-        "name": "Silicone Baby Bibs with Food Catcher",
-        "slug": "baby-bibs",
-        "category": "BABY SUPPLIES",
-        "icon": "👶",
-        "gradient": "linear-gradient(135deg, #FCE7F3 0%, #F472B6 100%)",
-        "score": 8.3,
-        "trend": "↗ High Consistent Demand",
-        "profit": "$980",
-        "margin": "74%",
-    },
-    {
-        "name": "Smart Wireless Peephole Camera",
-        "slug": "peephole-camera",
-        "category": "HOME SECURITY",
-        "icon": "📹",
-        "gradient": "linear-gradient(135deg, #DBEAFE 0%, #1D4ED8 100%)",
-        "score": 8.8,
-        "trend": "↗ +52% Year-over-Year",
-        "profit": "$2,450",
-        "margin": "59%",
-    },
+    {"name": "Flame Effect Essential Oil Diffuser", "slug": "flame-diffuser", "category": "HOME & DECOR", "icon": "🕯️", "gradient": "linear-gradient(135deg, #FEF3C7 0%, #F97316 100%)", "score": 8.9, "trend": "↗ +41% Demand this month", "profit": "$1,450", "margin": "72%"},
+    {"name": "Personalized Pet Travel Harness", "slug": "pet-travel-harness", "category": "PET SUPPLIES", "icon": "🦮", "gradient": "linear-gradient(135deg, #FFE4E6 0%, #FB7185 100%)", "score": 9.2, "trend": "↗ Hot Trend (Peak Summer)", "profit": "$1,820", "margin": "65%"},
+    {"name": "Cheap Bluetooth Sleep Mask Headphones", "slug": "sleep-mask-headphones", "category": "ELECTRONICS", "icon": "😴", "gradient": "linear-gradient(135deg, #E5E7EB 0%, #6B7280 100%)", "score": 4.2, "trend": "↘ -28% Market Saturation", "profit": "-$250", "margin": "35%", "fail": True, "note": "High Return Rate — 18% of customers report battery failure within 2 weeks."},
+    {"name": "Portable USB-C Rechargeable Blender", "slug": "usb-blender", "category": "SMART KITCHEN", "icon": "🥤", "gradient": "linear-gradient(135deg, #DCFCE7 0%, #06B6D4 100%)", "score": 8.4, "trend": "↗ +14% Demand this month", "profit": "$920", "margin": "58%"},
+    {"name": "Sleep-Tech Smart Scales (Cloud Sync)", "slug": "smart-scale", "category": "HEALTH & TECH", "icon": "⚖️", "gradient": "linear-gradient(135deg, #E0E7FF 0%, #4F46E5 100%)", "score": 8.7, "trend": "↗ +22% Search Volume", "profit": "$2,100", "margin": "61%"},
+    {"name": "Heavy Latex Resistance Loop Bands", "slug": "resistance-bands", "category": "FITNESS & GEAR", "icon": "💪", "gradient": "linear-gradient(135deg, #FEE2E2 0%, #EF4444 100%)", "score": 5.1, "trend": "→ Brutal Price War", "profit": "$80", "margin": "12%", "fail": True, "note": "Zero Margin — Oversaturated niche on Amazon, advertising cost eats all profit."},
+    {"name": "Automatic Electric Jar Opener", "slug": "electric-jar-opener", "category": "KITCHEN & GADGETS", "icon": "🫙", "gradient": "linear-gradient(135deg, #FFEDD5 0%, #EA580C 100%)", "score": 8.1, "trend": "↗ +18% Search Volume", "profit": "$1,100", "margin": "64%"},
+    {"name": "DIY Ultrasonic Skin Scrubber", "slug": "skin-scrubber", "category": "BEAUTY & COSMETICS", "icon": "⚠️", "gradient": "linear-gradient(135deg, #FEF2F2 0%, #DC2626 100%)", "score": 3.8, "trend": "↘ Legal / Liability Risk", "profit": "-$400", "margin": "48%", "fail": True, "note": "High Liability — Severe customer complaints regarding skin burns and lack of CE certification."},
+    {"name": "Magnetic Desktop Cable Organizer", "slug": "cable-organizer", "category": "OFFICE & PRODUCTIVITY", "icon": "🧲", "gradient": "linear-gradient(135deg, #F5F5F4 0%, #78716C 100%)", "score": 7.9, "trend": "↗ Steady Growth", "profit": "$750", "margin": "70%"},
+    {"name": "Ultra-Lightweight Inflatable Camping Pillow", "slug": "camping-pillow", "category": "TRAVEL & OUTDOOR", "icon": "🏕️", "gradient": "linear-gradient(135deg, #D1FAE5 0%, #059669 100%)", "score": 8.5, "trend": "↗ +33% Seasonal Spike", "profit": "$1,320", "margin": "67%"},
+    {"name": "Silicone Baby Bibs with Food Catcher", "slug": "baby-bibs", "category": "BABY SUPPLIES", "icon": "👶", "gradient": "linear-gradient(135deg, #FCE7F3 0%, #F472B6 100%)", "score": 8.3, "trend": "↗ High Consistent Demand", "profit": "$980", "margin": "74%"},
+    {"name": "Smart Wireless Peephole Camera", "slug": "peephole-camera", "category": "HOME SECURITY", "icon": "📹", "gradient": "linear-gradient(135deg, #DBEAFE 0%, #1D4ED8 100%)", "score": 8.8, "trend": "↗ +52% Year-over-Year", "profit": "$2,450", "margin": "59%"},
+)
+
+_SCAN_PRODUCTS: tuple[dict[str, str | float | bool], ...] = (
+    {"name": "Massage Gun", "slug": "resistance-bands", "score": 78, "profit": "$12.40", "demand": "+18%"},
+    {"name": "Jewelry Organizer", "slug": "cable-organizer", "score": 63, "profit": "$8.20", "demand": "+6%"},
+    {"name": "USB Blender", "slug": "usb-blender", "score": 84, "profit": "$9.20", "demand": "+14%"},
+    {"name": "Smart Scale", "slug": "smart-scale", "score": 87, "profit": "$21.00", "demand": "+22%"},
+    {"name": "Sleep Mask Headphones", "slug": "sleep-mask-headphones", "score": 32, "profit": "-$2.50", "demand": "-28%"},
+    {"name": "Camping Pillow", "slug": "camping-pillow", "score": 85, "profit": "$13.20", "demand": "+33%"},
+    {"name": "Flame Diffuser", "slug": "flame-diffuser", "score": 89, "profit": "$14.50", "demand": "+41%"},
+    {"name": "Peephole Camera", "slug": "peephole-camera", "score": 88, "profit": "$24.50", "demand": "+52%"},
 )
 
 _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
@@ -208,7 +56,7 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     (
         "What's included in the free report?",
         "Sections 1–2 cover your product profile, core metrics, weighted score, and red-flag analysis. "
-        "Premium adds the financial verdict, marketing blueprint, competitor intel, and review sentiment analysis in Sections 3–6.",
+        "Premium adds the financial verdict, marketing blueprint, competitor intel, and review sentiment in Sections 3–6.",
     ),
     (
         "When should I upgrade to Premium?",
@@ -217,578 +65,118 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
     ),
 )
 
-
-def _band_open(band: str, *, section_id: str | None = None) -> str:
-    id_attr = f' id="{section_id}"' if section_id else ""
-    return (
-        f'<section class="lp-band lp-band--{band} lp-page-flow"{id_attr}>'
-        f'<div class="lp-band-bg" aria-hidden="true"></div>'
-        f'<div class="lp-band-inner">'
-    )
-
-
-def _band_close() -> str:
-    return "</div></section>"
-
-
-def _carousel_score_class(score: float, *, is_fail: bool = False) -> str:
-    if is_fail or score < 6.0:
-        return "lp-carousel-score lp-carousel-score--fail"
-    if score >= 8.0:
-        return "lp-carousel-score lp-carousel-score--high"
-    if score >= 7.0:
-        return "lp-carousel-score lp-carousel-score--mid"
-    return "lp-carousel-score lp-carousel-score--low"
+_REVIEWS: tuple[tuple[str, str, str], ...] = (
+    (
+        "Crow Metrics saved me from launching a saturated product. The red-flag section alone was worth it.",
+        "Sarah M.",
+        "Shopify seller",
+    ),
+    (
+        "Finally an AI tool that doesn't hype everything. The GO/NO-GO verdict is brutally honest.",
+        "James K.",
+        "Amazon FBA",
+    ),
+    (
+        "I run 3 evaluations a week now. The full report pays for itself on the first product I skipped.",
+        "Alex T.",
+        "DTC founder",
+    ),
+)
 
 
-def _carousel_product_card(product: dict[str, str | float]) -> str:
-    score = float(product["score"])
-    is_fail = bool(product.get("fail"))
-    score_class = _carousel_score_class(score, is_fail=is_fail)
-    slug_raw = str(product["slug"])
+def _score_tone(score: int) -> str:
+    if score >= 80:
+        return "go"
+    if score >= 60:
+        return "caution"
+    return "risk"
+
+
+def _scan_card(product: dict[str, str | float | bool]) -> str:
+    score = int(product["score"])
+    tone = _score_tone(score)
     name = html.escape(str(product["name"]))
-    category = html.escape(str(product["category"]))
-    icon = html.escape(str(product["icon"]))
-    gradient = str(product["gradient"])
-    trend = html.escape(str(product["trend"]))
+    slug = html.escape(str(product["slug"]))
     profit = html.escape(str(product["profit"]))
-    margin = html.escape(str(product["margin"]))
-    image_url = html.escape(carousel_image_data_uri(slug_raw))
-    card_class = "lp-carousel-card lp-carousel-card--fail" if is_fail else "lp-carousel-card"
-    trend_class = "lp-carousel-trend lp-carousel-trend--fail" if is_fail else "lp-carousel-trend"
-    profit_value_class = (
-        "lp-carousel-profit-value--loss"
-        if str(product["profit"]).strip().startswith("-")
-        else ""
-    )
-    fail_badge = (
-        '<span class="lp-carousel-fail-badge">FAIL · High Risk</span>' if is_fail else ""
-    )
-    note_html = ""
-    if product.get("note"):
-        note_html = f'<p class="lp-carousel-risk-note">{html.escape(str(product["note"]))}</p>'
+    demand = html.escape(str(product["demand"]))
+    image_url = html.escape(carousel_image_data_uri(str(product["slug"])), quote=True)
     return (
-        f'<article class="{card_class}">'
-        f'<div class="lp-carousel-card-media" style="background:{gradient}">'
-        f'<div class="lp-carousel-media-fallback" aria-hidden="true">'
-        f'<span class="lp-carousel-media-icon">{icon}</span>'
+        f'<article class="cm-scan-card cm-reveal">'
+        f'<span class="cm-scan-score cm-scan-score--{tone}">{score}</span>'
+        f'<div class="cm-scan-img-wrap">'
+        f'<img src="{image_url}" alt="{name}" loading="lazy" draggable="false" />'
         f"</div>"
-        f'<img src="{image_url}" alt="{name}" loading="lazy" draggable="false" '
-        f'onerror="this.classList.add(\'is-broken\')" />'
-        f"</div>"
-        f'<div class="lp-carousel-card-body">'
-        f'<div class="lp-carousel-card-content">'
-        f"{fail_badge}"
-        f'<span class="lp-carousel-category">{category}</span>'
-        f'<h3 class="lp-carousel-name">{name}</h3>'
-        f'<div class="lp-carousel-score-row">'
-        f'<span class="{score_class}">{score:.1f}<span>/10</span></span>'
-        f'<span class="{trend_class}">{trend}</span>'
-        f"</div>"
-        f'<div class="lp-carousel-divider"></div>'
-        f'<p class="lp-carousel-profit">Est. Net Profit: '
-        f'<strong{" class=\"lp-carousel-profit-value--loss\"" if profit_value_class else ""}>'
-        f"{profit} / mo</strong></p>"
-        f'<p class="lp-carousel-margin">{margin} Gross Margin</p>'
-        f"{note_html}"
-        f"</div>"
-        f'<div class="lp-carousel-card-footer">'
-        f'<a class="lp-carousel-demo-link" href="#" data-ps-sample-slug="{html.escape(slug_raw)}" target="_self">View Sample Evaluation →</a>'
+        f'<div class="cm-scan-body">'
+        f'<h3 class="cm-scan-name">{name}</h3>'
+        f'<div class="cm-scan-meta">'
+        f"<span>Est. Profit <strong>{profit}</strong></span>"
+        f"<span>Demand <strong>{demand}</strong></span>"
         f"</div></div></article>"
     )
 
 
-def render_landing_product_carousel() -> None:
-    cards = "".join(_carousel_product_card(product) for product in _CAROUSEL_PRODUCTS)
-    track = f'<div class="lp-carousel-track">{cards}{cards}</div>'
-    st.markdown(
-        '<section class="lp-carousel-section lp-reveal" aria-label="Sample product evaluations">'
-        '<div class="lp-carousel-header">'
-        '<span class="lp-band-label">Live preview</span>'
-        '<h2 class="lp-carousel-title">Trending products analyzed right now</h2>'
-        '<p class="lp-carousel-lead">Realistic profit estimates and Crow Metrics scores from live niches. Auto-scrolls — click and drag to explore.</p>'
-        "</div>"
-        f'<div class="lp-carousel-shell"><div class="lp-carousel-viewport">{track}</div></div>'
-        "</section>",
-        unsafe_allow_html=True,
-    )
-
-
-def _install_carousel_drag() -> None:
-    components.html(
-        """
-        <script>
-        (function () {
-            const win = window.parent;
-            const doc = win.document;
-            const CLICK_THRESHOLD = 6;
-            const FRICTION = 0.92;
-            const MIN_VELOCITY = 0.25;
-            const AUTO_SPEED = 0.42;
-            const AUTO_RESUME_MS = 1800;
-
-            function initViewport(viewport) {
-                if (viewport.dataset.lpCarouselReady) return;
-                const track = viewport.querySelector(".lp-carousel-track");
-                if (!track) return;
-                viewport.dataset.lpCarouselReady = "1";
-
-                let position = 0;
-                let loopWidth = 0;
-                let isDragging = false;
-                let pointerId = null;
-                let lastX = 0;
-                let lastTime = 0;
-                let velocity = 0;
-                let dragDistance = 0;
-                let suppressClick = false;
-                let momentumFrame = null;
-                let autoFrame = null;
-                let autoPaused = false;
-                let autoResumeTimer = null;
-                const reducedMotion = win.matchMedia("(prefers-reduced-motion: reduce)");
-
-                function measure() {
-                    loopWidth = track.scrollWidth / 2;
-                    if (!loopWidth || Number.isNaN(loopWidth)) loopWidth = 1;
-                }
-
-                function wrapPosition() {
-                    if (loopWidth <= 0) return;
-                    while (position <= -loopWidth) position += loopWidth;
-                    while (position > 0) position -= loopWidth;
-                }
-
-                function render() {
-                    track.style.transform = "translate3d(" + position + "px, 0, 0)";
-                }
-
-                function stopMomentum() {
-                    if (!momentumFrame) return;
-                    cancelAnimationFrame(momentumFrame);
-                    momentumFrame = null;
-                }
-
-                function stopAuto() {
-                    if (!autoFrame) return;
-                    cancelAnimationFrame(autoFrame);
-                    autoFrame = null;
-                }
-
-                function clearAutoResume() {
-                    if (!autoResumeTimer) return;
-                    clearTimeout(autoResumeTimer);
-                    autoResumeTimer = null;
-                }
-
-                function canAutoRun() {
-                    return (
-                        !autoPaused &&
-                        !isDragging &&
-                        !momentumFrame &&
-                        !reducedMotion.matches
-                    );
-                }
-
-                function autoStep() {
-                    autoFrame = null;
-                    if (!canAutoRun()) return;
-                    position -= AUTO_SPEED;
-                    wrapPosition();
-                    render();
-                    autoFrame = requestAnimationFrame(autoStep);
-                }
-
-                function startAuto() {
-                    if (autoFrame || !canAutoRun()) return;
-                    autoFrame = requestAnimationFrame(autoStep);
-                }
-
-                function pauseAuto() {
-                    autoPaused = true;
-                    stopAuto();
-                    clearAutoResume();
-                }
-
-                function resumeAutoAfter(delay) {
-                    autoPaused = true;
-                    stopAuto();
-                    clearAutoResume();
-                    autoResumeTimer = setTimeout(() => {
-                        autoResumeTimer = null;
-                        autoPaused = false;
-                        startAuto();
-                    }, delay);
-                }
-
-                function startMomentum() {
-                    stopMomentum();
-                    stopAuto();
-                    function step() {
-                        if (Math.abs(velocity) < MIN_VELOCITY) {
-                            momentumFrame = null;
-                            resumeAutoAfter(AUTO_RESUME_MS);
-                            return;
-                        }
-                        position += velocity;
-                        velocity *= FRICTION;
-                        wrapPosition();
-                        render();
-                        momentumFrame = requestAnimationFrame(step);
-                    }
-                    momentumFrame = requestAnimationFrame(step);
-                }
-
-                function onPointerDown(event) {
-                    if (event.button !== undefined && event.button !== 0) return;
-                    isDragging = true;
-                    pointerId = event.pointerId;
-                    viewport.classList.add("is-grabbing");
-                    try { viewport.setPointerCapture(event.pointerId); } catch (error) {}
-                    lastX = event.clientX;
-                    lastTime = performance.now();
-                    velocity = 0;
-                    dragDistance = 0;
-                    suppressClick = false;
-                    stopMomentum();
-                    pauseAuto();
-                }
-
-                function onPointerMove(event) {
-                    if (!isDragging || event.pointerId !== pointerId) return;
-                    const dx = event.clientX - lastX;
-                    position += dx;
-                    dragDistance += Math.abs(dx);
-                    const now = performance.now();
-                    const dt = Math.max(now - lastTime, 1);
-                    velocity = (dx / dt) * 16.67;
-                    lastX = event.clientX;
-                    lastTime = now;
-                    wrapPosition();
-                    render();
-                    if (dragDistance > CLICK_THRESHOLD) {
-                        suppressClick = true;
-                        event.preventDefault();
-                    }
-                }
-
-                function endDrag(event) {
-                    if (!isDragging) return;
-                    if (event && event.pointerId !== pointerId) return;
-                    isDragging = false;
-                    pointerId = null;
-                    viewport.classList.remove("is-grabbing");
-                    try {
-                        if (event) viewport.releasePointerCapture(event.pointerId);
-                    } catch (error) {}
-                    if (Math.abs(velocity) >= MIN_VELOCITY) {
-                        startMomentum();
-                    } else {
-                        resumeAutoAfter(AUTO_RESUME_MS);
-                    }
-                }
-
-                viewport.addEventListener("pointerdown", onPointerDown);
-                viewport.addEventListener("pointermove", onPointerMove, { passive: false });
-                viewport.addEventListener("pointerup", endDrag);
-                viewport.addEventListener("pointercancel", endDrag);
-                viewport.addEventListener("mouseenter", pauseAuto);
-                viewport.addEventListener("mouseleave", () => resumeAutoAfter(600));
-                viewport.addEventListener("touchstart", pauseAuto, { passive: true });
-                viewport.addEventListener("touchend", () => resumeAutoAfter(AUTO_RESUME_MS), { passive: true });
-
-                viewport.addEventListener(
-                    "click",
-                    (event) => {
-                        if (!suppressClick) return;
-                        event.preventDefault();
-                        event.stopPropagation();
-                        suppressClick = false;
-                    },
-                    true
-                );
-
-                track.querySelectorAll("img").forEach((img) => {
-                    img.setAttribute("draggable", "false");
-                    if (!img.complete) {
-                        img.addEventListener("load", () => {
-                            measure();
-                            wrapPosition();
-                            render();
-                        });
-                    }
-                });
-
-                measure();
-                render();
-                win.addEventListener("resize", () => {
-                    measure();
-                    wrapPosition();
-                    render();
-                });
-                setTimeout(() => {
-                    measure();
-                    wrapPosition();
-                    render();
-                    startAuto();
-                }, 300);
-            }
-
-            function scan() {
-                doc.querySelectorAll(".lp-carousel-viewport").forEach(initViewport);
-            }
-
-            if (!win.__lpCarousel) {
-                win.__lpCarousel = { scan };
-                win.__lpCarousel.mo = new MutationObserver(() => win.__lpCarousel.scan());
-                win.__lpCarousel.mo.observe(doc.body, { childList: true, subtree: true });
-            }
-            requestAnimationFrame(() => requestAnimationFrame(scan));
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
-
-
-def _section_header_html(
-    kicker: str,
-    title: str,
-    lead: str | None = None,
-    *,
-    reveal_class: str = "lp-reveal",
-) -> str:
-    lead_html = (
-        f'<p class="lp-section-header-lead">{html.escape(lead)}</p>' if lead else ""
+def _hero_card_html() -> str:
+    image_url = html.escape(carousel_image_data_uri(_HERO_SLUG), quote=True)
+    dots = "".join(
+        f'<span class="cm-hero-dot{" is-dim" if i > 8 else ""}"></span>' for i in range(10)
     )
     return (
-        f'<div class="lp-section-header {reveal_class}">'
-        f'<span class="lp-band-label">{html.escape(kicker)}</span>'
-        f'<h2 class="lp-section-header-title">{html.escape(title)}</h2>'
-        f"{lead_html}"
-        f"</div>"
-    )
-
-
-def _section_card_html(section: ReportSection, *, badge: str = "Free", reveal: str = "lp-reveal") -> str:
-    vis = SECTION_VISUALS[section.id]
-    badge_class = "lp-free-pill" if badge == "Free" else "lp-premium-pill"
-    return (
-        f'<div class="lp-section-card {reveal}" style="--accent:{vis["accent"]};--accent-soft:{vis["accent_soft"]}">'
-        f'<div class="lp-section-card-top">'
-        f'<span class="lp-section-icon">{vis["icon"]}</span>'
-        f'<span class="{badge_class}">{badge}</span>'
-        f"</div>"
-        f'<p class="lp-section-num">Section {section.number}</p>'
-        f'<p class="lp-section-title">{html.escape(section.title)}</p>'
-        f'<p class="lp-section-body">{html.escape(section.subtitle)}</p>'
-        f'<p class="lp-section-highlight">{html.escape(vis["highlight"])}</p>'
-        f"</div>"
-    )
-
-
-def _premium_pricing_html(*, reveal: str = "lp-reveal lp-reveal-scale") -> str:
-    premium = PLAN_CONFIG[PlanTier.PREMIUM]
-    return (
-        f'<div class="lp-pricing-card lp-pricing-card--premium lp-pricing-card--solo {reveal}">'
-        f'<span class="lp-popular-pill">Everything included</span>'
-        f'<p class="lp-pricing-tier">Premium</p>'
-        f'<p class="lp-pricing-price">${premium.price_usd_monthly}<span>/mo</span></p>'
-        f'<p class="lp-pricing-blurb">One plan. Full stack. Unlimited evaluations. '
-        f"Unlock every section — financial verdict, marketing blueprint, live web intel, and competitor review sentiment — "
-        f'powered by our most advanced commercial AI engine.</p>'
-        f'<ul class="lp-pricing-features">'
-        f"<li>Section 3 — Financial matrix &amp; GO/NO-GO verdict</li>"
-        f"<li>Section 4 — Marketing viability &amp; targeting blueprint</li>"
-        f"<li>Section 5 — Live web intelligence &amp; sourcing links</li>"
-        f"<li>Section 6 — Competitor review sentiment analysis</li>"
-        f"<li>Unlimited evaluations</li>"
-        f"</ul></div>"
-    )
-
-
-def _step_card_html(number: int, title: str, body: str, *, reveal: str) -> str:
-    return (
-        f'<div class="lp-step-card {reveal}">'
-        f'<span class="lp-step-num">{number}</span>'
-        f'<p class="lp-step-title">{html.escape(title)}</p>'
-        f'<p class="lp-step-body">{html.escape(body)}</p>'
-        f"</div>"
-    )
-
-
-def _faq_html() -> str:
-    items = []
-    for index, (question, answer) in enumerate(_FAQ_ITEMS):
-        delay = f" lp-reveal-delay-{min(index + 1, 4)}"
-        items.append(
-            f'<details class="lp-faq-item lp-reveal{delay}">'
-            f"<summary>{html.escape(question)}</summary>"
-            f'<p class="lp-faq-answer">{html.escape(answer)}</p>'
-            f"</details>"
-        )
-    return f'<div class="lp-faq-list">{"".join(items)}</div>'
-
-
-def _install_scroll_reveal() -> None:
-    components.html(
-        """
-        <script>
-        (function () {
-            const win = window.parent;
-            const doc = win.document;
-
-            if (!win.__lpReveal) {
-                win.__lpReveal = {
-                    io: new IntersectionObserver(
-                        (entries) => {
-                            entries.forEach((entry) => {
-                                if (!entry.isIntersecting) return;
-                                entry.target.classList.add("is-visible");
-                            });
-                        },
-                        { threshold: 0.1, rootMargin: "0px 0px -3% 0px" }
-                    ),
-                };
-                win.__lpReveal.mo = new MutationObserver(() => win.__lpReveal.scan());
-                win.__lpReveal.mo.observe(doc.body, { childList: true, subtree: true });
-            }
-
-            win.__lpReveal.scan = function scan() {
-                doc.documentElement.classList.add("lp-reveal-ready");
-                requestAnimationFrame(() => {
-                    requestAnimationFrame(() => {
-                        doc.querySelectorAll(".lp-reveal:not(.lp-reveal-hero)").forEach((node) => {
-                            if (node.dataset.lpObserved) return;
-                            node.dataset.lpObserved = "1";
-                            win.__lpReveal.io.observe(node);
-                        });
-                    });
-                });
-            };
-
-            win.__lpReveal.scan();
-        })();
-        </script>
-        """,
-        height=0,
-        width=0,
-    )
-
-
-_HERO_PREVIEW_SLUG = "usb-blender"
-
-_HERO_METRICS: tuple[tuple[str, str, int, str], ...] = (
-    ("📈", "Market Demand", 92, "blue"),
-    ("💰", "Profitability", 85, "blue"),
-    ("⚔️", "Competition", 71, "blue"),
-    ("⚠️", "Saturation Risk", 38, "amber"),
-    ("🏭", "Supplier Score", 82, "blue"),
-)
-
-
-def _hero_metric_row(*, icon: str, label: str, score: int, tone: str) -> str:
-    tone_class = "is-amber" if tone == "amber" else ""
-    return (
-        f'<div class="lp-hero-metric">'
-        f'<span class="lp-hero-metric-icon">{html.escape(icon)}</span>'
-        f"<div>"
-        f'<p class="lp-hero-metric-label">{html.escape(label)}</p>'
-        f'<div class="lp-hero-metric-bar"><i class="{tone_class}" style="width:{score}%"></i></div>'
-        f"</div>"
-        f'<span class="lp-hero-metric-score">{score}/100</span>'
-        f"</div>"
-    )
-
-
-def _hero_preview_card_html() -> str:
-    image_url = html.escape(carousel_image_data_uri(_HERO_PREVIEW_SLUG), quote=True)
-    metrics = "".join(
-        _hero_metric_row(icon=icon, label=label, score=score, tone=tone)
-        for icon, label, score, tone in _HERO_METRICS
-    )
-    return (
-        '<div class="lp-hero-preview">'
-        '<div class="lp-hero-card">'
-        '<div class="lp-hero-card-head">'
-        f'<img class="lp-hero-card-thumb" src="{image_url}" alt="Portable USB-C Rechargeable Blender" loading="lazy" />'
-        '<div class="lp-hero-card-meta">'
-        '<p class="lp-hero-card-name">Portable USB-C Rechargeable Blender</p>'
-        '<div class="lp-hero-card-badges">'
-        '<span class="lp-hero-score-pill">8.4 / 10</span>'
-        '<span class="lp-hero-trend-pill">↗ +14% Demand this month</span>'
+        '<div class="cm-hero-card-wrap cm-animate-in cm-animate-in-delay-2">'
+        '<div class="cm-hero-card">'
+        '<div class="cm-hero-card-top">'
+        f'<img class="cm-hero-card-img" src="{image_url}" alt="Pet Travel Harness" loading="lazy" />'
+        '<div class="cm-hero-card-info">'
+        '<span class="cm-hero-card-tag">Trending</span>'
+        '<p class="cm-hero-card-name">Personalized Pet Travel Harness</p>'
+        '<div class="cm-hero-pills">'
+        '<span class="cm-pill">↗ +22% Demand</span>'
+        '<span class="cm-pill">Pet Niche</span>'
+        '<span class="cm-pill">Low Competition</span>'
         "</div></div></div>"
-        '<div class="lp-hero-card-stats">'
-        '<div><p class="lp-hero-stat-label">Est. Net Profit</p>'
-        '<p class="lp-hero-stat-value lp-hero-stat-value--green">$920 / mo</p></div>'
-        '<div><p class="lp-hero-stat-label">Gross Margin</p>'
-        '<p class="lp-hero-stat-value">58%</p></div>'
+        '<div class="cm-hero-verdict-box">'
+        '<div class="cm-hero-verdict-score">86<small>/100</small></div>'
+        '<div class="cm-hero-verdict-label">GO — Strong Opportunity<br><span style="font-weight:500;color:#059669">92% confidence</span></div>'
         "</div>"
-        '<div class="lp-hero-card-body">'
-        '<div class="lp-hero-score-ring" style="--score:89"><span>89</span></div>'
-        "<div>"
-        '<p class="lp-hero-verdict-kicker">Overall score</p>'
-        '<p class="lp-hero-verdict-title">High potential</p>'
-        '<p class="lp-hero-verdict-copy">Strong demand and healthy margins with manageable competition.</p>'
-        '<span class="lp-hero-go-pill">GO</span>'
-        "</div></div>"
-        f'<div class="lp-hero-metrics">{metrics}</div>'
-        '<a class="lp-hero-card-footer" href="#" data-ps-nav-anchor="sample" target="_self">View Full Report →</a>'
-        "</div></div>"
+        f'<div class="cm-hero-dots">{dots}</div>'
+        '<div class="cm-hero-stats-row">'
+        '<div class="cm-hero-stat-mini"><label>Est. Profit</label><strong class="is-green">$18.20</strong></div>'
+        '<div class="cm-hero-stat-mini"><label>Margin</label><strong>65%</strong></div>'
+        '<div class="cm-hero-stat-mini"><label>Demand</label><strong class="is-green">+22%</strong></div>'
+        '<div class="cm-hero-stat-mini"><label>Risk</label><strong>Low</strong></div>'
+        "</div></div></div>"
     )
 
 
-def _hero_features_html() -> str:
-    return (
-        '<div class="lp-hero-features">'
-        '<div class="lp-hero-feature">'
-        '<span class="lp-hero-feature-icon">⏱</span>'
-        '<p class="lp-hero-feature-title">~30 seconds</p>'
-        '<p class="lp-hero-feature-desc">From upload to full preview</p>'
-        "</div>"
-        '<div class="lp-hero-feature">'
-        '<span class="lp-hero-feature-icon">📋</span>'
-        '<p class="lp-hero-feature-title">2 sections free</p>'
-        '<p class="lp-hero-feature-desc">Profile, core metrics &amp; red flags</p>'
-        "</div>"
-        f'<div class="lp-hero-feature">'
-        f'<span class="lp-hero-feature-icon">🎁</span>'
-        f'<p class="lp-hero-feature-title">{FREE_EVALUATIONS_PER_ACCOUNT} free evaluations</p>'
-        f'<p class="lp-hero-feature-desc">Per account, no credit card</p>'
-        f"</div>"
-        '<div class="lp-hero-feature">'
-        '<span class="lp-hero-feature-icon">🛡</span>'
-        '<p class="lp-hero-feature-title">Upgrade anytime</p>'
-        '<p class="lp-hero-feature-desc">Unlock full report, unlimited evaluations</p>'
-        "</div></div>"
-    )
+def _report_nav_item(section_num: int, title: str, *, active: bool = False, locked: bool = False) -> str:
+    icon = "🔒" if locked else ("●" if active else "○")
+    classes = "cm-report-nav-item"
+    if active:
+        classes += " is-active"
+    if locked:
+        classes += " is-locked"
+    return f'<div class="{classes}"><span>{icon}</span>{html.escape(title)}</div>'
 
 
-def _install_landing_hero_cta_bridge() -> None:
+def _install_landing_cta_bridge() -> None:
     components.html(
         """
         <script>
         (function () {
             const win = window.parent;
             const doc = win.document;
-            if (win.__psLandingHeroCtaInstalled) return;
-            win.__psLandingHeroCtaInstalled = true;
+            if (win.__psLandingCtaInstalled) return;
+            win.__psLandingCtaInstalled = true;
 
             function clickHeroCta(attempt) {
                 const tries = attempt || 0;
                 const host = doc.querySelector('[class*="st-key-landing_hero_cta"]');
                 if (!host) {
-                    if (tries < 8) {
-                        win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
-                    }
+                    if (tries < 8) win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
                     return;
                 }
                 const button = host.querySelector("button");
                 if (!button) {
-                    if (tries < 8) {
-                        win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
-                    }
+                    if (tries < 8) win.setTimeout(function () { clickHeroCta(tries + 1); }, 40);
                     return;
                 }
                 button.click();
@@ -797,7 +185,7 @@ def _install_landing_hero_cta_bridge() -> None:
             doc.addEventListener(
                 "click",
                 function (event) {
-                    const link = event.target.closest(".lp-hero-cta");
+                    const link = event.target.closest(".cm-cta, .lp-hero-cta");
                     if (!link) return;
                     event.preventDefault();
                     event.stopImmediatePropagation();
@@ -812,19 +200,38 @@ def _install_landing_hero_cta_bridge() -> None:
         width=0,
     )
 
-    anchor = st.session_state.pop("landing_anchor", None)
-    if not anchor:
-        return
+
+def _install_scroll_reveal() -> None:
     components.html(
-        f"""
+        """
         <script>
-        (function () {{
-            const doc = window.parent.document;
-            const el = doc.getElementById("section-{anchor}");
-            if (el) {{
-                el.scrollIntoView({{ behavior: "smooth", block: "start" }});
-            }}
-        }})();
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            if (!win.__cmReveal) {
+                win.__cmReveal = {
+                    io: new IntersectionObserver(
+                        (entries) => {
+                            entries.forEach((entry) => {
+                                if (!entry.isIntersecting) return;
+                                entry.target.classList.add("is-visible");
+                            });
+                        },
+                        { threshold: 0.12, rootMargin: "0px 0px -4% 0px" }
+                    ),
+                };
+                win.__cmReveal.mo = new MutationObserver(() => win.__cmReveal.scan());
+                win.__cmReveal.mo.observe(doc.body, { childList: true, subtree: true });
+            }
+            win.__cmReveal.scan = function scan() {
+                doc.documentElement.classList.add("cm-reveal-ready");
+                doc.querySelectorAll(".cm-reveal:not([data-cm-observed])").forEach((node) => {
+                    node.dataset.cmObserved = "1";
+                    win.__cmReveal.io.observe(node);
+                });
+            };
+            win.__cmReveal.scan();
+        })();
         </script>
         """,
         height=0,
@@ -832,35 +239,66 @@ def _install_landing_hero_cta_bridge() -> None:
     )
 
 
-def render_landing_hero() -> None:
-    brand = html.escape(BRAND_NAME)
-    st.markdown(
-        '<div class="landing-wrap"><section class="landing-hero">'
-        '<div class="lp-hero-grid">'
-        '<div class="lp-hero-copy">'
-        '<span class="lp-hero-tag lp-reveal-hero">AI Product Evaluation</span>'
-        '<h1 class="lp-hero-title lp-reveal-hero lp-reveal-delay-1">Know if a product is <em>worth selling.</em></h1>'
-        f'<p class="lp-hero-lead lp-reveal-hero lp-reveal-delay-2">Upload any ecommerce product and <strong>{brand}</strong> uses AI to evaluate demand, profitability, competition, suppliers, and risk before you invest.</p>'
-        '<a class="lp-hero-cta lp-reveal-hero lp-reveal-delay-3" href="#">Start Free Evaluation →</a>'
-        '<div class="lp-hero-trust lp-reveal-hero lp-reveal-delay-3">'
-        '<span class="lp-hero-trust-item"><span class="lp-hero-trust-icon">⚡</span>~30 sec preview</span>'
-        '<span class="lp-hero-trust-item"><span class="lp-hero-trust-icon">★</span>No credit card required</span>'
-        "</div>"
-        '<div class="lp-hero-social lp-reveal-hero lp-reveal-delay-3">'
-        '<span class="lp-hero-avatars" aria-hidden="true">'
-        '<span class="lp-hero-avatar lp-hero-avatar--a"></span>'
-        '<span class="lp-hero-avatar lp-hero-avatar--b"></span>'
-        '<span class="lp-hero-avatar lp-hero-avatar--c"></span>'
-        '<span class="lp-hero-avatar lp-hero-avatar--d"></span>'
-        "</span>"
-        '<span class="lp-hero-stars" aria-hidden="true">★★★★★</span>'
-        '<span class="lp-hero-social-text">Trusted by ecommerce founders</span>'
-        "</div></div>"
-        + _hero_preview_card_html()
-        + "</div>"
-        + _hero_features_html()
-        + "</section></div>",
-        unsafe_allow_html=True,
+def _install_scan_carousel() -> None:
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+            const AUTO_SPEED = 0.35;
+
+            function initViewport(viewport) {
+                if (viewport.dataset.cmScanReady) return;
+                const track = viewport.querySelector(".cm-scan-track");
+                if (!track) return;
+                viewport.dataset.cmScanReady = "1";
+
+                let position = 0;
+                let loopWidth = 0;
+                let paused = false;
+                let frame = null;
+
+                function measure() {
+                    loopWidth = track.scrollWidth / 2;
+                    if (!loopWidth) loopWidth = 1;
+                }
+                function wrap() {
+                    while (position <= -loopWidth) position += loopWidth;
+                    while (position > 0) position -= loopWidth;
+                }
+                function render() {
+                    track.style.transform = "translate3d(" + position + "px,0,0)";
+                }
+                function step() {
+                    if (!paused) {
+                        position -= AUTO_SPEED;
+                        wrap();
+                        render();
+                    }
+                    frame = requestAnimationFrame(step);
+                }
+                viewport.addEventListener("mouseenter", () => { paused = true; });
+                viewport.addEventListener("mouseleave", () => { paused = false; });
+                measure();
+                render();
+                frame = requestAnimationFrame(step);
+                win.addEventListener("resize", () => { measure(); wrap(); render(); });
+            }
+
+            function scan() {
+                doc.querySelectorAll(".cm-scan-viewport").forEach(initViewport);
+            }
+            if (!win.__cmScan) {
+                win.__cmScan = { scan };
+                new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
+            }
+            requestAnimationFrame(() => requestAnimationFrame(scan));
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
@@ -872,11 +310,8 @@ def _scroll_to_anchor_if_needed() -> None:
         f"""
         <script>
         (function () {{
-            const doc = window.parent.document;
-            const el = doc.getElementById("section-{anchor}");
-            if (el) {{
-                el.scrollIntoView({{ behavior: "smooth", block: "start" }});
-            }}
+            const el = window.parent.document.getElementById("section-{anchor}");
+            if (el) el.scrollIntoView({{ behavior: "smooth", block: "start" }});
         }})();
         </script>
         """,
@@ -885,134 +320,363 @@ def _scroll_to_anchor_if_needed() -> None:
     )
 
 
-def render_landing_body() -> None:
-    free_sections = REPORT_SECTIONS[:2]
+def render_landing_hero() -> None:
+    brand = html.escape(BRAND_NAME)
     st.markdown(
-        _band_open("free")
-        + _section_header_html(
-            "What you get free",
-            "Sections 1–2: profile, score, and red-flag analysis",
-            "The free report covers your product profile, core metrics, and risk flags. "
-            "Premium adds the financial verdict and the full Sections 3–6 stack.",
+        '<div class="cm-page cm-hero">'
+        '<div class="cm-hero-grid">'
+        '<div class="cm-hero-copy">'
+        '<span class="cm-kicker cm-animate-in">🛡 Brutally honest AI product evaluations</span>'
+        '<h1 class="cm-title cm-animate-in cm-animate-in-delay-1">No Hype. No Bias. Just <span class="cm-accent">Brutal</span> Truth.</h1>'
+        f'<p class="cm-lead cm-animate-in cm-animate-in-delay-2">Stop wasting money on products that look good on paper. {brand} uses real market data from 10+ sources to tell you what to launch — and what to walk away from.</p>'
+        '<ul class="cm-hero-bullets cm-animate-in cm-animate-in-delay-2">'
+        "<li><span>✓</span> Real data from 10+ sources</li>"
+        "<li><span>⚠</span> 100% honest risk analysis</li>"
+        "<li><span>⚡</span> Actionable insights in minutes</li>"
+        "</ul>"
+        '<a class="cm-cta cm-cta--lg cm-animate-in cm-animate-in-delay-3" href="#">Start Your Free Evaluation →</a>'
+        '<div class="cm-hero-social cm-animate-in cm-animate-in-delay-4">'
+        '<span class="cm-avatars" aria-hidden="true">'
+        '<span class="cm-avatar"></span><span class="cm-avatar cm-avatar--b"></span>'
+        '<span class="cm-avatar cm-avatar--c"></span><span class="cm-avatar cm-avatar--d"></span>'
+        "</span>"
+        '<span class="cm-stars">★★★★★</span>'
+        '<span class="cm-social-text">Join 25,000+ entrepreneurs</span>'
+        "</div></div>"
+        + _hero_card_html()
+        + "</div></div>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_live_scan_section() -> None:
+    cards = "".join(_scan_card(p) for p in _SCAN_PRODUCTS)
+    track = f'<div class="cm-scan-track">{cards}{cards}</div>'
+    st.markdown(
+        '<section class="cm-section cm-section--tight">'
+        '<div class="cm-page">'
+        '<div class="cm-scan-head cm-reveal">'
+        "<div>"
+        '<span class="cm-kicker">Live market scan</span>'
+        '<h2 class="cm-title" style="font-size:1.65rem;margin-bottom:0.35rem">Products being evaluated right now</h2>'
+        '<p class="cm-lead">Real products. Real data. Updated continuously.</p>'
+        "</div>"
+        '<a class="cm-scan-link" href="#" data-ps-nav-anchor="sample" target="_self">View all live products →</a>'
+        "</div>"
+        f'<div class="cm-scan-shell cm-reveal"><div class="cm-scan-viewport">{track}</div></div>'
+        "</div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_investigation_engine() -> None:
+    st.markdown(
+        '<section class="cm-section">'
+        '<div class="cm-page cm-engine-grid">'
+        '<div class="cm-reveal">'
+        '<h2 class="cm-title cm-section-head--left">We leave no stone unturned. That\'s how we stay <span class="cm-accent">brutally honest.</span></h2>'
+        '<p class="cm-lead">Our AI engine cross-references demand signals, ad intelligence, supplier data, and competitor sentiment before you spend a dollar.</p>'
+        "</div>"
+        '<div class="cm-engine-diagram cm-reveal">'
+        '<div class="cm-engine-core">Crow<br>Metrics<br>AI</div>'
+        '<span class="cm-engine-orbit">Amazon</span>'
+        '<span class="cm-engine-orbit">Google Trends</span>'
+        '<span class="cm-engine-orbit">TikTok Ads</span>'
+        '<span class="cm-engine-orbit">Facebook Ads</span>'
+        '<span class="cm-engine-orbit">YouTube Ads</span>'
+        '<span class="cm-engine-orbit">AliExpress</span>'
+        '<span class="cm-engine-orbit">Shopify</span>'
+        "</div>"
+        '<div class="cm-legend-card cm-reveal">'
+        '<p class="cm-legend-title">What your score means</p>'
+        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#15803D"></span>'
+        '<span class="cm-legend-label">90–100</span><span class="cm-legend-desc">Strong GO</span></div>'
+        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#22C55E"></span>'
+        '<span class="cm-legend-label">80–89</span><span class="cm-legend-desc">GO</span></div>'
+        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#FACC15"></span>'
+        '<span class="cm-legend-label">60–79</span><span class="cm-legend-desc">Caution</span></div>'
+        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#F97316"></span>'
+        '<span class="cm-legend-label">40–59</span><span class="cm-legend-desc">High risk</span></div>'
+        '<div class="cm-legend-row"><span class="cm-legend-swatch" style="background:#EF4444"></span>'
+        '<span class="cm-legend-label">0–39</span><span class="cm-legend-desc">Walk away</span></div>'
+        "</div></div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_how_it_works() -> None:
+    st.markdown(
+        '<section class="cm-section cm-section--tight" id="section-process">'
+        '<div class="cm-page">'
+        '<div class="cm-section-head cm-reveal">'
+        '<span class="cm-kicker">How it works</span>'
+        '<h2 class="cm-title">Get your product evaluation in <span class="cm-accent">3 simple steps</span></h2>'
+        "</div>"
+        '<div class="cm-steps-grid">'
+        '<div class="cm-step-card cm-reveal">'
+        '<span class="cm-step-num">1</span>'
+        '<p class="cm-step-title">Add your product</p>'
+        '<p class="cm-step-body">Paste a product link or upload an image. Enter cost, sell price, and dimensions — takes 60 seconds.</p>'
+        '<div class="cm-step-mock">🔗 Product URL + 📷 Upload image</div>'
+        "</div>"
+        '<div class="cm-step-card cm-reveal">'
+        '<span class="cm-step-num">2</span>'
+        '<p class="cm-step-title">Crow Metrics investigates</p>'
+        '<p class="cm-step-body">Our AI scans 10+ data sources — demand, competition, margins, suppliers, and risk signals.</p>'
+        '<div class="cm-step-mock">🔍 Scanning Amazon · Trends · Ads · Suppliers</div>'
+        "</div>"
+        '<div class="cm-step-card cm-reveal">'
+        '<span class="cm-step-num">3</span>'
+        '<p class="cm-step-title">Get your evaluation</p>'
+        '<p class="cm-step-body">Receive a scored report with GO/NO-GO verdict, red flags, and an actionable launch plan.</p>'
+        '<div class="cm-step-mock">📊 86/100 · GO — View Report</div>'
+        "</div>"
+        "</div></div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_stats_bar() -> None:
+    st.markdown(
+        '<section class="cm-section cm-section--tight">'
+        '<div class="cm-page">'
+        '<div class="cm-stats-bar cm-reveal">'
+        '<div class="cm-stats-brand">'
+        '<span class="cm-stats-brand-icon">🛡</span>'
+        '<p class="cm-stats-brand-text">Brutal by design.<br>Built to save you money.</p>'
+        "</div>"
+        '<div class="cm-stats-grid">'
+        '<div class="cm-stat-item"><strong>10M+</strong><span>Data points analyzed daily</span></div>'
+        '<div class="cm-stat-item"><strong>70+</strong><span>Proprietary signals</span></div>'
+        '<div class="cm-stat-item"><strong>25,000+</strong><span>Entrepreneurs trust us</span></div>'
+        '<div class="cm-stat-item"><strong>1,000+</strong><span>Products analyzed every day</span></div>'
+        "</div></div></div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_report_preview() -> None:
+    image_url = html.escape(carousel_image_data_uri(_HERO_SLUG), quote=True)
+    nav = "".join(
+        _report_nav_item(
+            s.number,
+            s.title.split("&")[0].strip() if "&" in s.title else s.title,
+            active=s.number == 1,
+            locked=s.number > 2,
         )
-        + '<div class="lp-section-grid">'
-        + _section_card_html(free_sections[0], reveal="lp-reveal lp-reveal-left lp-reveal-delay-1")
-        + _section_card_html(free_sections[1], reveal="lp-reveal lp-reveal-right lp-reveal-delay-2")
-        + "</div>"
-        + _band_close(),
+        for s in REPORT_SECTIONS
+    )
+    st.markdown(
+        '<section class="cm-section" id="section-sample">'
+        '<div class="cm-page">'
+        '<div class="cm-section-head cm-reveal">'
+        '<span class="cm-kicker">Report preview</span>'
+        '<h2 class="cm-title">Here\'s a preview of your <span class="cm-accent">full report</span></h2>'
+        f'<p class="cm-lead">Sections 1–2 are free on every evaluation. Upgrade to Premium for the complete 6-section investigation.</p>'
+        "</div>"
+        '<div class="cm-report-shell cm-reveal">'
+        '<div class="cm-report-layout">'
+        f'<nav class="cm-report-nav">{nav}</nav>'
+        '<div class="cm-report-main">'
+        '<div class="cm-report-header">'
+        f'<img class="cm-report-product-img" src="{image_url}" alt="Pet Travel Harness" />'
+        "<div>"
+        '<p style="margin:0;font-weight:700;color:#0A1128">Personalized Pet Travel Harness</p>'
+        '<p style="margin:0.25rem 0 0;font-size:0.78rem;color:#64748B">Pet Supplies · Travel niche · Low competition</p>'
+        "</div></div>"
+        '<div class="cm-report-verdict">'
+        '<div><div class="cm-report-verdict-score">86<span style="font-size:0.9rem;color:#059669">/100</span></div>'
+        '<p style="margin:0.35rem 0 0;font-size:0.82rem;font-weight:700;color:#047857">GO — Strong Opportunity</p></div>'
+        '<p style="margin:0;font-size:0.78rem;color:#059669;font-weight:600">92% confidence</p>'
+        "</div>"
+        '<div class="cm-report-kpis">'
+        '<div class="cm-report-kpi"><label>Est. Profit</label><strong>$15.43/unit</strong></div>'
+        '<div class="cm-report-kpi"><label>Margin</label><strong>57%</strong></div>'
+        '<div class="cm-report-kpi"><label>Demand</label><strong style="color:#059669">+22%</strong></div>'
+        '<div class="cm-report-kpi"><label>Saturation</label><strong>Low</strong></div>'
+        '<div class="cm-report-kpi"><label>Overall Risk</label><strong>Low</strong></div>'
+        "</div>"
+        '<div class="cm-report-charts">'
+        '<div class="cm-chart-box"><p class="cm-chart-title">Demand over time</p>'
+        '<div class="cm-chart-bars">'
+        '<div class="cm-chart-bar" style="height:45%"></div>'
+        '<div class="cm-chart-bar" style="height:55%"></div>'
+        '<div class="cm-chart-bar" style="height:62%"></div>'
+        '<div class="cm-chart-bar" style="height:78%"></div>'
+        '<div class="cm-chart-bar" style="height:85%"></div>'
+        '<div class="cm-chart-bar" style="height:92%"></div>'
+        "</div></div>"
+        '<div class="cm-chart-box"><p class="cm-chart-title">Top risk factors</p>'
+        '<ul class="cm-risk-list">'
+        "<li>⚠ Seasonal spike in Q2 — plan inventory</li>"
+        "<li>⚠ 2 competitors undercutting on Amazon</li>"
+        "<li>✓ Strong supplier score on AliExpress</li>"
+        "</ul></div></div></div></div>"
+        '<div class="cm-report-footer">'
+        '<a href="#" data-ps-sample-slug="pet-travel-harness" target="_self">View full report sample →</a>'
+        "</div></div></div></section>",
         unsafe_allow_html=True,
     )
 
-    st.markdown(
-        _band_open("premium", section_id="section-pricing")
-        + _section_header_html(
-            "Unlock the full report",
-            "One plan. Everything included. $29/month.",
-            "Sections 3–6 cover the financial verdict, marketing blueprint, live competitor intel, "
-            "and competitor review sentiment analysis — plus unlimited evaluations.",
+
+def render_unlock_premium() -> None:
+    premium = PLAN_CONFIG[PlanTier.PREMIUM]
+    free_checks = (
+        '<div class="cm-check-row"><span>✓</span> Sections 1–2 (profile + red flags)</div>'
+        '<div class="cm-check-row"><span>✓</span> Weighted 5-metric score</div>'
+        f'<div class="cm-check-row"><span>✓</span> {FREE_EVALUATIONS_PER_ACCOUNT} free evaluations</div>'
+        '<div class="cm-check-row is-no"><span>—</span> Financial GO/NO-GO verdict</div>'
+        '<div class="cm-check-row is-no"><span>—</span> Live web intelligence</div>'
+    )
+    premium_checks = (
+        '<div class="cm-check-row"><span>✓</span> All 6 sections unlocked</div>'
+        '<div class="cm-check-row"><span>✓</span> Unlimited evaluations</div>'
+        '<div class="cm-check-row"><span>✓</span> Full financial matrix</div>'
+        '<div class="cm-check-row"><span>✓</span> Marketing blueprint + ad intel</div>'
+        '<div class="cm-check-row"><span>✓</span> Competitor sentiment analysis</div>'
+    )
+    section_cards = ""
+    for section in REPORT_SECTIONS:
+        locked = section.number > 2
+        section_cards += (
+            f'<div class="cm-section-mini{" is-locked" if locked else ""}">'
+            f'<p class="cm-section-mini-num">Section {section.number}</p>'
+            f'<p class="cm-section-mini-title">{html.escape(section.title.split("&")[0].strip())}</p>'
+            f"</div>"
         )
-        + _premium_pricing_html()
-        + _band_close(),
-        unsafe_allow_html=True,
-    )
-
     st.markdown(
-        _band_open("process", section_id="section-process")
-        + _section_header_html("How it works", "From product photo to go/no-go in three steps")
-        + '<div class="lp-steps-grid">'
-        + _step_card_html(
-            1,
-            "Upload and input",
-            "Add your product image, cost, sell price, dimensions, and a short description. Takes 60 seconds.",
-            reveal="lp-reveal lp-reveal-delay-1",
-        )
-        + _step_card_html(
-            2,
-            "AI evaluates",
-            "Our AI analyzes your inputs — profile and risks on free, full stack on Premium.",
-            reveal="lp-reveal lp-reveal-delay-2",
-        )
-        + _step_card_html(
-            3,
-            "Decide and scale",
-            "Read red flags free. Upgrade for the GO/NO-GO verdict, sourcing intel, and sentiment analysis.",
-            reveal="lp-reveal lp-reveal-delay-3",
-        )
-        + "</div>"
-        + _band_close(),
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        _band_open("sample", section_id="section-sample")
-        + _section_header_html("Inside your report", "A snapshot of what you'll see")
-        + '<div class="lp-preview-card lp-reveal lp-reveal-scale">'
-        + '<div class="lp-preview-left">'
-        + '<p class="lp-preview-label">Overall product score</p>'
-        + '<p class="lp-preview-score">74<span>/100</span></p>'
-        + '<p class="lp-preview-verdict">Proceed with caution</p>'
-        + "</div>"
-        + '<div class="lp-preview-right">'
-        + '<p class="lp-preview-metric"><span>Market saturation</span><span class="lp-bar"><i style="width:62%"></i></span><strong>62</strong></p>'
-        + '<p class="lp-preview-metric"><span>Marketing velocity</span><span class="lp-bar"><i style="width:81%"></i></span><strong>81</strong></p>'
-        + '<p class="lp-preview-metric"><span>Logistics and margin</span><span class="lp-bar"><i style="width:88%"></i></span><strong>88</strong></p>'
-        + '<p class="lp-preview-metric"><span>Seasonality</span><span class="lp-bar"><i style="width:55%"></i></span><strong>55</strong></p>'
-        + '<p class="lp-preview-metric"><span>Brandability</span><span class="lp-bar"><i style="width:70%"></i></span><strong>70</strong></p>'
-        + "</div></div>"
-        + _band_close(),
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        _band_open("compare")
-        + _section_header_html("Compare plans", "Free preview vs Premium full stack")
-        + f'<div class="lp-compare-wrap lp-reveal lp-reveal-scale"><table class="lp-compare-table">'
-        f"<thead><tr><th>Feature</th><th>Free</th><th>Premium</th></tr></thead><tbody>"
-        f"<tr><td>Sections 1–2 (profile + red flags)</td><td>Yes</td><td>Yes</td></tr>"
-        f"<tr><td>Weighted 5-metric score</td><td>Yes</td><td>Yes</td></tr>"
-        f"<tr><td>Financial matrix &amp; GO/NO-GO verdict (Section 3)</td><td>—</td><td>Yes</td></tr>"
-        f"<tr><td>Marketing blueprint (Section 4)</td><td>—</td><td>Yes</td></tr>"
-        f"<tr><td>Live web intel &amp; sourcing (Section 5)</td><td>—</td><td>Yes</td></tr>"
-        f"<tr><td>Competitor review sentiment analysis (Section 6)</td><td>—</td><td>Yes</td></tr>"
-        f"<tr><td>Evaluations</td><td>{FREE_EVALUATIONS_PER_ACCOUNT} free / account</td><td>Unlimited</td></tr>"
-        f"<tr><td>Price</td><td>$0</td><td>$29/mo</td></tr>"
-        f"</tbody></table></div>"
-        + _band_close(),
-        unsafe_allow_html=True,
-    )
-
-    st.markdown(
-        _band_open("faq", section_id="section-resources")
-        + _section_header_html("FAQ", "Common questions before you evaluate")
-        + _faq_html()
-        + _band_close(),
-        unsafe_allow_html=True,
-    )
-
-
-def render_landing_final_cta(*, show_buttons: bool = True) -> None:
-    st.markdown(
-        _band_open("final")
-        + f'<div class="lp-final-cta lp-reveal">'
-        f'<p class="lp-final-kicker">Ready to evaluate?</p>'
-        f'<h2 class="lp-final-title">Your first {FREE_EVALUATIONS_PER_ACCOUNT} evaluations are free — no credit card required</h2>'
-        f'<p class="lp-final-lead">Upload a product image, enter your numbers, and get your score in about 30 seconds.</p>'
+        f'<section class="cm-section cm-section--tight" id="section-pricing">'
+        f'<div class="cm-page">'
+        f'<div class="cm-section-head cm-reveal">'
+        f'<span class="cm-kicker">Premium</span>'
+        f'<h2 class="cm-title">Go beyond the preview. Get the <span class="cm-accent">full investigation</span></h2>'
         f"</div>"
-        + _band_close(),
+        f'<div class="cm-premium-grid">'
+        f'<div class="cm-reveal">'
+        f'<div class="cm-premium-checklist" style="margin-bottom:1rem"><h3>Free</h3>{free_checks}</div>'
+        f'<div class="cm-premium-checklist"><h3>Premium</h3>{premium_checks}</div>'
+        f"</div>"
+        f'<div class="cm-section-cards cm-reveal">{section_cards}</div>'
+        f"</div>"
+        f'<div class="cm-pricing-bar cm-reveal">'
+        f'<div class="cm-pricing-points">'
+        f"<span>✓ Unlimited product evaluations</span>"
+        f"<span>✓ All 6 sections for every report</span>"
+        f"<span>✓ Cancel anytime</span>"
+        f"</div>"
+        f'<div style="display:flex;align-items:center;gap:1rem;flex-wrap:wrap">'
+        f'<p class="cm-pricing-price">Only ${premium.price_usd_monthly}<span>/month</span></p>'
+        f'<a class="cm-cta" href="#">Unlock Full Report →</a>'
+        f"</div></div></div></section>",
         unsafe_allow_html=True,
     )
 
-    if show_buttons:
-        st.markdown('<div class="lp-final-cta-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-        st.markdown('<div class="lp-primary-cta-wrap">', unsafe_allow_html=True)
-        if st.button("Start free evaluation →", type="primary", use_container_width=True, key="landing_bottom_cta"):
-            request_free_evaluation()
-        st.markdown("</div>", unsafe_allow_html=True)
+
+def render_score_legend() -> None:
+    st.markdown(
+        '<section class="cm-section cm-section--dark">'
+        '<div class="cm-page">'
+        '<div class="cm-section-head cm-reveal">'
+        '<span class="cm-kicker cm-kicker--dark">Scoring</span>'
+        '<h2 class="cm-title">Know exactly what your score <span class="cm-accent">means</span></h2>'
+        "</div>"
+        '<div class="cm-score-cards cm-reveal">'
+        '<div class="cm-score-card cm-score-card--strong"><p class="cm-score-range" style="color:#4ADE80">90–100</p>'
+        '<p class="cm-score-label">Strong GO</p><p class="cm-score-desc">Exceptional opportunity with strong demand and margins.</p></div>'
+        '<div class="cm-score-card cm-score-card--go"><p class="cm-score-range" style="color:#86EFAC">80–89</p>'
+        '<p class="cm-score-label">GO</p><p class="cm-score-desc">Strong opportunity — proceed with a clear launch plan.</p></div>'
+        '<div class="cm-score-card cm-score-card--caution"><p class="cm-score-range" style="color:#FDE047">60–79</p>'
+        '<p class="cm-score-label">Caution</p><p class="cm-score-desc">Potential exists, but weaknesses need attention.</p></div>'
+        '<div class="cm-score-card cm-score-card--risk"><p class="cm-score-range" style="color:#FB923C">40–59</p>'
+        '<p class="cm-score-label">High Risk</p><p class="cm-score-desc">More risks than rewards — reconsider before investing.</p></div>'
+        '<div class="cm-score-card cm-score-card--walk"><p class="cm-score-range" style="color:#F87171">0–39</p>'
+        '<p class="cm-score-label">Walk Away</p><p class="cm-score-desc">Low chance of success — save your capital.</p></div>'
+        "</div>"
+        '<div class="cm-brutal-grid cm-reveal">'
+        "<div>"
+        '<div class="cm-hero-social" style="margin-bottom:1.5rem">'
+        '<span class="cm-avatars"><span class="cm-avatar"></span><span class="cm-avatar cm-avatar--b"></span>'
+        '<span class="cm-avatar cm-avatar--c"></span><span class="cm-avatar cm-avatar--d"></span></span>'
+        '<span class="cm-stars">★★★★★</span>'
+        '<span class="cm-social-text" style="color:#94A3B8">Join 25,000+ entrepreneurs making smarter decisions</span>'
+        "</div>"
+        '<div class="cm-value-bar">'
+        '<div class="cm-value-item"><strong>100% honest</strong>analysis</div>'
+        '<div class="cm-value-item"><strong>Data over</strong>opinions</div>'
+        '<div class="cm-value-item"><strong>Your success</strong>first</div>'
+        "</div></div>"
+        '<div class="cm-brutal-card">'
+        "<h3>Why so brutal?</h3>"
+        "<p>Most tools tell you what you want to hear. Crow Metrics has no bias, no affiliate deals, and no reason to hype a bad product. Just data, patterns, and the brutal truth.</p>"
+        "</div></div>"
+        '<p class="cm-quote cm-reveal">"The AI that tells you what to do — and what not to do."</p>'
+        "</div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_reviews_section() -> None:
+    cards = []
+    for text, author, role in _REVIEWS:
+        cards.append(
+            f'<div class="cm-review-card cm-reveal">'
+            f'<div class="cm-review-stars">★★★★★</div>'
+            f'<p class="cm-review-text">{html.escape(text)}</p>'
+            f'<div class="cm-review-author">'
+            f'<span class="cm-avatar"></span>'
+            f"<div><strong>{html.escape(author)}</strong><span>{html.escape(role)}</span></div>"
+            f"</div></div>"
+        )
+    st.markdown(
+        '<section class="cm-section" id="section-reviews">'
+        '<div class="cm-page">'
+        '<div class="cm-section-head cm-reveal">'
+        '<span class="cm-kicker">Reviews</span>'
+        '<h2 class="cm-title">Trusted by <span class="cm-accent">ecommerce founders</span></h2>'
+        "</div>"
+        f'<div class="cm-reviews-grid">{"".join(cards)}</div>'
+        "</div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_faq_section() -> None:
+    items = []
+    for question, answer in _FAQ_ITEMS:
+        items.append(
+            f'<details class="cm-faq-item cm-reveal">'
+            f"<summary>{html.escape(question)}</summary>"
+            f'<p class="cm-faq-answer">{html.escape(answer)}</p>'
+            f"</details>"
+        )
+    st.markdown(
+        f'<section class="cm-section cm-section--tight" id="section-resources">'
+        f'<div class="cm-page">'
+        f'<div class="cm-section-head cm-reveal">'
+        f'<span class="cm-kicker">FAQ</span>'
+        f'<h2 class="cm-title">Common questions</h2>'
+        f"</div>"
+        f'<div class="cm-faq-list">{"".join(items)}</div>'
+        f"</div></section>",
+        unsafe_allow_html=True,
+    )
+
+
+def render_final_cta() -> None:
+    st.markdown(
+        f'<section class="cm-final cm-reveal">'
+        f'<div class="cm-page">'
+        f'<h2 class="cm-title">Your first {FREE_EVALUATIONS_PER_ACCOUNT} evaluations are free</h2>'
+        f'<p class="cm-lead" style="margin-bottom:1.5rem">No credit card required. Get your brutal truth in ~30 seconds.</p>'
+        f'<a class="cm-cta cm-cta--lg" href="#">Start Your Free Evaluation →</a>'
+        f"</div></section>",
+        unsafe_allow_html=True,
+    )
 
 
 def render_landing_footnote() -> None:
     st.markdown(
-        f'<p class="landing-footnote lp-reveal">{html.escape(BRAND_NAME)} · Built for e-commerce operators</p>',
+        f'<p class="cm-footer cm-reveal">{html.escape(BRAND_NAME)} · Built for e-commerce operators who demand the truth</p>',
         unsafe_allow_html=True,
     )
 
@@ -1020,19 +684,27 @@ def render_landing_footnote() -> None:
 def render_landing_page() -> None:
     render_hidden_carousel_sample_buttons()
     install_carousel_sample_bridge()
-    _install_landing_hero_cta_bridge()
+    _install_landing_cta_bridge()
     render_landing_hero()
 
-    st.markdown('<div class="lp-hero-cta-host">', unsafe_allow_html=True)
+    st.markdown('<div class="cm-cta-host">', unsafe_allow_html=True)
     if st.button("Start Free Evaluation →", type="primary", key="landing_hero_cta"):
         request_free_evaluation()
     st.markdown("</div>", unsafe_allow_html=True)
 
-    render_landing_product_carousel()
-    render_landing_body()
-    render_landing_final_cta()
+    render_live_scan_section()
+    render_investigation_engine()
+    render_how_it_works()
+    render_stats_bar()
+    render_report_preview()
+    render_unlock_premium()
+    render_score_legend()
+    render_reviews_section()
+    render_faq_section()
+    render_final_cta()
     render_landing_footnote()
+
     _install_scroll_reveal()
-    _install_carousel_drag()
+    _install_scan_carousel()
     _scroll_to_anchor_if_needed()
     maybe_show_carousel_sample_dialog()
