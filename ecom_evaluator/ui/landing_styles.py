@@ -2731,20 +2731,19 @@ AUTH_CM_CSS = """
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
     min-height: 100dvh;
-    padding: 1rem !important;
+    padding: clamp(1.75rem, 7vh, 3.25rem) 1.25rem 2rem !important;
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     justify-content: center;
     box-sizing: border-box;
 }
 .stApp:has(.cm-auth-page) .block-container {
     position: relative;
     z-index: 1;
-    width: min(100%, 540px) !important;
-    max-width: 540px !important;
-    min-height: calc(100dvh - 2rem) !important;
+    width: min(100%, 520px) !important;
+    max-width: 520px !important;
     margin: 0 auto !important;
-    padding: 2rem 2.25rem 1.75rem !important;
+    padding: 2rem 2rem 1.75rem !important;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2754,15 +2753,9 @@ AUTH_CM_CSS = """
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-sizing: border-box;
-    display: flex !important;
-    flex-direction: column !important;
 }
 .stApp:has(.cm-auth-page) .block-container > [data-testid="stVerticalBlock"] {
-    flex: 1 1 auto !important;
-    display: flex !important;
-    flex-direction: column !important;
-    min-height: 100% !important;
-    gap: 1.1rem !important;
+    gap: 0.9rem !important;
 }
 .stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"],
 .stApp:has(.cm-auth-page) [data-testid="element-container"],
@@ -2775,17 +2768,12 @@ AUTH_CM_CSS = """
     width: 100% !important;
     max-width: 100% !important;
 }
-.cm-auth-fill {
-    flex: 1 1 auto;
-    min-height: 2rem;
-    width: 100%;
-}
 .cm-auth-back {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.4rem 0.8rem;
-    margin-bottom: 1.25rem;
+    padding: 0.42rem 0.85rem;
+    margin-bottom: 1.5rem;
     border-radius: 999px;
     font-size: 0.82rem;
     font-weight: 600;
@@ -2808,7 +2796,9 @@ AUTH_CM_CSS = """
 }
 .cm-auth-head {
     text-align: center;
-    margin-bottom: 1.25rem;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.35rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
 }
 .cm-auth-brand-row {
     display: flex;
@@ -2816,7 +2806,7 @@ AUTH_CM_CSS = """
     justify-content: center;
     flex-wrap: wrap;
     gap: 0.75rem;
-    margin-bottom: 0.85rem;
+    margin-bottom: 1rem;
 }
 .cm-auth-logo {
     display: inline-flex;
@@ -2917,7 +2907,7 @@ AUTH_CM_CSS = """
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 1.15rem 0 1rem;
+    margin: 0.25rem 0 0.85rem;
 }
 .cm-auth-divider::before,
 .cm-auth-divider::after {
@@ -2942,11 +2932,10 @@ AUTH_CM_CSS = """
     color: #94A3B8;
 }
 .cm-auth-legal {
-    margin-top: 0;
-    padding-top: 1.25rem;
+    margin-top: 0.25rem;
+    padding-top: 1.15rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
-    flex-shrink: 0;
 }
 .cm-auth-legal p {
     margin: 0;
@@ -2965,14 +2954,17 @@ AUTH_CM_CSS = """
 }
 @media (max-width: 640px) {
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding: 0.75rem !important;
+        padding: 1.25rem 0.85rem 1.5rem !important;
     }
     .stApp:has(.cm-auth-page) .block-container {
-        width: min(100%, 100%) !important;
+        width: 100% !important;
         max-width: 100% !important;
-        min-height: calc(100dvh - 1.5rem) !important;
         padding: 1.75rem 1.5rem 1.5rem !important;
         border-radius: 20px;
+    }
+    .cm-auth-head {
+        margin-bottom: 1.25rem;
+        padding-bottom: 1.15rem;
     }
 }
 """
