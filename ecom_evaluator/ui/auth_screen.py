@@ -311,4 +311,5 @@ def render_auth_screen() -> None:
     else:
         _render_dev_auth()
 
+    st.markdown('<div class="cm-auth-fill" aria-hidden="true"></div>', unsafe_allow_html=True)
     _render_auth_footer()

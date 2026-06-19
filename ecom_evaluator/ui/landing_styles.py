@@ -2731,22 +2731,21 @@ AUTH_CM_CSS = """
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
     min-height: 100dvh;
-    max-height: 100dvh;
-    overflow-y: auto;
-    padding: 1rem 1rem 0.5rem !important;
+    padding: 1rem !important;
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     justify-content: center;
     box-sizing: border-box;
 }
 .stApp:has(.cm-auth-page) .block-container {
     position: relative;
     z-index: 1;
-    width: min(100%, 420px) !important;
-    max-width: 420px !important;
+    width: min(100%, 540px) !important;
+    max-width: 540px !important;
+    min-height: calc(100dvh - 2rem) !important;
     margin: 0 auto !important;
-    padding: 0.9rem 1.35rem 0.7rem !important;
-    border-radius: 22px;
+    padding: 2rem 2.25rem 1.75rem !important;
+    border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
     box-shadow:
@@ -2755,16 +2754,15 @@ AUTH_CM_CSS = """
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-sizing: border-box;
+    display: flex !important;
+    flex-direction: column !important;
 }
-.stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"] {
-    gap: 0 !important;
-}
-.stApp:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
-    gap: 0 !important;
-}
-.stApp:has(.cm-auth-page) [data-testid="stAppViewContainer"],
-.stApp:has(.cm-auth-page) [data-testid="stMain"] {
-    gap: 0 !important;
+.stApp:has(.cm-auth-page) .block-container > [data-testid="stVerticalBlock"] {
+    flex: 1 1 auto !important;
+    display: flex !important;
+    flex-direction: column !important;
+    min-height: 100% !important;
+    gap: 1.1rem !important;
 }
 .stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"],
 .stApp:has(.cm-auth-page) [data-testid="element-container"],
@@ -2777,14 +2775,19 @@ AUTH_CM_CSS = """
     width: 100% !important;
     max-width: 100% !important;
 }
+.cm-auth-fill {
+    flex: 1 1 auto;
+    min-height: 2rem;
+    width: 100%;
+}
 .cm-auth-back {
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.3rem 0.65rem;
-    margin-bottom: 0.55rem;
+    padding: 0.4rem 0.8rem;
+    margin-bottom: 1.25rem;
     border-radius: 999px;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
     font-weight: 600;
     color: #CBD5E1 !important;
     text-decoration: none !important;
@@ -2805,22 +2808,22 @@ AUTH_CM_CSS = """
 }
 .cm-auth-head {
     text-align: center;
-    margin-bottom: 0.6rem;
+    margin-bottom: 1.25rem;
 }
 .cm-auth-brand-row {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 0.5rem;
-    margin-bottom: 0.5rem;
+    gap: 0.75rem;
+    margin-bottom: 0.85rem;
 }
 .cm-auth-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.5rem;
-    height: 2.5rem;
+    width: 3.25rem;
+    height: 3.25rem;
     margin: 0;
     border-radius: 14px;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
@@ -2829,17 +2832,17 @@ AUTH_CM_CSS = """
 }
 .cm-auth-logo img {
     display: block;
-    width: 1.65rem;
-    height: 1.65rem;
+    width: 2.15rem;
+    height: 2.15rem;
     object-fit: contain;
 }
 .cm-auth-kicker {
     display: inline-flex;
     align-items: center;
-    padding: 0.28rem 0.65rem;
+    padding: 0.32rem 0.75rem;
     margin: 0;
     border-radius: 999px;
-    font-size: 0.62rem;
+    font-size: 0.66rem;
     font-weight: 700;
     letter-spacing: 0.11em;
     text-transform: uppercase;
@@ -2848,11 +2851,11 @@ AUTH_CM_CSS = """
     border: 1px solid rgba(96, 165, 250, 0.22);
 }
 .cm-auth-title {
-    margin: 0 0 0.25rem;
-    font-size: clamp(1.2rem, 4vw, 1.45rem);
+    margin: 0 0 0.5rem;
+    font-size: clamp(1.45rem, 3vw, 1.75rem);
     font-weight: 700;
     letter-spacing: -0.035em;
-    line-height: 1.1;
+    line-height: 1.12;
     color: #FFFFFF;
 }
 .cm-auth-title span {
@@ -2863,8 +2866,8 @@ AUTH_CM_CSS = """
 }
 .cm-auth-lead {
     margin: 0;
-    font-size: 0.78rem;
-    line-height: 1.4;
+    font-size: 0.875rem;
+    line-height: 1.55;
     color: #94A3B8;
 }
 .cm-auth-link {
@@ -2885,11 +2888,11 @@ AUTH_CM_CSS = """
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.5rem;
+    gap: 0.65rem;
     width: 100%;
-    min-height: 2.25rem;
-    padding: 0.45rem 0.75rem;
-    border-radius: 11px;
+    min-height: 2.75rem;
+    padding: 0.65rem 1rem;
+    border-radius: 14px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: #F8FAFC !important;
@@ -2913,8 +2916,8 @@ AUTH_CM_CSS = """
 .cm-auth-divider {
     display: flex;
     align-items: center;
-    gap: 0.55rem;
-    margin: 0.45rem 0 0.35rem;
+    gap: 0.75rem;
+    margin: 1.15rem 0 1rem;
 }
 .cm-auth-divider::before,
 .cm-auth-divider::after {
@@ -2931,23 +2934,24 @@ AUTH_CM_CSS = """
     color: #64748B;
 }
 .cm-auth-label {
-    margin: 0 0 0.2rem;
-    font-size: 0.68rem;
+    margin: 0 0 0.4rem;
+    font-size: 0.75rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #94A3B8;
 }
 .cm-auth-legal {
-    margin-top: 0.45rem;
-    padding-top: 0.45rem;
+    margin-top: 0;
+    padding-top: 1.25rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
+    flex-shrink: 0;
 }
 .cm-auth-legal p {
     margin: 0;
-    font-size: 0.64rem;
-    line-height: 1.45;
+    font-size: 0.72rem;
+    line-height: 1.6;
     color: #64748B;
 }
 .cm-auth-legal .cm-auth-link {
@@ -2961,27 +2965,14 @@ AUTH_CM_CSS = """
 }
 @media (max-width: 640px) {
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding: 0.75rem 0.75rem 0.5rem !important;
+        padding: 0.75rem !important;
     }
     .stApp:has(.cm-auth-page) .block-container {
-        padding: 0.8rem 1.1rem 0.65rem !important;
-        border-radius: 18px;
+        width: min(100%, 100%) !important;
+        max-width: 100% !important;
+        min-height: calc(100dvh - 1.5rem) !important;
+        padding: 1.75rem 1.5rem 1.5rem !important;
+        border-radius: 20px;
     }
-}
-@media (max-height: 760px) {
-    .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding-top: 0.65rem !important;
-    }
-    .stApp:has(.cm-auth-page) .block-container {
-        padding: 0.7rem 1.1rem 0.55rem !important;
-    }
-    .cm-auth-back { margin-bottom: 0.4rem; }
-    .cm-auth-head { margin-bottom: 0.45rem; }
-    .cm-auth-brand-row { margin-bottom: 0.4rem; }
-    .cm-auth-divider { margin: 0.35rem 0 0.3rem; }
-    .cm-auth-legal { margin-top: 0.35rem; padding-top: 0.35rem; }
-}
-@media (max-height: 680px) {
-    .cm-auth-legal p { font-size: 0.6rem; }
 }
 """
