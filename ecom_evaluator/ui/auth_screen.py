@@ -35,18 +35,6 @@ _GOOGLE_ICON_SVG = (
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
     "</svg>"
 )
-_AUTH_CHECK_SVG = (
-    '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true">'
-    '<path d="M5 10.5L8.2 13.7L15 6.8" stroke="currentColor" stroke-width="2" '
-    'stroke-linecap="round" stroke-linejoin="round"/>'
-    "</svg>"
-)
-_AUTH_SHOWCASE_POINTS: tuple[str, ...] = (
-    "Real data from 10+ market sources",
-    "100% honest GO / NO-GO analysis",
-    "Full report preview in under a minute",
-)
-_AUTH_SHOWCASE_AVATAR_IDS: tuple[int, ...] = (12, 32, 45, 68)
 
 
 def _finish_auth() -> None:
@@ -97,22 +85,13 @@ def _auth_subtitle_html() -> str:
     )
 
 
-def _showcase_avatars_html() -> str:
-    faces = []
-    for avatar_id in _AUTH_SHOWCASE_AVATAR_IDS:
-        src = html.escape(f"https://i.pravatar.cc/96?img={avatar_id}", quote=True)
-        faces.append(f'<img class="cm-avatar" src="{src}" alt="" loading="lazy" />')
-    return f'<span class="cm-avatars" aria-hidden="true">{"".join(faces)}</span>'
-
-
 def _google_oauth_button_html(oauth_url: str) -> str:
     safe_url = html.escape(oauth_url, quote=True)
-    label = "Continue with Google"
     return (
         '<div class="cm-auth-oauth-row">'
         f'<a class="cm-auth-oauth" href="{safe_url}" target="_self">'
         f"{_GOOGLE_ICON_SVG}"
-        f"<span>{label}</span>"
+        "<span>Continue with Google</span>"
         "</a>"
         "</div>"
     )
@@ -122,34 +101,8 @@ def _render_auth_shell_start() -> None:
     st.markdown(
         '<div class="auth-page-marker cm-auth-page" aria-hidden="true"></div>'
         '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>'
-        '<div class="cm-auth-layout">'
         '<a class="cm-auth-back auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
-        "← Back to home</a>"
-        '<div class="cm-auth-grid">',
-        unsafe_allow_html=True,
-    )
-
-
-def _render_auth_showcase() -> None:
-    points = "".join(
-        f"<li>{_AUTH_CHECK_SVG}<span>{html.escape(text)}</span></li>" for text in _AUTH_SHOWCASE_POINTS
-    )
-    st.markdown(
-        '<aside class="cm-auth-showcase">'
-        '<div class="cm-auth-showcase-inner">'
-        '<p class="cm-auth-showcase-kicker">Why founders choose us</p>'
-        '<h2 class="cm-auth-showcase-title">Know if a product is <span>worth selling</span></h2>'
-        '<p class="cm-auth-showcase-copy">Stop guessing on saturated products. '
-        "Crow Metrics gives you the brutal truth before you spend a dollar on inventory.</p>"
-        f'<ul class="cm-auth-showcase-list">{points}</ul>'
-        '<div class="cm-auth-showcase-trust">'
-        + _showcase_avatars_html()
-        + '<span class="cm-stars">★★★★★</span>'
-        "<span>Trusted by 25,000+ entrepreneurs</span>"
-        "</div>"
-        "</div>"
-        "</aside>"
-        '<div class="cm-auth-main"><div class="cm-auth-card">',
+        "← Back to home</a>",
         unsafe_allow_html=True,
     )
 
@@ -182,8 +135,7 @@ def _render_auth_footer() -> None:
         '<a class="cm-auth-link" href="#" target="_self">Terms</a>, '
         '<a class="cm-auth-link" href="#" target="_self">Acceptable Use</a>, and '
         '<a class="cm-auth-link" href="#" target="_self">Privacy Policy</a>.</p>'
-        "</footer>"
-        "</div></div></div></div>",
+        "</footer>",
         unsafe_allow_html=True,
     )
 
@@ -344,9 +296,8 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Premium Apple-inspired auth — login, signup, and verification."""
+    """Centered premium auth — login, signup, and verification."""
     _render_auth_shell_start()
-    _render_auth_showcase()
     _render_auth_header()
     render_auth_error()
 

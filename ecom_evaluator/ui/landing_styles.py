@@ -2730,28 +2730,39 @@ AUTH_CM_CSS = """
 }
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
-    padding: 0 !important;
-}
-.stApp:has(.cm-auth-page) .block-container {
-    position: relative;
-    z-index: 1;
-    max-width: none !important;
-    margin: 0 !important;
-    padding: 0 !important;
-}
-.cm-auth-layout {
-    position: relative;
+    padding: 0 1rem 2rem !important;
     min-height: 100dvh;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 5rem 1.25rem 3rem;
     box-sizing: border-box;
+}
+.stApp:has(.cm-auth-page) .block-container {
+    position: relative;
+    z-index: 1;
+    width: min(100%, 420px) !important;
+    max-width: 420px !important;
+    margin: 0 auto !important;
+    padding: 2rem 1.75rem 1.5rem !important;
+    border-radius: 24px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.06) inset,
+        0 24px 64px rgba(0, 0, 0, 0.35);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-sizing: border-box;
+}
+.stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"],
+.stApp:has(.cm-auth-page) [data-testid="stForm"] {
+    width: 100% !important;
+    max-width: 100% !important;
 }
 .cm-auth-back {
     position: fixed;
     top: 1.35rem;
-    left: max(1.25rem, calc(50vw - 580px));
+    left: max(1.25rem, calc(50% - 230px));
     z-index: 20;
     display: inline-flex;
     align-items: center;
@@ -2774,32 +2785,6 @@ AUTH_CM_CSS = """
     border-color: rgba(255, 255, 255, 0.16);
     transform: translateX(-2px);
     text-decoration: none !important;
-}
-.cm-auth-grid {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr);
-    gap: 2rem;
-    width: min(100%, 980px);
-    align-items: center;
-}
-.cm-auth-showcase {
-    display: none;
-}
-.cm-auth-main {
-    width: 100%;
-    max-width: 440px;
-    margin: 0 auto;
-}
-.cm-auth-card {
-    padding: 2rem 1.85rem 1.65rem;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-        0 1px 0 rgba(255, 255, 255, 0.06) inset,
-        0 24px 64px rgba(0, 0, 0, 0.35);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
 }
 .cm-auth-head {
     text-align: center;
@@ -2949,106 +2934,14 @@ AUTH_CM_CSS = """
     color: #FFFFFF !important;
     border-bottom-color: #FFFFFF;
 }
-.cm-auth-showcase-inner {
-    padding: 2rem 1.75rem;
-    border-radius: 24px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-}
-.cm-auth-showcase-kicker {
-    display: inline-flex;
-    margin: 0 0 0.85rem;
-    font-size: 0.68rem;
-    font-weight: 700;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: #64748B;
-}
-.cm-auth-showcase-title {
-    margin: 0 0 0.75rem;
-    font-size: clamp(1.65rem, 2.5vw, 2rem);
-    font-weight: 700;
-    letter-spacing: -0.035em;
-    line-height: 1.12;
-    color: #FFFFFF;
-}
-.cm-auth-showcase-title span {
-    color: #93C5FD;
-}
-.cm-auth-showcase-copy {
-    margin: 0 0 1.35rem;
-    font-size: 0.92rem;
-    line-height: 1.65;
-    color: #94A3B8;
-}
-.cm-auth-showcase-list {
-    display: grid;
-    gap: 0.75rem;
-    margin: 0 0 1.35rem;
-    padding: 0;
-    list-style: none;
-}
-.cm-auth-showcase-list li {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.65rem;
-    font-size: 0.88rem;
-    line-height: 1.5;
-    color: #CBD5E1;
-}
-.cm-auth-showcase-list svg {
-    flex-shrink: 0;
-    width: 1.1rem;
-    height: 1.1rem;
-    margin-top: 0.1rem;
-    color: #4ADE80;
-}
-.cm-auth-showcase-trust {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.65rem;
-    padding-top: 1rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.08);
-}
-.cm-auth-showcase-trust .cm-avatars { display: inline-flex; }
-.cm-auth-showcase-trust .cm-avatar {
-    width: 2rem;
-    height: 2rem;
-    border-color: rgba(255, 255, 255, 0.85);
-}
-.cm-auth-showcase-trust span {
-    font-size: 0.82rem;
-    font-weight: 500;
-    color: #94A3B8;
-}
-.cm-auth-showcase-trust .cm-stars {
-    color: #FBBF24;
-    font-size: 0.78rem;
-}
-@media (min-width: 960px) {
-    .cm-auth-grid {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 440px);
-        gap: 3rem;
-    }
-    .cm-auth-showcase {
-        display: block;
-    }
-    .cm-auth-main {
-        margin: 0;
-    }
-}
 @media (max-width: 640px) {
-    .cm-auth-layout {
-        padding: 4.5rem 1rem 2.5rem;
+    .stApp:has(.cm-auth-page) .block-container {
+        padding: 1.65rem 1.25rem 1.35rem !important;
+        border-radius: 20px;
     }
     .cm-auth-back {
         top: 1rem;
         left: 1rem;
-    }
-    .cm-auth-card {
-        padding: 1.65rem 1.25rem 1.35rem;
-        border-radius: 20px;
     }
 }
 """

@@ -485,6 +485,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
     margin-bottom: 0.95rem;
 }
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div > div {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input {
     min-height: 2.85rem !important;
