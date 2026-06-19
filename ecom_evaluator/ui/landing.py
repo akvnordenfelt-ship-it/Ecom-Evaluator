@@ -85,6 +85,9 @@ _FAQ_ITEMS: tuple[tuple[str, str], ...] = (
 )
 
 _HERO_AVATAR_IDS: tuple[int, ...] = (12, 32, 45, 68)
+_SCORE_STORY_AVATAR_IDS: tuple[int, ...] = (5, 18, 27, 52)
+_REVIEWS_TRUST_AVATAR_IDS: tuple[int, ...] = (11, 24, 36, 51, 63)
+_REVIEW_AVATAR_IDS: tuple[int, ...] = (21, 33, 47)
 
 _REVIEWS: tuple[tuple[str, str, str], ...] = (
     (
@@ -327,12 +330,16 @@ def _install_platform_hub() -> None:
     )
 
 
-def _hero_avatars_html() -> str:
+def _avatars_html(*avatar_ids: int) -> str:
     faces = []
-    for avatar_id in _HERO_AVATAR_IDS:
+    for avatar_id in avatar_ids:
         src = html.escape(f"https://i.pravatar.cc/96?img={avatar_id}", quote=True)
         faces.append(f'<img class="cm-avatar" src="{src}" alt="" loading="lazy" />')
     return f'<span class="cm-avatars" aria-hidden="true">{"".join(faces)}</span>'
+
+
+def _hero_avatars_html() -> str:
+    return _avatars_html(*_HERO_AVATAR_IDS)
 
 
 def _score_tone(score: int) -> str:
@@ -954,6 +961,7 @@ def _scroll_to_anchor_if_needed() -> None:
 def render_landing_hero() -> None:
     brand = html.escape(BRAND_NAME)
     st.markdown(
+        '<section class="cm-hero-screen">'
         '<div class="cm-page cm-hero">'
         '<div class="cm-hero-grid">'
         '<div class="cm-hero-copy">'
@@ -972,7 +980,7 @@ def render_landing_hero() -> None:
         '<span class="cm-social-text">Join 25,000+ entrepreneurs</span>'
         "</div></div>"
         + _hero_card_html()
-        + "</div></div>",
+        + "</div></div></section>",
         unsafe_allow_html=True,
     )
 
@@ -1355,24 +1363,30 @@ def render_score_legend() -> None:
         '<div class="cm-score-card cm-score-card--walk"><p class="cm-score-range" style="color:#F87171">0–39</p>'
         '<p class="cm-score-label">Walk Away</p><p class="cm-score-desc">Low chance of success — save your capital.</p></div>'
         "</div>"
-        '<div class="cm-brutal-grid cm-reveal">'
-        "<div>"
-        '<div class="cm-hero-social" style="margin-bottom:1.5rem">'
-        '<span class="cm-avatars"><span class="cm-avatar"></span><span class="cm-avatar cm-avatar--b"></span>'
-        '<span class="cm-avatar cm-avatar--c"></span><span class="cm-avatar cm-avatar--d"></span></span>'
-        '<span class="cm-stars">★★★★★</span>'
-        '<span class="cm-social-text" style="color:#94A3B8">Join 25,000+ entrepreneurs making smarter decisions</span>'
+        '<div class="cm-score-story cm-reveal">'
+        '<div class="cm-score-story-main">'
+        '<div class="cm-score-story-lead">'
+        '<div class="cm-score-story-social">'
+        + _avatars_html(*_SCORE_STORY_AVATAR_IDS)
+        + '<span class="cm-stars">★★★★★</span>'
+        '<p class="cm-score-story-social-text">Join 25,000+ entrepreneurs making smarter decisions</p>'
         "</div>"
-        '<div class="cm-value-bar">'
-        '<div class="cm-value-item"><strong>100% honest</strong>analysis</div>'
-        '<div class="cm-value-item"><strong>Data over</strong>opinions</div>'
-        '<div class="cm-value-item"><strong>Your success</strong>first</div>'
-        "</div></div>"
-        '<div class="cm-brutal-card">'
+        '<div class="cm-score-story-values">'
+        '<div class="cm-score-value"><strong>100% honest</strong><span>analysis</span></div>'
+        '<div class="cm-score-value"><strong>Data over</strong><span>opinions</span></div>'
+        '<div class="cm-score-value"><strong>Your success</strong><span>first</span></div>'
+        "</div>"
+        "</div>"
+        '<aside class="cm-score-story-aside">'
         "<h3>Why so brutal?</h3>"
-        "<p>Most tools tell you what you want to hear. Crow Metrics has no bias, no affiliate deals, and no reason to hype a bad product. Just data, patterns, and the brutal truth.</p>"
-        "</div></div>"
-        '<p class="cm-quote cm-reveal">"The AI that tells you what to do — and what not to do."</p>'
+        "<p>Most tools tell you what you want to hear. Crow Metrics has no bias, no affiliate deals, "
+        "and no reason to hype a bad product. Just data, patterns, and the brutal truth.</p>"
+        "</aside>"
+        "</div>"
+        '<blockquote class="cm-score-story-quote">'
+        "“The AI that tells you what to do — and what not to do.”"
+        "</blockquote>"
+        "</div>"
         "</div></section>",
         unsafe_allow_html=True,
     )
@@ -1380,13 +1394,15 @@ def render_score_legend() -> None:
 
 def render_reviews_section() -> None:
     cards = []
-    for text, author, role in _REVIEWS:
+    for index, (text, author, role) in enumerate(_REVIEWS):
+        avatar_id = _REVIEW_AVATAR_IDS[index % len(_REVIEW_AVATAR_IDS)]
+        avatar_src = html.escape(f"https://i.pravatar.cc/96?img={avatar_id}", quote=True)
         cards.append(
             f'<div class="cm-review-card cm-reveal">'
             f'<div class="cm-review-stars">★★★★★</div>'
             f'<p class="cm-review-text">{html.escape(text)}</p>'
             f'<div class="cm-review-author">'
-            f'<span class="cm-avatar"></span>'
+            f'<img class="cm-avatar cm-review-avatar" src="{avatar_src}" alt="" loading="lazy" />'
             f"<div><strong>{html.escape(author)}</strong><span>{html.escape(role)}</span></div>"
             f"</div></div>"
         )
@@ -1396,6 +1412,11 @@ def render_reviews_section() -> None:
         '<div class="cm-section-head cm-reveal">'
         '<span class="cm-kicker">Reviews</span>'
         '<h2 class="cm-title">Trusted by <span class="cm-accent">ecommerce founders</span></h2>'
+        "</div>"
+        '<div class="cm-reviews-trust cm-reveal">'
+        + _avatars_html(*_REVIEWS_TRUST_AVATAR_IDS)
+        + '<span class="cm-stars">★★★★★</span>'
+        '<span class="cm-reviews-trust-text">Rated 4.9/5 by founders who launch with data, not hype</span>'
         "</div>"
         f'<div class="cm-reviews-grid">{"".join(cards)}</div>'
         "</div></section>",

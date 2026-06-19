@@ -1136,17 +1136,21 @@ div[data-testid="stTextArea"] textarea:focus {
 .stApp:has(.cm-page) {
     background-color: #FFFFFF !important;
 }
-.stApp:has(.cm-hero) section[data-testid="stMain"] > div {
+.stApp:has(.cm-hero),
+.stApp:has(.cm-hero-screen) section[data-testid="stMain"] > div {
     padding-top: 0 !important;
 }
-.stApp:has(.cm-hero) .block-container {
+.stApp:has(.cm-hero),
+.stApp:has(.cm-hero-screen) .block-container {
     padding-top: 0 !important;
 }
-[data-testid="stMarkdownContainer"]:has(.cm-hero) {
+[data-testid="stMarkdownContainer"]:has(.cm-hero),
+[data-testid="stMarkdownContainer"]:has(.cm-hero-screen) {
     margin: 0 !important;
     padding: 0 !important;
 }
-[data-testid="stVerticalBlock"]:has(.cm-hero) {
+[data-testid="stVerticalBlock"]:has(.cm-hero),
+[data-testid="stVerticalBlock"]:has(.cm-hero-screen) {
     gap: 0 !important;
 }
 .lp-hero-cta-gap {
