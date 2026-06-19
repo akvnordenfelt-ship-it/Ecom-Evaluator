@@ -159,19 +159,15 @@ def _render_auth_footer() -> None:
 
 
 def _render_login_form() -> None:
-    st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
     email = st.text_input(
         "Email",
         placeholder="you@company.com",
         key="auth_login_email",
-        label_visibility="collapsed",
     )
-    st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
     password = st.text_input(
         "Password",
         type="password",
         key="auth_login_password",
-        label_visibility="collapsed",
     )
     if st.button("Sign in", type="primary", use_container_width=True, key="auth_login_submit"):
         clear_auth_error()
@@ -201,12 +197,10 @@ def _render_verify_email_form() -> None:
         st.rerun()
         return
 
-    st.markdown('<p class="cm-auth-label">Verification code</p>', unsafe_allow_html=True)
     code = st.text_input(
         "Verification code",
         placeholder="12345678",
         key="auth_verify_code",
-        label_visibility="collapsed",
         max_chars=8,
     )
     if st.button("Verify and continue", type="primary", use_container_width=True, key="auth_verify_submit"):
@@ -232,19 +226,15 @@ def _render_verify_email_form() -> None:
 
 
 def _render_signup_form() -> None:
-    st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
     email = st.text_input(
         "Email",
         placeholder="you@company.com",
         key="auth_signup_email",
-        label_visibility="collapsed",
     )
-    st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
     password = st.text_input(
         "Password",
         type="password",
         key="auth_signup_password",
-        label_visibility="collapsed",
     )
     if st.button("Create account", type="primary", use_container_width=True, key="auth_signup_submit"):
         clear_auth_error()

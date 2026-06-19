@@ -2959,4 +2959,27 @@ html.cm-auth-active [data-testid="stVerticalBlock"],
         left: 1rem;
     }
 }
+html.cm-auth-active [data-testid="stTextInput"],
+html.cm-auth-active [data-testid="stTextInput"] > div,
+html.cm-auth-active [data-testid="stTextInput"] > div > div,
+html.cm-auth-active [data-testid="element-container"]:has([data-testid="stTextInput"]),
+.stApp:has(.cm-auth-page) [data-testid="stTextInput"],
+.stApp:has(.cm-auth-page) [data-testid="stTextInput"] > div,
+.stApp:has(.cm-auth-page) [data-testid="stTextInput"] > div > div,
+.stApp:has(.cm-auth-page) [data-testid="element-container"]:has([data-testid="stTextInput"]) {
+    overflow: visible !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+}
+html.cm-auth-active [data-testid="stTextInput"] input,
+.stApp:has(.cm-auth-page) [data-testid="stTextInput"] input {
+    height: 2.85rem !important;
+    min-height: 2.85rem !important;
+    box-sizing: border-box !important;
+}
+html.cm-auth-active [data-testid="stTextInput"] [data-testid="InputInstructions"],
+.stApp:has(.cm-auth-page) [data-testid="stTextInput"] [data-testid="InputInstructions"] {
+    display: none !important;
+}
 """

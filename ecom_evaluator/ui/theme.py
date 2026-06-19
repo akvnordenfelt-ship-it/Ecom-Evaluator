@@ -469,7 +469,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 html.cm-auth-active [data-testid="stTextInput"],
 .stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] {
-    margin-bottom: 0.95rem !important;
+    margin-bottom: 1rem !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] > div,
 html.cm-auth-active [data-testid="stTextInput"] > div > div,
@@ -480,24 +484,63 @@ html.cm-auth-active [data-testid="stTextInput"] > div > div,
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+}
+html.cm-auth-active [data-testid="stTextInput"] label,
+html.cm-auth-active [data-testid="stTextInput"] [data-testid="stWidgetLabel"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] label,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] label {
+    display: block !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    margin: 0 0 0.45rem !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    visibility: visible !important;
+    font-size: 0.78rem !important;
+    font-weight: 600 !important;
+    letter-spacing: 0.04em !important;
+    text-transform: uppercase !important;
+    color: #94A3B8 !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] input,
 .stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] input,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] input {
+    display: block !important;
+    width: 100% !important;
+    height: 2.85rem !important;
     min-height: 2.85rem !important;
+    max-height: none !important;
+    box-sizing: border-box !important;
+    line-height: 1.4 !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
     color: #FFFFFF !important;
     background: rgba(255, 255, 255, 0.05) !important;
     box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
-    padding-right: 0.875rem !important;
+    padding: 0 0.875rem !important;
     transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
 html.cm-auth-active [data-testid="stTextInput"]:has(button) input,
 .stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"]:has(button) input,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"]:has(button) input {
     padding-right: 2.75rem !important;
+}
+html.cm-auth-active [data-testid="element-container"],
+html.cm-auth-active [data-testid="stVerticalBlock"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="element-container"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stVerticalBlock"],
+.block-container:has(.cm-auth-page) [data-testid="element-container"],
+.block-container:has(.cm-auth-page) [data-testid="stVerticalBlock"] {
+    overflow: visible !important;
+    min-height: 0 !important;
+    height: auto !important;
+    max-height: none !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] input:focus,
 .stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] input:focus,
