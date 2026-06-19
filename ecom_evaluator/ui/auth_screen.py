@@ -28,13 +28,25 @@ from ecom_evaluator.ui.branding import BRAND_NAME, auth_brand_html
 from ecom_evaluator.ui.subscription import complete_post_auth_navigation, open_auth_screen
 
 _GOOGLE_ICON_SVG = (
-    '<svg class="auth-oauth-icon" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
+    '<svg class="cm-auth-oauth-icon" width="18" height="18" viewBox="0 0 48 48" aria-hidden="true">'
     '<path fill="#EA4335" d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z"/>'
     '<path fill="#4285F4" d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z"/>'
     '<path fill="#FBBC05" d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z"/>'
     '<path fill="#34A853" d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z"/>'
     "</svg>"
 )
+_AUTH_CHECK_SVG = (
+    '<svg viewBox="0 0 20 20" fill="none" aria-hidden="true">'
+    '<path d="M5 10.5L8.2 13.7L15 6.8" stroke="currentColor" stroke-width="2" '
+    'stroke-linecap="round" stroke-linejoin="round"/>'
+    "</svg>"
+)
+_AUTH_SHOWCASE_POINTS: tuple[str, ...] = (
+    "Real data from 10+ market sources",
+    "100% honest GO / NO-GO analysis",
+    "Full report preview in under a minute",
+)
+_AUTH_SHOWCASE_AVATAR_IDS: tuple[int, ...] = (12, 32, 45, 68)
 
 
 def _finish_auth() -> None:
@@ -48,13 +60,23 @@ def _auth_mode() -> str:
     return st.session_state.get("auth_mode", "login")
 
 
-def _auth_title() -> str:
+def _auth_kicker() -> str:
     mode = _auth_mode()
     if mode == "verify":
-        return "Verify your email"
+        return "Email verification"
     if mode == "signup":
-        return f"Create a {BRAND_NAME} account"
-    return f"Sign in to {BRAND_NAME}"
+        return "Get started free"
+    return "Welcome back"
+
+
+def _auth_title_html() -> str:
+    brand = html.escape(BRAND_NAME)
+    mode = _auth_mode()
+    if mode == "verify":
+        return 'Verify your <span>email</span>'
+    if mode == "signup":
+        return f'Create your <span>{brand}</span> account'
+    return f'Sign in to <span>{brand}</span>'
 
 
 def _auth_subtitle_html() -> str:
@@ -67,20 +89,28 @@ def _auth_subtitle_html() -> str:
     if mode == "signup":
         return (
             'Already have an account? '
-            '<a class="auth-inline-link" href="#" data-ps-nav-action="login">Log in</a>'
+            '<a class="cm-auth-link" href="#" data-ps-nav-action="login">Log in</a>'
         )
     return (
         'Don\u2019t have an account? '
-        '<a class="auth-inline-link" href="#" data-ps-nav-action="signup">Create one</a>'
+        '<a class="cm-auth-link" href="#" data-ps-nav-action="signup">Create one</a>'
     )
+
+
+def _showcase_avatars_html() -> str:
+    faces = []
+    for avatar_id in _AUTH_SHOWCASE_AVATAR_IDS:
+        src = html.escape(f"https://i.pravatar.cc/96?img={avatar_id}", quote=True)
+        faces.append(f'<img class="cm-avatar" src="{src}" alt="" loading="lazy" />')
+    return f'<span class="cm-avatars" aria-hidden="true">{"".join(faces)}</span>'
 
 
 def _google_oauth_button_html(oauth_url: str) -> str:
     safe_url = html.escape(oauth_url, quote=True)
-    label = "Log in with Google"
+    label = "Continue with Google"
     return (
-        '<div class="auth-oauth-row">'
-        f'<a class="auth-oauth-btn" href="{safe_url}" target="_self">'
+        '<div class="cm-auth-oauth-row">'
+        f'<a class="cm-auth-oauth" href="{safe_url}" target="_self">'
         f"{_GOOGLE_ICON_SVG}"
         f"<span>{label}</span>"
         "</a>"
@@ -89,58 +119,85 @@ def _google_oauth_button_html(oauth_url: str) -> str:
 
 
 def _render_auth_shell_start() -> None:
-    st.markdown('<div class="auth-page-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
-    st.markdown('<div class="auth-page-backdrop" aria-hidden="true"></div>', unsafe_allow_html=True)
     st.markdown(
-        '<a class="auth-form-back" href="#" data-ps-nav-action="home" target="_self">&lt; Home</a>',
+        '<div class="auth-page-marker cm-auth-page" aria-hidden="true"></div>'
+        '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>'
+        '<div class="cm-auth-layout">'
+        '<a class="cm-auth-back auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
+        "← Back to home</a>"
+        '<div class="cm-auth-grid">',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_auth_showcase() -> None:
+    points = "".join(
+        f"<li>{_AUTH_CHECK_SVG}<span>{html.escape(text)}</span></li>" for text in _AUTH_SHOWCASE_POINTS
+    )
+    st.markdown(
+        '<aside class="cm-auth-showcase">'
+        '<div class="cm-auth-showcase-inner">'
+        '<p class="cm-auth-showcase-kicker">Why founders choose us</p>'
+        '<h2 class="cm-auth-showcase-title">Know if a product is <span>worth selling</span></h2>'
+        '<p class="cm-auth-showcase-copy">Stop guessing on saturated products. '
+        "Crow Metrics gives you the brutal truth before you spend a dollar on inventory.</p>"
+        f'<ul class="cm-auth-showcase-list">{points}</ul>'
+        '<div class="cm-auth-showcase-trust">'
+        + _showcase_avatars_html()
+        + '<span class="cm-stars">★★★★★</span>'
+        "<span>Trusted by 25,000+ entrepreneurs</span>"
+        "</div>"
+        "</div>"
+        "</aside>"
+        '<div class="cm-auth-main"><div class="cm-auth-card">',
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_header() -> None:
-    title = html.escape(_auth_title())
-    subtitle = _auth_subtitle_html()
     st.markdown(
-        '<div class="auth-form-header">'
-        '<div class="auth-brand-mark" aria-hidden="true">'
+        '<header class="cm-auth-head">'
+        '<div class="cm-auth-logo" aria-hidden="true">'
         f"{auth_brand_html()}"
         "</div>"
-        f'<h1 class="auth-form-title">{title}</h1>'
-        f'<p class="auth-form-lead">{subtitle}</p>'
-        "</div>",
+        f'<span class="cm-auth-kicker">{html.escape(_auth_kicker())}</span>'
+        f'<h1 class="cm-auth-title">{_auth_title_html()}</h1>'
+        f'<p class="cm-auth-lead">{_auth_subtitle_html()}</p>'
+        "</header>",
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_divider() -> None:
     st.markdown(
-        '<div class="auth-form-divider" role="separator"><span>or</span></div>',
+        '<div class="cm-auth-divider" role="separator"><span>or</span></div>',
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_footer() -> None:
     st.markdown(
-        '<div class="auth-form-legal">'
+        '<footer class="cm-auth-legal">'
         "<p>By signing up, you agree to our "
-        '<a class="auth-inline-link" href="#" target="_self">Terms</a>, '
-        '<a class="auth-inline-link" href="#" target="_self">Acceptable Use</a>, and '
-        '<a class="auth-inline-link" href="#" target="_self">Privacy Policy</a>.</p>'
-        "</div>",
+        '<a class="cm-auth-link" href="#" target="_self">Terms</a>, '
+        '<a class="cm-auth-link" href="#" target="_self">Acceptable Use</a>, and '
+        '<a class="cm-auth-link" href="#" target="_self">Privacy Policy</a>.</p>'
+        "</footer>"
+        "</div></div></div></div>",
         unsafe_allow_html=True,
     )
 
 
 def _render_login_form() -> None:
     with st.form("auth_login_form", clear_on_submit=False):
-        st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
         email = st.text_input(
             "Email",
             placeholder="you@company.com",
             key="auth_login_email",
             label_visibility="collapsed",
         )
-        st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
         password = st.text_input(
             "Password",
             type="password",
@@ -177,7 +234,7 @@ def _render_verify_email_form() -> None:
         return
 
     with st.form("auth_verify_form", clear_on_submit=False):
-        st.markdown('<p class="auth-field-label">Verification code</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label">Verification code</p>', unsafe_allow_html=True)
         code = st.text_input(
             "Verification code",
             placeholder="12345678",
@@ -211,14 +268,14 @@ def _render_verify_email_form() -> None:
 
 def _render_signup_form() -> None:
     with st.form("auth_signup_form", clear_on_submit=False):
-        st.markdown('<p class="auth-field-label">Email</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
         email = st.text_input(
             "Email",
             placeholder="you@company.com",
             key="auth_signup_email",
             label_visibility="collapsed",
         )
-        st.markdown('<p class="auth-field-label">Password</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
         password = st.text_input(
             "Password",
             type="password",
@@ -287,9 +344,9 @@ def _render_streamlit_authenticator() -> None:
 
 
 def render_auth_screen() -> None:
-    """Resend-style centered auth — login and signup."""
+    """Premium Apple-inspired auth — login, signup, and verification."""
     _render_auth_shell_start()
-    st.markdown('<div class="auth-form-shell">', unsafe_allow_html=True)
+    _render_auth_showcase()
     _render_auth_header()
     render_auth_error()
 
@@ -302,4 +359,3 @@ def render_auth_screen() -> None:
         _render_dev_auth()
 
     _render_auth_footer()
-    st.markdown("</div>", unsafe_allow_html=True)

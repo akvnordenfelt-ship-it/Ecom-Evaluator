@@ -719,8 +719,10 @@ def _install_scroll_reveal() -> None:
             }
 
             function cleanupStaleAuthShell() {
-                if (doc.querySelector(".auth-page-marker")) return;
-                doc.querySelectorAll(".auth-page-marker, .auth-page-backdrop, .auth-form-back").forEach(function (el) {
+                if (doc.querySelector(".auth-page-marker, .cm-auth-page")) return;
+                doc.querySelectorAll(
+                    ".auth-page-marker, .auth-page-backdrop, .auth-form-back, .cm-auth-backdrop, .cm-auth-back"
+                ).forEach(function (el) {
                     el.remove();
                 });
             }

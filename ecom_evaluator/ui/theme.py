@@ -6,7 +6,7 @@ import html
 
 import streamlit as st
 
-from ecom_evaluator.ui.landing_styles import LANDING_V2_CSS
+from ecom_evaluator.ui.landing_styles import AUTH_CM_CSS, LANDING_V2_CSS
 from ecom_evaluator.ui.streamlit_chrome import inject_streamlit_branding_hide_css
 
 PREMIUM_THEME_CSS = """
@@ -457,218 +457,17 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     margin: 1rem auto 2rem;
 }
 
-/* Auth screen — Resend-style dark login / signup */
-.auth-page-marker {
+/* Auth screen — Streamlit form overrides (visual design in AUTH_CM_CSS) */
+.auth-page-marker,
+.cm-auth-page {
     display: none !important;
     height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
 }
-.stApp:has(.auth-page-marker) {
-    background: #000000 !important;
-    color: #FFFFFF !important;
-}
-.stApp:has(.auth-page-marker) .site-header,
-.stApp:has(.auth-page-marker) .site-header__spacer {
-    display: none !important;
-}
-.stApp:has(.auth-page-marker) section[data-testid="stMain"] > div {
-    max-width: 100% !important;
-    padding: 0 1.25rem 2rem !important;
-}
-.stApp:has(.auth-page-marker) .block-container {
-    position: relative;
-    z-index: 1;
-    max-width: 420px !important;
-    margin: 0 auto !important;
-    padding: 5.5rem 0 3rem !important;
-}
-.auth-page-backdrop {
-    display: none;
-}
-.stApp:has(.auth-page-marker) .auth-page-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 0;
-    pointer-events: none;
-    overflow: hidden;
-    background: #000000;
-}
-.stApp:has(.auth-page-marker) .auth-page-backdrop::before,
-.stApp:has(.auth-page-marker) .auth-page-backdrop::after {
-    content: "";
-    position: absolute;
-    border-radius: 999px;
-    filter: blur(80px);
-    opacity: 0.55;
-}
-.auth-page-backdrop::before {
-    top: -8rem;
-    right: -6rem;
-    width: min(42vw, 520px);
-    height: min(42vw, 520px);
-    background: radial-gradient(circle at 30% 30%, rgba(180, 180, 180, 0.22) 0%, rgba(80, 80, 80, 0.08) 45%, transparent 70%);
-    transform: rotate(18deg);
-}
-.auth-page-backdrop::after {
-    bottom: -10rem;
-    left: -8rem;
-    width: min(48vw, 560px);
-    height: min(48vw, 560px);
-    background: radial-gradient(circle at 60% 40%, rgba(160, 160, 160, 0.18) 0%, rgba(70, 70, 70, 0.06) 50%, transparent 72%);
-    transform: rotate(-12deg);
-}
-.auth-form-back {
-    display: none;
-}
-.stApp:has(.auth-page-marker) .auth-form-back {
-    position: fixed;
-    top: 1.35rem;
-    left: 1.35rem;
-    z-index: 20;
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #888888 !important;
-    text-decoration: none !important;
-    transition: color 0.15s ease;
-}
-.stApp:has(.auth-page-marker) .auth-form-back:hover {
-    color: #FFFFFF !important;
-}
-.auth-form-header {
-    position: relative;
-    z-index: 1;
-    text-align: center;
-    margin-bottom: 1.75rem;
-}
-.auth-brand-mark {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 1.35rem;
-}
-.auth-brand-mark__logo {
-    display: block;
-    width: 3.25rem;
-    height: 3.25rem;
-    object-fit: contain;
-}
-.auth-brand-mark .crow-wordmark {
-    color: #FFFFFF;
-}
-.auth-form-title {
-    margin: 0 0 0.65rem;
-    font-size: clamp(1.65rem, 2.2vw, 1.875rem);
-    font-weight: 600;
-    letter-spacing: -0.035em;
-    line-height: 1.15;
-    color: #FFFFFF;
-}
-.auth-form-lead {
-    margin: 0;
-    font-size: 0.875rem;
-    line-height: 1.55;
-    color: #888888;
-}
-.auth-inline-link {
-    color: #FFFFFF !important;
-    font-weight: 500;
-    text-decoration: none !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.35);
-    transition: border-color 0.15s ease, color 0.15s ease;
-}
-.auth-inline-link:hover {
-    color: #FFFFFF !important;
-    border-bottom-color: #FFFFFF;
-}
-.auth-oauth-row {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.75rem;
-    margin-bottom: 0.15rem;
-}
-.auth-oauth-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.65rem;
-    width: 100%;
-    min-height: 2.75rem;
-    padding: 0.65rem 1rem;
-    border: 1px solid #333333;
-    border-radius: 10px;
-    background: #111111;
-    color: #FFFFFF;
-    font-size: 0.875rem;
-    font-weight: 500;
-    letter-spacing: -0.01em;
-    text-decoration: none !important;
-    transition: border-color 0.15s ease, background 0.15s ease;
-    box-sizing: border-box;
-}
-.auth-oauth-btn:hover {
-    border-color: #444444;
-    background: #161616;
-    text-decoration: none !important;
-}
-.auth-oauth-icon {
-    flex-shrink: 0;
-}
-.auth-form-divider {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin: 1.15rem 0 1.1rem;
-}
-.auth-form-divider::before,
-.auth-form-divider::after {
-    content: "";
-    flex: 1;
-    height: 1px;
-    background: #222222;
-}
-.auth-form-divider span {
-    font-size: 0.8125rem;
-    font-weight: 400;
-    color: #666666;
-    white-space: nowrap;
-}
-.auth-field-label {
-    margin: 0 0 0.45rem;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: #888888;
-}
-.auth-field-optional {
-    font-weight: 400;
-    color: #666666;
-}
-.auth-form-legal {
-    position: relative;
-    z-index: 1;
-    margin-top: 1.5rem;
-    text-align: center;
-}
-.auth-form-legal p {
-    margin: 0;
-    font-size: 0.75rem;
-    line-height: 1.6;
-    color: #666666;
-}
-.auth-form-legal .auth-inline-link {
-    color: #888888 !important;
-    border-bottom-color: rgba(136, 136, 136, 0.45);
-}
-.auth-form-legal .auth-inline-link:hover {
-    color: #FFFFFF !important;
-    border-bottom-color: #FFFFFF;
-}
-.block-container:has(.auth-page-marker) [data-testid="stForm"] {
+.block-container:has(.auth-page-marker) [data-testid="stForm"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] {
     position: relative;
     z-index: 1;
     margin: 0;
@@ -677,121 +476,131 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     background: transparent;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="InputInstructions"],
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stCaptionContainer"] {
+.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stCaptionContainer"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="InputInstructions"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stCaptionContainer"] {
     display: none;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"] {
+.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
     margin-bottom: 0.95rem;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input {
-    min-height: 2.75rem !important;
-    border: 1px solid #333333 !important;
-    border-radius: 10px !important;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] input,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] input {
+    min-height: 2.85rem !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    border-radius: 14px !important;
     font-size: 0.9375rem !important;
     color: #FFFFFF !important;
-    background: #111111 !important;
-    box-shadow: none !important;
+    background: rgba(255, 255, 255, 0.05) !important;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
     padding-right: 0.875rem !important;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
-    padding-right: 2.65rem !important;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
+    padding-right: 2.75rem !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input:focus {
-    border-color: #555555 !important;
-    box-shadow: 0 0 0 1px #555555 !important;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] input:focus,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] input:focus {
+    border-color: rgba(96, 165, 250, 0.55) !important;
+    background: rgba(255, 255, 255, 0.07) !important;
+    box-shadow: 0 0 0 3px rgba(43, 89, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
     outline: none !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input::placeholder {
-    color: #555555 !important;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] input::placeholder,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] input::placeholder {
+    color: #64748B !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"],
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] {
-    color: #888888 !important;
+.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"],
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] {
+    color: #94A3B8 !important;
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
-    border-radius: 6px !important;
+    border-radius: 8px !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton {
-    margin-top: 0.45rem;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
+    margin-top: 0.55rem;
 }
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"] {
-    min-height: 2.75rem;
-    border-radius: 10px !important;
+.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"] {
+    min-height: 2.85rem;
+    border-radius: 14px !important;
     font-size: 0.9375rem !important;
-    font-weight: 500 !important;
-    color: #CCCCCC !important;
-    background: #222222 !important;
-    border: 1px solid #333333 !important;
-    box-shadow: none !important;
-    transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
-}
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
+    font-weight: 600 !important;
     color: #FFFFFF !important;
-    background: #2A2A2A !important;
-    border-color: #444444 !important;
-    box-shadow: none !important;
-    transform: none;
+    background: linear-gradient(135deg, #2B59FF 0%, #0052FF 100%) !important;
+    border: 1px solid rgba(147, 197, 253, 0.35) !important;
+    box-shadow: 0 4px 14px rgba(43, 89, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
 }
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) {
+.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
+    color: #FFFFFF !important;
+    filter: brightness(1.06);
+    box-shadow: 0 8px 24px rgba(43, 89, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
+    transform: translateY(-1px);
+}
+.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton),
+.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) {
     display: flex;
     justify-content: center;
     margin-top: 0.65rem;
 }
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button {
-    background: transparent !important;
-    border: 1px solid #333333 !important;
+.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button,
+.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: none !important;
-    color: #888888 !important;
+    color: #CBD5E1 !important;
     font-size: 0.8125rem !important;
-    font-weight: 500 !important;
+    font-weight: 600 !important;
     padding: 0.55rem 0.85rem !important;
     width: 100% !important;
-    min-height: 2.5rem !important;
-    border-radius: 10px !important;
+    min-height: 2.55rem !important;
+    border-radius: 14px !important;
+    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover {
+.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover,
+.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button:hover {
     color: #FFFFFF !important;
-    background: #161616 !important;
-    border-color: #444444 !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    border-color: rgba(255, 255, 255, 0.18) !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stAlert"] {
+.block-container:has(.auth-page-marker) [data-testid="stAlert"],
+.block-container:has(.cm-auth-page) [data-testid="stAlert"] {
     position: relative;
     z-index: 1;
     margin: 0 0 1rem;
-    border-radius: 10px;
-    background: #161616 !important;
-    border: 1px solid #333333 !important;
-    color: #FFFFFF !important;
+    border-radius: 14px;
+    background: rgba(239, 68, 68, 0.12) !important;
+    border: 1px solid rgba(248, 113, 113, 0.28) !important;
+    color: #FECACA !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stAlert"] * {
-    color: #FFFFFF !important;
+.block-container:has(.auth-page-marker) [data-testid="stAlert"] *,
+.block-container:has(.cm-auth-page) [data-testid="stAlert"] * {
+    color: #FECACA !important;
 }
-.block-container:has(.auth-page-marker) [data-testid="stExpander"] {
+.block-container:has(.auth-page-marker) [data-testid="stExpander"],
+.block-container:has(.cm-auth-page) [data-testid="stExpander"] {
     position: relative;
     z-index: 1;
     margin-bottom: 0.75rem;
-    background: #111111;
-    border: 1px solid #222222;
-    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 14px;
 }
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] summary,
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] p,
-.block-container:has(.auth-page-marker) [data-testid="stExpander"] code {
-    color: #CCCCCC !important;
-}
-@media (max-width: 640px) {
-    .stApp:has(.auth-page-marker) .block-container {
-        padding-top: 4.75rem !important;
-    }
-    .auth-form-back {
-        top: 1rem;
-        left: 1rem;
-    }
-    .auth-form-title {
-        font-size: 1.5rem;
-    }
+.block-container:has(.auth-page-marker) [data-testid="stExpander"] code,
+.block-container:has(.cm-auth-page) [data-testid="stExpander"] summary,
+.block-container:has(.cm-auth-page) [data-testid="stExpander"] p,
+.block-container:has(.cm-auth-page) [data-testid="stExpander"] code {
+    color: #CBD5E1 !important;
 }
 
 /* Hero banner */
@@ -3828,7 +3637,7 @@ div[class*="st-key-ps_sample_"] {
 
 def inject_custom_css(*, saas_mode: bool = False) -> None:
     """Inject premium theme — must run immediately after st.set_page_config()."""
-    css = PREMIUM_THEME_CSS + LANDING_V2_CSS
+    css = PREMIUM_THEME_CSS + LANDING_V2_CSS + AUTH_CM_CSS
     if saas_mode:
         css += SAAS_CHROME_CSS
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
