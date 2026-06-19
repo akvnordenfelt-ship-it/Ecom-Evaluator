@@ -2612,6 +2612,14 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
     opacity: 1;
     transform: none;
 }
+@media (prefers-reduced-motion: reduce) {
+    html.cm-reveal-ready .cm-reveal:not(.is-visible),
+    .cm-animate-in {
+        opacity: 1 !important;
+        transform: none !important;
+        animation: none !important;
+    }
+}
 
 @media (max-width: 960px) {
     .cm-hero-grid,

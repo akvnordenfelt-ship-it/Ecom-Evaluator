@@ -485,6 +485,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 5.5rem 0 3rem !important;
 }
 .auth-page-backdrop {
+    display: none;
+}
+.stApp:has(.auth-page-marker) .auth-page-backdrop {
+    display: block;
     position: fixed;
     inset: 0;
     z-index: 0;
@@ -492,8 +496,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     overflow: hidden;
     background: #000000;
 }
-.auth-page-backdrop::before,
-.auth-page-backdrop::after {
+.stApp:has(.auth-page-marker) .auth-page-backdrop::before,
+.stApp:has(.auth-page-marker) .auth-page-backdrop::after {
     content: "";
     position: absolute;
     border-radius: 999px;
@@ -517,6 +521,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     transform: rotate(-12deg);
 }
 .auth-form-back {
+    display: none;
+}
+.stApp:has(.auth-page-marker) .auth-form-back {
     position: fixed;
     top: 1.35rem;
     left: 1.35rem;
@@ -530,7 +537,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     text-decoration: none !important;
     transition: color 0.15s ease;
 }
-.auth-form-back:hover {
+.stApp:has(.auth-page-marker) .auth-form-back:hover {
     color: #FFFFFF !important;
 }
 .auth-form-header {

@@ -710,29 +710,88 @@ def _install_scroll_reveal() -> None:
         (function () {
             const win = window.parent;
             const doc = win.document;
+
+            function isInViewport(node) {
+                const rect = node.getBoundingClientRect();
+                const vh = win.innerHeight || doc.documentElement.clientHeight || 0;
+                if (!vh) return true;
+                return rect.bottom > 0 && rect.top < vh * 0.98;
+            }
+
+            function cleanupStaleAuthShell() {
+                if (doc.querySelector(".auth-page-marker")) return;
+                doc.querySelectorAll(".auth-page-marker, .auth-page-backdrop, .auth-form-back").forEach(function (el) {
+                    el.remove();
+                });
+            }
+
+            function revealVisibleNodes() {
+                doc.querySelectorAll(".cm-reveal").forEach(function (node) {
+                    if (isInViewport(node)) {
+                        node.classList.add("is-visible");
+                    }
+                });
+            }
+
+            function revealHeroFallback() {
+                doc.querySelectorAll(".cm-hero-screen .cm-animate-in").forEach(function (el) {
+                    if (win.getComputedStyle(el).opacity === "0") {
+                        el.style.opacity = "1";
+                        el.style.transform = "none";
+                    }
+                });
+            }
+
+            function revealAllPending() {
+                doc.querySelectorAll(".cm-reveal:not(.is-visible)").forEach(function (node) {
+                    node.classList.add("is-visible");
+                });
+            }
+
             if (!win.__cmReveal) {
                 win.__cmReveal = {
                     io: new IntersectionObserver(
-                        (entries) => {
-                            entries.forEach((entry) => {
+                        function (entries) {
+                            entries.forEach(function (entry) {
                                 if (!entry.isIntersecting) return;
                                 entry.target.classList.add("is-visible");
                             });
                         },
-                        { threshold: 0.12, rootMargin: "0px 0px -4% 0px" }
+                        { threshold: 0.08, rootMargin: "0px 0px -2% 0px" }
                     ),
                 };
-                win.__cmReveal.mo = new MutationObserver(() => win.__cmReveal.scan());
+                win.__cmReveal.mo = new MutationObserver(function () {
+                    win.__cmReveal.scan();
+                });
                 win.__cmReveal.mo.observe(doc.body, { childList: true, subtree: true });
             }
+
             win.__cmReveal.scan = function scan() {
+                cleanupStaleAuthShell();
                 doc.documentElement.classList.add("cm-reveal-ready");
-                doc.querySelectorAll(".cm-reveal:not([data-cm-observed])").forEach((node) => {
+                revealVisibleNodes();
+                doc.querySelectorAll(".cm-reveal:not([data-cm-observed])").forEach(function (node) {
                     node.dataset.cmObserved = "1";
                     win.__cmReveal.io.observe(node);
                 });
             };
-            win.__cmReveal.scan();
+
+            function scheduleRevealPasses() {
+                win.__cmReveal.scan();
+                requestAnimationFrame(function () {
+                    win.__cmReveal.scan();
+                    requestAnimationFrame(function () {
+                        win.__cmReveal.scan();
+                        revealHeroFallback();
+                    });
+                });
+                win.setTimeout(function () { win.__cmReveal.scan(); }, 120);
+                win.setTimeout(function () { win.__cmReveal.scan(); }, 450);
+                win.setTimeout(revealHeroFallback, 900);
+                win.setTimeout(revealAllPending, 1600);
+            }
+
+            scheduleRevealPasses();
         })();
         </script>
         """,
