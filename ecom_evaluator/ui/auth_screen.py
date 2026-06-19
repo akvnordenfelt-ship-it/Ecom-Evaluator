@@ -100,15 +100,15 @@ def _google_oauth_button_html(oauth_url: str) -> str:
 def _render_auth_shell_start() -> None:
     st.markdown(
         '<div class="auth-page-marker cm-auth-page" aria-hidden="true"></div>'
-        '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>'
-        '<a class="cm-auth-back auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
-        "← Back to home</a>",
+        '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>',
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_header() -> None:
     st.markdown(
+        '<a class="cm-auth-back cm-auth-back-inline auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
+        "← Back to home</a>"
         '<header class="cm-auth-head">'
         '<div class="cm-auth-brand-row">'
         '<div class="cm-auth-logo" aria-hidden="true">'

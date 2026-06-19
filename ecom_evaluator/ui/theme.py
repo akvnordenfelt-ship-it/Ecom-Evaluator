@@ -483,7 +483,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
-    margin-bottom: 0.55rem;
+    margin-bottom: 0.4rem;
 }
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
     gap: 0 !important;
@@ -496,7 +496,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input {
-    min-height: 2.45rem !important;
+    min-height: 2.25rem !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
@@ -525,19 +525,44 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] {
-    color: #94A3B8 !important;
-    background: transparent !important;
-    border: none !important;
+    color: #E2E8F0 !important;
+    opacity: 1 !important;
+    background: rgba(255, 255, 255, 0.1) !important;
+    border: 1px solid rgba(255, 255, 255, 0.16) !important;
     box-shadow: none !important;
     border-radius: 8px !important;
+    width: 2rem !important;
+    height: 2rem !important;
+    min-width: 2rem !important;
+    min-height: 2rem !important;
+    margin-right: 0.15rem !important;
+}
+.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"] svg,
+.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"] svg,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"] path,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] path {
+    fill: #E2E8F0 !important;
+    stroke: #E2E8F0 !important;
+    color: #E2E8F0 !important;
+    opacity: 1 !important;
+}
+.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"]:hover,
+.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"]:hover,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover {
+    color: #FFFFFF !important;
+    background: rgba(255, 255, 255, 0.16) !important;
+    border-color: rgba(255, 255, 255, 0.24) !important;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
-    margin-top: 0.25rem;
+    margin-top: 0.15rem;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"] {
-    min-height: 2.45rem;
+    min-height: 2.25rem;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
     font-weight: 600 !important;
@@ -558,7 +583,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) {
     display: flex;
     justify-content: center;
-    margin-top: 0.35rem;
+    margin-top: 0.25rem;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button,
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button {
@@ -566,12 +591,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: none !important;
     color: #CBD5E1 !important;
-    font-size: 0.8125rem !important;
+    font-size: 0.78rem !important;
     font-weight: 600 !important;
-    padding: 0.45rem 0.75rem !important;
+    padding: 0.4rem 0.65rem !important;
     width: 100% !important;
-    min-height: 2.25rem !important;
-    border-radius: 12px !important;
+    min-height: 2.1rem !important;
+    border-radius: 11px !important;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover,

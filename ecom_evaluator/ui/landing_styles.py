@@ -2733,7 +2733,7 @@ AUTH_CM_CSS = """
     min-height: 100dvh;
     max-height: 100dvh;
     overflow-y: auto;
-    padding: 3.25rem 1rem 0.75rem !important;
+    padding: 1rem 1rem 0.5rem !important;
     display: flex;
     align-items: flex-start;
     justify-content: center;
@@ -2745,7 +2745,7 @@ AUTH_CM_CSS = """
     width: min(100%, 420px) !important;
     max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 1.25rem 1.5rem 1rem !important;
+    padding: 0.9rem 1.35rem 0.7rem !important;
     border-radius: 22px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2757,7 +2757,14 @@ AUTH_CM_CSS = """
     box-sizing: border-box;
 }
 .stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"] {
-    gap: 0.2rem !important;
+    gap: 0 !important;
+}
+.stApp:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
+    gap: 0 !important;
+}
+.stApp:has(.cm-auth-page) [data-testid="stAppViewContainer"],
+.stApp:has(.cm-auth-page) [data-testid="stMain"] {
+    gap: 0 !important;
 }
 .stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"],
 .stApp:has(.cm-auth-page) [data-testid="element-container"],
@@ -2771,50 +2778,49 @@ AUTH_CM_CSS = """
     max-width: 100% !important;
 }
 .cm-auth-back {
-    position: fixed;
-    top: 0.85rem;
-    left: max(1rem, calc(50% - 230px));
-    z-index: 20;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.38rem 0.75rem;
+    padding: 0.3rem 0.65rem;
+    margin-bottom: 0.55rem;
     border-radius: 999px;
-    font-size: 0.8rem;
+    font-size: 0.78rem;
     font-weight: 600;
     color: #CBD5E1 !important;
     text-decoration: none !important;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
+}
+.cm-auth-back-inline {
+    position: static;
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
 }
 .cm-auth-back:hover {
     color: #FFFFFF !important;
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.16);
-    transform: translateX(-2px);
     text-decoration: none !important;
 }
 .cm-auth-head {
     text-align: center;
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.6rem;
 }
 .cm-auth-brand-row {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    gap: 0.6rem;
-    margin-bottom: 0.75rem;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
 }
 .cm-auth-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 2.75rem;
-    height: 2.75rem;
+    width: 2.5rem;
+    height: 2.5rem;
     margin: 0;
     border-radius: 14px;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
@@ -2823,8 +2829,8 @@ AUTH_CM_CSS = """
 }
 .cm-auth-logo img {
     display: block;
-    width: 1.85rem;
-    height: 1.85rem;
+    width: 1.65rem;
+    height: 1.65rem;
     object-fit: contain;
 }
 .cm-auth-kicker {
@@ -2842,8 +2848,8 @@ AUTH_CM_CSS = """
     border: 1px solid rgba(96, 165, 250, 0.22);
 }
 .cm-auth-title {
-    margin: 0 0 0.35rem;
-    font-size: clamp(1.3rem, 4vw, 1.55rem);
+    margin: 0 0 0.25rem;
+    font-size: clamp(1.2rem, 4vw, 1.45rem);
     font-weight: 700;
     letter-spacing: -0.035em;
     line-height: 1.1;
@@ -2857,8 +2863,8 @@ AUTH_CM_CSS = """
 }
 .cm-auth-lead {
     margin: 0;
-    font-size: 0.82rem;
-    line-height: 1.45;
+    font-size: 0.78rem;
+    line-height: 1.4;
     color: #94A3B8;
 }
 .cm-auth-link {
@@ -2879,11 +2885,11 @@ AUTH_CM_CSS = """
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 0.55rem;
+    gap: 0.5rem;
     width: 100%;
-    min-height: 2.45rem;
-    padding: 0.55rem 0.85rem;
-    border-radius: 12px;
+    min-height: 2.25rem;
+    padding: 0.45rem 0.75rem;
+    border-radius: 11px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
     color: #F8FAFC !important;
@@ -2907,8 +2913,8 @@ AUTH_CM_CSS = """
 .cm-auth-divider {
     display: flex;
     align-items: center;
-    gap: 0.65rem;
-    margin: 0.65rem 0 0.55rem;
+    gap: 0.55rem;
+    margin: 0.45rem 0 0.35rem;
 }
 .cm-auth-divider::before,
 .cm-auth-divider::after {
@@ -2925,23 +2931,23 @@ AUTH_CM_CSS = """
     color: #64748B;
 }
 .cm-auth-label {
-    margin: 0 0 0.3rem;
-    font-size: 0.72rem;
+    margin: 0 0 0.2rem;
+    font-size: 0.68rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #94A3B8;
 }
 .cm-auth-legal {
-    margin-top: 0.75rem;
-    padding-top: 0.65rem;
+    margin-top: 0.45rem;
+    padding-top: 0.45rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
 }
 .cm-auth-legal p {
     margin: 0;
-    font-size: 0.68rem;
-    line-height: 1.5;
+    font-size: 0.64rem;
+    line-height: 1.45;
     color: #64748B;
 }
 .cm-auth-legal .cm-auth-link {
@@ -2955,27 +2961,27 @@ AUTH_CM_CSS = """
 }
 @media (max-width: 640px) {
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding-top: 3rem !important;
+        padding: 0.75rem 0.75rem 0.5rem !important;
     }
     .stApp:has(.cm-auth-page) .block-container {
-        padding: 1rem 1.15rem 0.85rem !important;
+        padding: 0.8rem 1.1rem 0.65rem !important;
         border-radius: 18px;
-    }
-    .cm-auth-back {
-        top: 0.65rem;
-        left: 0.75rem;
     }
 }
 @media (max-height: 760px) {
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding-top: 2.75rem !important;
+        padding-top: 0.65rem !important;
     }
     .stApp:has(.cm-auth-page) .block-container {
-        padding: 0.85rem 1.15rem 0.75rem !important;
+        padding: 0.7rem 1.1rem 0.55rem !important;
     }
-    .cm-auth-head { margin-bottom: 0.6rem; }
-    .cm-auth-brand-row { margin-bottom: 0.55rem; }
-    .cm-auth-divider { margin: 0.45rem 0 0.4rem; }
-    .cm-auth-legal { margin-top: 0.55rem; padding-top: 0.5rem; }
+    .cm-auth-back { margin-bottom: 0.4rem; }
+    .cm-auth-head { margin-bottom: 0.45rem; }
+    .cm-auth-brand-row { margin-bottom: 0.4rem; }
+    .cm-auth-divider { margin: 0.35rem 0 0.3rem; }
+    .cm-auth-legal { margin-top: 0.35rem; padding-top: 0.35rem; }
+}
+@media (max-height: 680px) {
+    .cm-auth-legal p { font-size: 0.6rem; }
 }
 """
