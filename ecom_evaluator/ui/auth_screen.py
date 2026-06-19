@@ -110,10 +110,12 @@ def _render_auth_shell_start() -> None:
 def _render_auth_header() -> None:
     st.markdown(
         '<header class="cm-auth-head">'
+        '<div class="cm-auth-brand-row">'
         '<div class="cm-auth-logo" aria-hidden="true">'
         f"{auth_brand_html()}"
         "</div>"
         f'<span class="cm-auth-kicker">{html.escape(_auth_kicker())}</span>'
+        "</div>"
         f'<h1 class="cm-auth-title">{_auth_title_html()}</h1>'
         f'<p class="cm-auth-lead">{_auth_subtitle_html()}</p>'
         "</header>",

@@ -483,7 +483,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
-    margin-bottom: 0.95rem;
+    margin-bottom: 0.55rem;
+}
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
+    gap: 0 !important;
 }
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div > div {
@@ -493,7 +496,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input {
-    min-height: 2.85rem !important;
+    min-height: 2.45rem !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
@@ -530,11 +533,11 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
-    margin-top: 0.55rem;
+    margin-top: 0.25rem;
 }
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"] {
-    min-height: 2.85rem;
+    min-height: 2.45rem;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
     font-weight: 600 !important;
@@ -555,7 +558,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) {
     display: flex;
     justify-content: center;
-    margin-top: 0.65rem;
+    margin-top: 0.35rem;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button,
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button {
@@ -565,10 +568,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     color: #CBD5E1 !important;
     font-size: 0.8125rem !important;
     font-weight: 600 !important;
-    padding: 0.55rem 0.85rem !important;
+    padding: 0.45rem 0.75rem !important;
     width: 100% !important;
-    min-height: 2.55rem !important;
-    border-radius: 14px !important;
+    min-height: 2.25rem !important;
+    border-radius: 12px !important;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover,
@@ -581,7 +584,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
 .block-container:has(.cm-auth-page) [data-testid="stAlert"] {
     position: relative;
     z-index: 1;
-    margin: 0 0 1rem;
+    margin: 0 0 0.5rem;
     border-radius: 14px;
     background: rgba(239, 68, 68, 0.12) !important;
     border: 1px solid rgba(248, 113, 113, 0.28) !important;
