@@ -457,7 +457,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     margin: 1rem auto 2rem;
 }
 
-/* Auth screen — Streamlit form overrides (visual design in AUTH_CM_CSS) */
+/* Auth screen — Streamlit overrides for centered login card */
 .auth-page-marker,
 .cm-auth-page {
     display: none !important;
@@ -466,76 +466,25 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0 !important;
     overflow: hidden !important;
 }
-html.cm-auth-active [data-testid="stForm"],
-.block-container:has(.auth-page-marker) [data-testid="stForm"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] {
-    position: relative;
-    z-index: 1;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: transparent;
-    overflow: visible !important;
-    height: auto !important;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] {
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    overflow: visible !important;
-    height: auto !important;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] > div,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] > div {
-    padding: 0 !important;
-    overflow: visible !important;
-    height: auto !important;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="stWidgetLabel"],
-html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"] label,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] label {
-    display: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    overflow: hidden !important;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="InputInstructions"],
-html.cm-auth-active [data-testid="stForm"] [data-testid="stCaptionContainer"],
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="InputInstructions"],
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stCaptionContainer"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="InputInstructions"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stCaptionContainer"] {
-    display: none;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"],
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
-    margin-bottom: 0.5rem !important;
-    position: relative;
-    z-index: 2;
-    flex-shrink: 0;
-}
-html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlock"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
-    gap: 0.35rem !important;
-    overflow: visible !important;
-    height: auto !important;
+html.cm-auth-active [data-testid="stTextInput"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"],
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] {
+    margin-bottom: 0.95rem !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] > div,
 html.cm-auth-active [data-testid="stTextInput"] > div > div,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] > div,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] > div > div,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
-html.cm-auth-active [data-testid="stForm"] input,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] input {
-    min-height: 2.75rem !important;
+html.cm-auth-active [data-testid="stTextInput"] input,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] input,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input {
+    min-height: 2.85rem !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
@@ -545,87 +494,40 @@ html.cm-auth-active [data-testid="stForm"] input,
     padding-right: 0.875rem !important;
     transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
-html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
+html.cm-auth-active [data-testid="stTextInput"]:has(button) input,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"]:has(button) input,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"]:has(button) input {
     padding-right: 2.75rem !important;
 }
-html.cm-auth-active [data-testid="stForm"] input:focus,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input:focus,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] input:focus {
+html.cm-auth-active [data-testid="stTextInput"] input:focus,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] input:focus,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input:focus {
     border-color: rgba(96, 165, 250, 0.55) !important;
     background: rgba(255, 255, 255, 0.07) !important;
     box-shadow: 0 0 0 3px rgba(43, 89, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
     outline: none !important;
 }
-html.cm-auth-active [data-testid="stForm"] input::placeholder,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] input::placeholder,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] input::placeholder {
+html.cm-auth-active [data-testid="stTextInput"] input::placeholder,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] input::placeholder,
+.block-container:has(.cm-auth-page) [data-testid="stTextInput"] input::placeholder {
     color: #64748B !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"],
 html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"],
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] {
-    color: #E2E8F0 !important;
-    opacity: 1 !important;
-    background: rgba(255, 255, 255, 0.1) !important;
-    border: 1px solid rgba(255, 255, 255, 0.16) !important;
+    color: #94A3B8 !important;
+    background: transparent !important;
+    border: none !important;
     box-shadow: none !important;
     border-radius: 8px !important;
-    width: 2rem !important;
-    height: 2rem !important;
-    min-width: 2rem !important;
-    min-height: 2rem !important;
-    margin-right: 0.15rem !important;
 }
-html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"] svg,
-html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
-html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"] path,
-html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] path,
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"] svg,
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"] svg,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"] path,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] path {
-    fill: #E2E8F0 !important;
-    stroke: #E2E8F0 !important;
-    color: #E2E8F0 !important;
-    opacity: 1 !important;
-}
-html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"]:hover,
-html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover,
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"]:hover,
-.block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"]:hover,
-.block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover {
-    color: #FFFFFF !important;
-    background: rgba(255, 255, 255, 0.16) !important;
-    border-color: rgba(255, 255, 255, 0.24) !important;
-}
-html.cm-auth-active [data-testid="stForm"] .stButton,
-html.cm-auth-active [data-testid="stFormSubmitButton"],
-html.cm-auth-active .stFormSubmitButton,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
-    margin-top: 1.15rem !important;
-    margin-bottom: 0 !important;
-    position: relative;
-    z-index: 1;
-    flex-shrink: 0;
-    width: 100% !important;
-}
-html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"],
-html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"],
-html.cm-auth-active [data-testid="stFormSubmitButton"] button,
-html.cm-auth-active .stFormSubmitButton button,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"] {
-    min-height: 2.75rem;
+html.cm-auth-active .stButton > button[kind="primary"],
+.stMainBlockContainer:has(.cm-auth-page) .stButton > button[kind="primary"],
+.block-container:has(.cm-auth-page) .stButton > button[kind="primary"] {
+    min-height: 2.85rem;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
     font-weight: 600 !important;
@@ -635,65 +537,69 @@ html.cm-auth-active .stFormSubmitButton button,
     box-shadow: 0 4px 14px rgba(43, 89, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
 }
-html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
-html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"]:hover,
-html.cm-auth-active [data-testid="stFormSubmitButton"] button:hover,
-html.cm-auth-active .stFormSubmitButton button:hover,
-.block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"]:hover {
+html.cm-auth-active .stButton > button[kind="primary"]:hover,
+.stMainBlockContainer:has(.cm-auth-page) .stButton > button[kind="primary"]:hover,
+.block-container:has(.cm-auth-page) .stButton > button[kind="primary"]:hover {
     color: #FFFFFF !important;
     filter: brightness(1.06);
     box-shadow: 0 8px 24px rgba(43, 89, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
     transform: translateY(-1px);
 }
-html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton),
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton),
-.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) {
-    display: flex;
-    justify-content: center;
-    margin-top: 0.75rem;
+html.cm-auth-active div[class*="st-key-auth_login_submit"] .stButton,
+html.cm-auth-active div[class*="st-key-auth_signup_submit"] .stButton,
+html.cm-auth-active div[class*="st-key-auth_verify_submit"] .stButton,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_login_submit"] .stButton,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_signup_submit"] .stButton,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_verify_submit"] .stButton {
+    margin-top: 0.55rem !important;
 }
-html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton) > button,
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button,
-.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button {
+html.cm-auth-active div[class*="st-key-auth_resend"] .stButton > button,
+html.cm-auth-active div[class*="st-key-auth_verify_back"] .stButton > button,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_resend"] .stButton > button,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_verify_back"] .stButton > button {
     background: rgba(255, 255, 255, 0.04) !important;
     border: 1px solid rgba(255, 255, 255, 0.12) !important;
     box-shadow: none !important;
     color: #CBD5E1 !important;
     font-size: 0.8125rem !important;
     font-weight: 600 !important;
-    padding: 0.55rem 0.85rem !important;
-    width: 100% !important;
-    min-height: 2.5rem !important;
+    min-height: 2.55rem !important;
     border-radius: 14px !important;
-    transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
-html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton) > button:hover,
-.block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover,
-.block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button:hover {
-    color: #FFFFFF !important;
-    background: rgba(255, 255, 255, 0.08) !important;
-    border-color: rgba(255, 255, 255, 0.18) !important;
+html.cm-auth-active div[class*="st-key-auth_resend_confirmation"] .stButton,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_resend_confirmation"] .stButton {
+    margin-top: 0.65rem !important;
+}
+html.cm-auth-active div[class*="st-key-auth_resend_confirmation"] .stButton > button,
+.stMainBlockContainer:has(.cm-auth-page) div[class*="st-key-auth_resend_confirmation"] .stButton > button {
+    background: rgba(255, 255, 255, 0.04) !important;
+    border: 1px solid rgba(255, 255, 255, 0.12) !important;
+    box-shadow: none !important;
+    color: #CBD5E1 !important;
+    font-size: 0.8125rem !important;
+    font-weight: 600 !important;
+    width: 100% !important;
+    min-height: 2.55rem !important;
+    border-radius: 14px !important;
 }
 html.cm-auth-active [data-testid="stAlert"],
-.block-container:has(.auth-page-marker) [data-testid="stAlert"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stAlert"],
 .block-container:has(.cm-auth-page) [data-testid="stAlert"] {
     position: relative;
     z-index: 1;
-    margin: 0 0 0.5rem;
+    margin: 0 0 1rem;
     border-radius: 14px;
     background: rgba(239, 68, 68, 0.12) !important;
     border: 1px solid rgba(248, 113, 113, 0.28) !important;
     color: #FECACA !important;
 }
 html.cm-auth-active [data-testid="stAlert"] *,
-.block-container:has(.auth-page-marker) [data-testid="stAlert"] *,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stAlert"] *,
 .block-container:has(.cm-auth-page) [data-testid="stAlert"] * {
     color: #FECACA !important;
 }
 html.cm-auth-active [data-testid="stExpander"],
-.block-container:has(.auth-page-marker) [data-testid="stExpander"],
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stExpander"],
 .block-container:has(.cm-auth-page) [data-testid="stExpander"] {
     position: relative;
     z-index: 1;
@@ -705,15 +611,11 @@ html.cm-auth-active [data-testid="stExpander"],
 html.cm-auth-active [data-testid="stExpander"] summary,
 html.cm-auth-active [data-testid="stExpander"] p,
 html.cm-auth-active [data-testid="stExpander"] code,
-.block-container:has(.auth-page-marker) [data-testid="stExpander"] summary,
-.block-container:has(.auth-page-marker) [data-testid="stExpander"] p,
-.block-container:has(.auth-page-marker) [data-testid="stExpander"] code,
-.block-container:has(.cm-auth-page) [data-testid="stExpander"] summary,
-.block-container:has(.cm-auth-page) [data-testid="stExpander"] p,
-.block-container:has(.cm-auth-page) [data-testid="stExpander"] code {
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stExpander"] summary,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stExpander"] p,
+.stMainBlockContainer:has(.cm-auth-page) [data-testid="stExpander"] code {
     color: #CBD5E1 !important;
 }
-
 /* Hero banner */
 .hero-block {
     background: linear-gradient(135deg, #0B1F4B 0%, #1E40AF 48%, #4338CA 100%);

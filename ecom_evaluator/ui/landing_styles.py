@@ -2695,7 +2695,7 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
 """
 
 AUTH_CM_CSS = """
-/* Auth — Apple-inspired sign-in / sign-up (html.cm-auth-active set by auth_screen) */
+/* Auth ÔÇö Apple-inspired sign-in / sign-up */
 html.cm-auth-active .cm-auth-backdrop,
 .stApp:has(.cm-auth-page) .cm-auth-backdrop {
     display: block;
@@ -2735,24 +2735,25 @@ html.cm-auth-active .site-header__spacer,
 html.cm-auth-active section[data-testid="stMain"] > div,
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
-    width: 100% !important;
-    margin: 0 auto !important;
-    padding: clamp(1.5rem, 6vh, 2.75rem) 1.25rem 2.5rem !important;
-    display: flex !important;
-    flex-direction: column !important;
-    align-items: center !important;
-    justify-content: flex-start !important;
-    min-height: 0 !important;
+    padding: 0 1rem 2rem !important;
+    min-height: 100dvh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     box-sizing: border-box;
 }
-html.cm-auth-active .cm-auth-card-host {
+html.cm-auth-active .block-container,
+html.cm-auth-active .stMainBlockContainer,
+html.cm-auth-active [data-testid="stMainBlockContainer"],
+.stApp:has(.cm-auth-page) .block-container,
+.stApp:has(.cm-auth-page) .stMainBlockContainer,
+.stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"] {
     position: relative;
     z-index: 1;
-    flex: 0 1 420px;
     width: min(100%, 420px) !important;
     max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 2rem 2rem 1.75rem !important;
+    padding: 2rem 1.75rem 1.5rem !important;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2763,113 +2764,65 @@ html.cm-auth-active .cm-auth-card-host {
     -webkit-backdrop-filter: blur(20px);
     box-sizing: border-box;
 }
-html.cm-auth-active .stMainBlockContainer:not(.cm-auth-card-host),
-html.cm-auth-active [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host),
-.stApp:has(.cm-auth-page) .stMainBlockContainer:not(.cm-auth-card-host),
-.stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host) {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-html.cm-auth-active .block-container,
-html.cm-auth-active [data-testid="block-container"],
-.stApp:has(.cm-auth-page) .block-container,
-.stApp:has(.cm-auth-page) [data-testid="block-container"] {
-    width: 100% !important;
-    max-width: 100% !important;
-    padding: 0 !important;
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-}
-html.cm-auth-active .stMainBlockContainer > [data-testid="stVerticalBlock"],
-html.cm-auth-active .block-container > [data-testid="stVerticalBlock"],
-.stApp:has(.cm-auth-page) .stMainBlockContainer > [data-testid="stVerticalBlock"],
-.stApp:has(.cm-auth-page) .block-container > [data-testid="stVerticalBlock"] {
-    gap: 0.9rem !important;
-}
-html.cm-auth-active [data-testid="stMarkdownContainer"],
-html.cm-auth-active [data-testid="element-container"],
-html.cm-auth-active .stMarkdown,
-.stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"],
-.stApp:has(.cm-auth-page) [data-testid="element-container"],
-.stApp:has(.cm-auth-page) .stMarkdown {
-    margin: 0 !important;
-    padding: 0 !important;
-}
 html.cm-auth-active [data-testid="stVerticalBlock"],
-html.cm-auth-active [data-testid="stForm"],
-.stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"],
-.stApp:has(.cm-auth-page) [data-testid="stForm"] {
+.stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"] {
     width: 100% !important;
     max-width: 100% !important;
 }
 .cm-auth-back {
+    position: fixed;
+    top: 1.35rem;
+    left: max(1.25rem, calc(50% - 230px));
+    z-index: 20;
     display: inline-flex;
     align-items: center;
     gap: 0.35rem;
-    padding: 0.42rem 0.85rem;
-    margin-bottom: 1.5rem;
+    padding: 0.45rem 0.85rem;
     border-radius: 999px;
-    font-size: 0.82rem;
+    font-size: 0.84rem;
     font-weight: 600;
     color: #CBD5E1 !important;
     text-decoration: none !important;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.1);
-    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease;
-}
-.cm-auth-back-inline {
-    position: static;
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    transition: color 0.2s ease, background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 .cm-auth-back:hover {
     color: #FFFFFF !important;
     background: rgba(255, 255, 255, 0.1);
     border-color: rgba(255, 255, 255, 0.16);
+    transform: translateX(-2px);
     text-decoration: none !important;
 }
 .cm-auth-head {
     text-align: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1.35rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-}
-.cm-auth-brand-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-wrap: wrap;
-    gap: 0.75rem;
-    margin-bottom: 1rem;
+    margin-bottom: 1.65rem;
 }
 .cm-auth-logo {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    width: 3.25rem;
-    height: 3.25rem;
-    margin: 0;
-    border-radius: 14px;
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1.15rem;
+    border-radius: 18px;
     background: linear-gradient(145deg, rgba(255, 255, 255, 0.12) 0%, rgba(255, 255, 255, 0.04) 100%);
     border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
 }
 .cm-auth-logo img {
     display: block;
-    width: 2.15rem;
-    height: 2.15rem;
+    width: 2.65rem;
+    height: 2.65rem;
     object-fit: contain;
 }
 .cm-auth-kicker {
     display: inline-flex;
     align-items: center;
-    padding: 0.32rem 0.75rem;
-    margin: 0;
+    padding: 0.32rem 0.8rem;
+    margin: 0 0 0.85rem;
     border-radius: 999px;
     font-size: 0.66rem;
     font-weight: 700;
@@ -2880,8 +2833,8 @@ html.cm-auth-active [data-testid="stForm"],
     border: 1px solid rgba(96, 165, 250, 0.22);
 }
 .cm-auth-title {
-    margin: 0 0 0.5rem;
-    font-size: clamp(1.45rem, 3vw, 1.75rem);
+    margin: 0 0 0.65rem;
+    font-size: clamp(1.55rem, 3vw, 1.85rem);
     font-weight: 700;
     letter-spacing: -0.035em;
     line-height: 1.12;
@@ -2919,8 +2872,8 @@ html.cm-auth-active [data-testid="stForm"],
     justify-content: center;
     gap: 0.65rem;
     width: 100%;
-    min-height: 2.75rem;
-    padding: 0.65rem 1rem;
+    min-height: 2.85rem;
+    padding: 0.7rem 1rem;
     border-radius: 14px;
     background: rgba(255, 255, 255, 0.06);
     border: 1px solid rgba(255, 255, 255, 0.12);
@@ -2946,7 +2899,7 @@ html.cm-auth-active [data-testid="stForm"],
     display: flex;
     align-items: center;
     gap: 0.75rem;
-    margin: 0.25rem 0 0.85rem;
+    margin: 1.2rem 0 1.05rem;
 }
 .cm-auth-divider::before,
 .cm-auth-divider::after {
@@ -2963,23 +2916,15 @@ html.cm-auth-active [data-testid="stForm"],
     color: #64748B;
 }
 .cm-auth-label {
-    margin: 0 0 0.4rem;
-    font-size: 0.75rem;
+    margin: 0 0 0.45rem;
+    font-size: 0.78rem;
     font-weight: 600;
     letter-spacing: 0.04em;
     text-transform: uppercase;
     color: #94A3B8;
 }
-.cm-auth-label--field {
-    margin-top: 0.85rem;
-}
-.cm-auth-field-gap {
-    display: block;
-    height: 0.35rem;
-    width: 100%;
-}
 .cm-auth-legal {
-    margin-top: 0.25rem;
+    margin-top: 1.35rem;
     padding-top: 1.15rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
@@ -2987,7 +2932,7 @@ html.cm-auth-active [data-testid="stForm"],
 .cm-auth-legal p {
     margin: 0;
     font-size: 0.72rem;
-    line-height: 1.6;
+    line-height: 1.65;
     color: #64748B;
 }
 .cm-auth-legal .cm-auth-link {
@@ -3000,26 +2945,18 @@ html.cm-auth-active [data-testid="stForm"],
     border-bottom-color: #FFFFFF;
 }
 @media (max-width: 640px) {
-    html.cm-auth-active section[data-testid="stMain"] > div,
-    .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
-        padding: 1.25rem 0.85rem 1.5rem !important;
-    }
-    html.cm-auth-active .cm-auth-card-host {
-        width: 100% !important;
-        max-width: 100% !important;
-        padding: 1.75rem 1.5rem 1.5rem !important;
+    html.cm-auth-active .block-container,
+    html.cm-auth-active .stMainBlockContainer,
+    html.cm-auth-active [data-testid="stMainBlockContainer"],
+    .stApp:has(.cm-auth-page) .block-container,
+    .stApp:has(.cm-auth-page) .stMainBlockContainer,
+    .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"] {
+        padding: 1.65rem 1.25rem 1.35rem !important;
         border-radius: 20px;
     }
-    html.cm-auth-active .stMainBlockContainer:not(.cm-auth-card-host),
-    html.cm-auth-active [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host),
-    .stApp:has(.cm-auth-page) .stMainBlockContainer:not(.cm-auth-card-host),
-    .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host) {
-        width: 100% !important;
-        max-width: 100% !important;
-    }
-    .cm-auth-head {
-        margin-bottom: 1.25rem;
-        padding-bottom: 1.15rem;
+    .cm-auth-back {
+        top: 1rem;
+        left: 1rem;
     }
 }
 """

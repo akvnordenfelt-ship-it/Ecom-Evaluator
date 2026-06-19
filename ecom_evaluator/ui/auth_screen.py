@@ -99,53 +99,14 @@ def _google_oauth_button_html(oauth_url: str) -> str:
 
 
 def _install_auth_layout() -> None:
-    """Tag the document + Streamlit host so auth layout CSS applies (Streamlit 1.52+)."""
+    """Set html.cm-auth-active so auth CSS applies on Streamlit 1.52+."""
     components.html(
         """
         <script>
         (function () {
-            const win = window.parent;
-            const doc = win.document;
-
-            function findAuthHost() {
-                return (
-                    doc.querySelector('[data-testid="stMainBlockContainer"]') ||
-                    doc.querySelector(".stMainBlockContainer") ||
-                    doc.querySelector('[data-testid="block-container"]') ||
-                    doc.querySelector(".block-container")
-                );
-            }
-
-            function syncAuthLayout() {
-                const active = !!doc.querySelector(".cm-auth-page, .auth-page-marker");
-                doc.documentElement.classList.toggle("cm-auth-active", active);
-                const host = findAuthHost();
-                if (!host) return;
-                host.classList.toggle("cm-auth-card-host", active);
-                if (active) {
-                    host.style.maxWidth = "420px";
-                    host.style.width = "min(100%, 420px)";
-                    host.style.marginLeft = "auto";
-                    host.style.marginRight = "auto";
-                } else {
-                    host.style.maxWidth = "";
-                    host.style.width = "";
-                    host.style.marginLeft = "";
-                    host.style.marginRight = "";
-                }
-                doc.querySelectorAll('[data-testid="stFormSubmitButton"], .stFormSubmitButton').forEach(function (node) {
-                    node.style.marginTop = active ? "1.15rem" : "";
-                });
-            }
-
-            syncAuthLayout();
-            if (!win.__psAuthLayoutObserver) {
-                win.__psAuthLayoutObserver = new MutationObserver(syncAuthLayout);
-                win.__psAuthLayoutObserver.observe(doc.body, {
-                    childList: true,
-                    subtree: true,
-                });
-            }
+            const doc = window.parent.document;
+            const active = !!doc.querySelector(".cm-auth-page, .auth-page-marker");
+            doc.documentElement.classList.toggle("cm-auth-active", active);
         })();
         </script>
         """,
@@ -157,22 +118,20 @@ def _install_auth_layout() -> None:
 def _render_auth_shell_start() -> None:
     st.markdown(
         '<div class="auth-page-marker cm-auth-page" aria-hidden="true"></div>'
-        '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>',
+        '<div class="auth-page-backdrop cm-auth-backdrop" aria-hidden="true"></div>'
+        '<a class="cm-auth-back auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
+        "← Back to home</a>",
         unsafe_allow_html=True,
     )
 
 
 def _render_auth_header() -> None:
     st.markdown(
-        '<a class="cm-auth-back cm-auth-back-inline auth-form-back" href="#" data-ps-nav-action="home" target="_self">'
-        "← Back to home</a>"
         '<header class="cm-auth-head">'
-        '<div class="cm-auth-brand-row">'
         '<div class="cm-auth-logo" aria-hidden="true">'
         f"{auth_brand_html()}"
         "</div>"
         f'<span class="cm-auth-kicker">{html.escape(_auth_kicker())}</span>'
-        "</div>"
         f'<h1 class="cm-auth-title">{_auth_title_html()}</h1>'
         f'<p class="cm-auth-lead">{_auth_subtitle_html()}</p>'
         "</header>",
@@ -200,24 +159,21 @@ def _render_auth_footer() -> None:
 
 
 def _render_login_form() -> None:
-    with st.form("auth_login_form", clear_on_submit=False, border=False):
-        st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
-        email = st.text_input(
-            "Email",
-            placeholder="you@company.com",
-            key="auth_login_email",
-            label_visibility="collapsed",
-        )
-        st.markdown('<p class="cm-auth-label cm-auth-label--field">Password</p>', unsafe_allow_html=True)
-        password = st.text_input(
-            "Password",
-            type="password",
-            key="auth_login_password",
-            label_visibility="collapsed",
-        )
-        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-        submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
-    if submitted:
+    st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
+    email = st.text_input(
+        "Email",
+        placeholder="you@company.com",
+        key="auth_login_email",
+        label_visibility="collapsed",
+    )
+    st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
+    password = st.text_input(
+        "Password",
+        type="password",
+        key="auth_login_password",
+        label_visibility="collapsed",
+    )
+    if st.button("Sign in", type="primary", use_container_width=True, key="auth_login_submit"):
         clear_auth_error()
         try:
             login_with_credentials(email=email, password=password)
@@ -245,19 +201,15 @@ def _render_verify_email_form() -> None:
         st.rerun()
         return
 
-    with st.form("auth_verify_form", clear_on_submit=False, border=False):
-        st.markdown('<p class="cm-auth-label">Verification code</p>', unsafe_allow_html=True)
-        code = st.text_input(
-            "Verification code",
-            placeholder="12345678",
-            key="auth_verify_code",
-            label_visibility="collapsed",
-            max_chars=8,
-        )
-        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-        submitted = st.form_submit_button("Verify and continue", type="primary", use_container_width=True)
-
-    if submitted:
+    st.markdown('<p class="cm-auth-label">Verification code</p>', unsafe_allow_html=True)
+    code = st.text_input(
+        "Verification code",
+        placeholder="12345678",
+        key="auth_verify_code",
+        label_visibility="collapsed",
+        max_chars=8,
+    )
+    if st.button("Verify and continue", type="primary", use_container_width=True, key="auth_verify_submit"):
         clear_auth_error()
         try:
             verify_signup_code(email=pending_email, code=code)
@@ -280,24 +232,21 @@ def _render_verify_email_form() -> None:
 
 
 def _render_signup_form() -> None:
-    with st.form("auth_signup_form", clear_on_submit=False, border=False):
-        st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
-        email = st.text_input(
-            "Email",
-            placeholder="you@company.com",
-            key="auth_signup_email",
-            label_visibility="collapsed",
-        )
-        st.markdown('<p class="cm-auth-label cm-auth-label--field">Password</p>', unsafe_allow_html=True)
-        password = st.text_input(
-            "Password",
-            type="password",
-            key="auth_signup_password",
-            label_visibility="collapsed",
-        )
-        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
-        submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
-    if submitted:
+    st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
+    email = st.text_input(
+        "Email",
+        placeholder="you@company.com",
+        key="auth_signup_email",
+        label_visibility="collapsed",
+    )
+    st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
+    password = st.text_input(
+        "Password",
+        type="password",
+        key="auth_signup_password",
+        label_visibility="collapsed",
+    )
+    if st.button("Create account", type="primary", use_container_width=True, key="auth_signup_submit"):
         clear_auth_error()
         try:
             sign_up_account(email=email, password=password, display_name=None)
@@ -359,6 +308,7 @@ def _render_streamlit_authenticator() -> None:
 
 def render_auth_screen() -> None:
     """Centered premium auth — login, signup, and verification."""
+    _install_auth_layout()
     _render_auth_shell_start()
     _render_auth_header()
     render_auth_error()
@@ -372,4 +322,3 @@ def render_auth_screen() -> None:
         _render_dev_auth()
 
     _render_auth_footer()
-    _install_auth_layout()
