@@ -5,6 +5,7 @@ from __future__ import annotations
 import html
 
 import streamlit as st
+import streamlit.components.v1 as components
 
 from ecom_evaluator.auth.oauth import (
     get_google_oauth_url,
@@ -94,6 +95,49 @@ def _google_oauth_button_html(oauth_url: str) -> str:
         "<span>Continue with Google</span>"
         "</a>"
         "</div>"
+    )
+
+
+def _install_auth_layout() -> None:
+    """Tag the document + Streamlit host so auth layout CSS applies (Streamlit 1.52+)."""
+    components.html(
+        """
+        <script>
+        (function () {
+            const win = window.parent;
+            const doc = win.document;
+
+            function findAuthHost() {
+                return (
+                    doc.querySelector('[data-testid="stMainBlockContainer"]') ||
+                    doc.querySelector(".stMainBlockContainer") ||
+                    doc.querySelector('[data-testid="block-container"]') ||
+                    doc.querySelector(".block-container")
+                );
+            }
+
+            function syncAuthLayout() {
+                const active = !!doc.querySelector(".cm-auth-page, .auth-page-marker");
+                doc.documentElement.classList.toggle("cm-auth-active", active);
+                const host = findAuthHost();
+                if (host) {
+                    host.classList.toggle("cm-auth-card-host", active);
+                }
+            }
+
+            syncAuthLayout();
+            if (!win.__psAuthLayoutObserver) {
+                win.__psAuthLayoutObserver = new MutationObserver(syncAuthLayout);
+                win.__psAuthLayoutObserver.observe(doc.body, {
+                    childList: true,
+                    subtree: true,
+                });
+            }
+        })();
+        </script>
+        """,
+        height=0,
+        width=0,
     )
 
 
@@ -312,3 +356,4 @@ def render_auth_screen() -> None:
         _render_dev_auth()
 
     _render_auth_footer()
+    _install_auth_layout()

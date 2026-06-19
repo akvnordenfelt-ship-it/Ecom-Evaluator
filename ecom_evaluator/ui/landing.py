@@ -720,6 +720,10 @@ def _install_scroll_reveal() -> None:
 
             function cleanupStaleAuthShell() {
                 if (doc.querySelector(".auth-page-marker, .cm-auth-page")) return;
+                doc.documentElement.classList.remove("cm-auth-active");
+                doc.querySelectorAll(".cm-auth-card-host").forEach(function (el) {
+                    el.classList.remove("cm-auth-card-host");
+                });
                 doc.querySelectorAll(
                     ".auth-page-marker, .auth-page-backdrop, .auth-form-back, .cm-auth-backdrop, .cm-auth-back"
                 ).forEach(function (el) {

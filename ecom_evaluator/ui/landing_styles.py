@@ -2695,7 +2695,8 @@ html.cm-reveal-ready .cm-reveal:not(.is-visible) {
 """
 
 AUTH_CM_CSS = """
-/* Auth — Apple-inspired sign-in / sign-up */
+/* Auth — Apple-inspired sign-in / sign-up (html.cm-auth-active set by auth_screen) */
+html.cm-auth-active .cm-auth-backdrop,
 .stApp:has(.cm-auth-page) .cm-auth-backdrop {
     display: block;
     position: fixed;
@@ -2720,30 +2721,46 @@ AUTH_CM_CSS = """
     background-size: 28px 28px;
     opacity: 0.45;
 }
+html.cm-auth-active .stApp,
 .stApp:has(.cm-auth-page) {
     background: #060B18 !important;
     color: #F8FAFC !important;
 }
+html.cm-auth-active .site-header,
+html.cm-auth-active .site-header__spacer,
 .stApp:has(.cm-auth-page) .site-header,
 .stApp:has(.cm-auth-page) .site-header__spacer {
     display: none !important;
 }
+html.cm-auth-active section[data-testid="stMain"] > div,
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
-    min-height: 100dvh;
-    padding: clamp(1.75rem, 7vh, 3.25rem) 1.25rem 2rem !important;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
+    width: 100% !important;
+    margin: 0 auto !important;
+    padding: clamp(1.5rem, 6vh, 2.75rem) 1.25rem 2.5rem !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: flex-start !important;
+    min-height: 0 !important;
     box-sizing: border-box;
 }
-.stApp:has(.cm-auth-page) .block-container {
+html.cm-auth-active .cm-auth-card-host,
+html.cm-auth-active .stMainBlockContainer,
+html.cm-auth-active [data-testid="stMainBlockContainer"],
+html.cm-auth-active .block-container,
+html.cm-auth-active [data-testid="block-container"],
+.stApp:has(.cm-auth-page) .cm-auth-card-host,
+.stApp:has(.cm-auth-page) .stMainBlockContainer,
+.stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"],
+.stApp:has(.cm-auth-page) .block-container,
+.stApp:has(.cm-auth-page) [data-testid="block-container"] {
     position: relative;
     z-index: 1;
-    width: min(100%, 520px) !important;
-    max-width: 520px !important;
+    width: min(100%, 540px) !important;
+    max-width: 540px !important;
     margin: 0 auto !important;
-    padding: 2rem 2rem 1.75rem !important;
+    padding: 2.125rem 2.25rem 1.875rem !important;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2754,15 +2771,23 @@ AUTH_CM_CSS = """
     -webkit-backdrop-filter: blur(20px);
     box-sizing: border-box;
 }
+html.cm-auth-active .stMainBlockContainer > [data-testid="stVerticalBlock"],
+html.cm-auth-active .block-container > [data-testid="stVerticalBlock"],
+.stApp:has(.cm-auth-page) .stMainBlockContainer > [data-testid="stVerticalBlock"],
 .stApp:has(.cm-auth-page) .block-container > [data-testid="stVerticalBlock"] {
     gap: 0.9rem !important;
 }
+html.cm-auth-active [data-testid="stMarkdownContainer"],
+html.cm-auth-active [data-testid="element-container"],
+html.cm-auth-active .stMarkdown,
 .stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"],
 .stApp:has(.cm-auth-page) [data-testid="element-container"],
 .stApp:has(.cm-auth-page) .stMarkdown {
     margin: 0 !important;
     padding: 0 !important;
 }
+html.cm-auth-active [data-testid="stVerticalBlock"],
+html.cm-auth-active [data-testid="stForm"],
 .stApp:has(.cm-auth-page) [data-testid="stVerticalBlock"],
 .stApp:has(.cm-auth-page) [data-testid="stForm"] {
     width: 100% !important;
@@ -2953,10 +2978,20 @@ AUTH_CM_CSS = """
     border-bottom-color: #FFFFFF;
 }
 @media (max-width: 640px) {
+    html.cm-auth-active section[data-testid="stMain"] > div,
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
         padding: 1.25rem 0.85rem 1.5rem !important;
     }
-    .stApp:has(.cm-auth-page) .block-container {
+    html.cm-auth-active .cm-auth-card-host,
+    html.cm-auth-active .stMainBlockContainer,
+    html.cm-auth-active [data-testid="stMainBlockContainer"],
+    html.cm-auth-active .block-container,
+    html.cm-auth-active [data-testid="block-container"],
+    .stApp:has(.cm-auth-page) .cm-auth-card-host,
+    .stApp:has(.cm-auth-page) .stMainBlockContainer,
+    .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"],
+    .stApp:has(.cm-auth-page) .block-container,
+    .stApp:has(.cm-auth-page) [data-testid="block-container"] {
         width: 100% !important;
         max-width: 100% !important;
         padding: 1.75rem 1.5rem 1.5rem !important;

@@ -191,10 +191,11 @@ def main() -> None:
     install_auth_sync_bridge()
 
     handle_nav_query()
-    render_site_navbar()
+    view = st.session_state.get("app_view", "landing")
+    if view != APP_VIEW_AUTH:
+        render_site_navbar()
 
     if auth_is_required() and not is_authenticated():
-        view = st.session_state.get("app_view", "landing")
         if view == APP_VIEW_AUTH:
             render_auth_screen()
         elif view == APP_VIEW_LIVE_CATALOG:

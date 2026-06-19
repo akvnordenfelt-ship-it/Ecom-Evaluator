@@ -466,6 +466,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0 !important;
     overflow: hidden !important;
 }
+html.cm-auth-active [data-testid="stForm"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] {
     position: relative;
@@ -475,25 +476,32 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border: none;
     background: transparent;
 }
+html.cm-auth-active [data-testid="stForm"] [data-testid="InputInstructions"],
+html.cm-auth-active [data-testid="stForm"] [data-testid="stCaptionContainer"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="InputInstructions"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stCaptionContainer"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="InputInstructions"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stCaptionContainer"] {
     display: none;
 }
+html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
     margin-bottom: 0.85rem;
 }
+html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlock"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
     gap: 0.75rem !important;
 }
+html.cm-auth-active [data-testid="stTextInput"] > div,
+html.cm-auth-active [data-testid="stTextInput"] > div > div,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] > div > div {
     background: transparent !important;
     border: none !important;
     box-shadow: none !important;
 }
+html.cm-auth-active [data-testid="stForm"] input,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input {
     min-height: 2.75rem !important;
@@ -506,10 +514,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding-right: 0.875rem !important;
     transition: box-shadow 0.2s ease, border-color 0.2s ease, background 0.2s ease;
 }
+html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"]:has(button) input {
     padding-right: 2.75rem !important;
 }
+html.cm-auth-active [data-testid="stForm"] input:focus,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input:focus,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input:focus {
     border-color: rgba(96, 165, 250, 0.55) !important;
@@ -517,10 +527,13 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     box-shadow: 0 0 0 3px rgba(43, 89, 255, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.04) !important;
     outline: none !important;
 }
+html.cm-auth-active [data-testid="stForm"] input::placeholder,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] input::placeholder,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] input::placeholder {
     color: #64748B !important;
 }
+html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"],
+html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"],
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"],
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"],
@@ -537,6 +550,10 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     min-height: 2rem !important;
     margin-right: 0.15rem !important;
 }
+html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"] svg,
+html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
+html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"] path,
+html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] path,
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"] svg,
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"] svg,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"] svg,
@@ -548,6 +565,8 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     color: #E2E8F0 !important;
     opacity: 1 !important;
 }
+html.cm-auth-active [data-testid="stTextInput"] button[kind="icon"]:hover,
+html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover,
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[kind="icon"]:hover,
 .block-container:has(.auth-page-marker) [data-testid="stTextInput"] button[data-testid="stPasswordInputToggle"]:hover,
 .block-container:has(.cm-auth-page) [data-testid="stTextInput"] button[kind="icon"]:hover,
@@ -556,10 +575,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     background: rgba(255, 255, 255, 0.16) !important;
     border-color: rgba(255, 255, 255, 0.24) !important;
 }
+html.cm-auth-active [data-testid="stForm"] .stButton,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
     margin-top: 0.5rem;
 }
+html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"] {
     min-height: 2.75rem;
@@ -572,6 +593,7 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     box-shadow: 0 4px 14px rgba(43, 89, 255, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.12) !important;
     transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
 }
+html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
     color: #FFFFFF !important;
@@ -579,12 +601,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     box-shadow: 0 8px 24px rgba(43, 89, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;
     transform: translateY(-1px);
 }
+html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton),
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton),
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) {
     display: flex;
     justify-content: center;
     margin-top: 0.75rem;
 }
+html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton) > button,
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button,
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button {
     background: rgba(255, 255, 255, 0.04) !important;
@@ -599,12 +623,14 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border-radius: 14px !important;
     transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease !important;
 }
+html.cm-auth-active .stButton:not([data-testid="stForm"] .stButton) > button:hover,
 .block-container:has(.auth-page-marker) .stButton:not([data-testid="stForm"] .stButton) > button:hover,
 .block-container:has(.cm-auth-page) .stButton:not([data-testid="stForm"] .stButton) > button:hover {
     color: #FFFFFF !important;
     background: rgba(255, 255, 255, 0.08) !important;
     border-color: rgba(255, 255, 255, 0.18) !important;
 }
+html.cm-auth-active [data-testid="stAlert"],
 .block-container:has(.auth-page-marker) [data-testid="stAlert"],
 .block-container:has(.cm-auth-page) [data-testid="stAlert"] {
     position: relative;
@@ -615,10 +641,12 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border: 1px solid rgba(248, 113, 113, 0.28) !important;
     color: #FECACA !important;
 }
+html.cm-auth-active [data-testid="stAlert"] *,
 .block-container:has(.auth-page-marker) [data-testid="stAlert"] *,
 .block-container:has(.cm-auth-page) [data-testid="stAlert"] * {
     color: #FECACA !important;
 }
+html.cm-auth-active [data-testid="stExpander"],
 .block-container:has(.auth-page-marker) [data-testid="stExpander"],
 .block-container:has(.cm-auth-page) [data-testid="stExpander"] {
     position: relative;
@@ -628,6 +656,9 @@ div[data-testid="stVerticalBlockBorderWrapper"] > div {
     border: 1px solid rgba(255, 255, 255, 0.1);
     border-radius: 14px;
 }
+html.cm-auth-active [data-testid="stExpander"] summary,
+html.cm-auth-active [data-testid="stExpander"] p,
+html.cm-auth-active [data-testid="stExpander"] code,
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] summary,
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] p,
 .block-container:has(.auth-page-marker) [data-testid="stExpander"] code,
