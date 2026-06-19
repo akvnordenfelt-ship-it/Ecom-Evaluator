@@ -475,6 +475,32 @@ html.cm-auth-active [data-testid="stForm"],
     padding: 0;
     border: none;
     background: transparent;
+    overflow: visible !important;
+    height: auto !important;
+}
+html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] {
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    overflow: visible !important;
+    height: auto !important;
+}
+html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] > div,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlockBorderWrapper"] > div {
+    padding: 0 !important;
+    overflow: visible !important;
+    height: auto !important;
+}
+html.cm-auth-active [data-testid="stForm"] [data-testid="stWidgetLabel"],
+html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"] label,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] label {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
 }
 html.cm-auth-active [data-testid="stForm"] [data-testid="InputInstructions"],
 html.cm-auth-active [data-testid="stForm"] [data-testid="stCaptionContainer"],
@@ -487,11 +513,16 @@ html.cm-auth-active [data-testid="stForm"] [data-testid="stCaptionContainer"],
 html.cm-auth-active [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.auth-page-marker) [data-testid="stForm"] [data-testid="stTextInput"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stTextInput"] {
-    margin-bottom: 0.85rem;
+    margin-bottom: 0.5rem !important;
+    position: relative;
+    z-index: 2;
+    flex-shrink: 0;
 }
 html.cm-auth-active [data-testid="stForm"] [data-testid="stVerticalBlock"],
 .block-container:has(.cm-auth-page) [data-testid="stForm"] [data-testid="stVerticalBlock"] {
-    gap: 0.75rem !important;
+    gap: 0.35rem !important;
+    overflow: visible !important;
+    height: auto !important;
 }
 html.cm-auth-active [data-testid="stTextInput"] > div,
 html.cm-auth-active [data-testid="stTextInput"] > div > div,
@@ -576,13 +607,24 @@ html.cm-auth-active [data-testid="stTextInput"] button[data-testid="stPasswordIn
     border-color: rgba(255, 255, 255, 0.24) !important;
 }
 html.cm-auth-active [data-testid="stForm"] .stButton,
+html.cm-auth-active [data-testid="stFormSubmitButton"],
+html.cm-auth-active .stFormSubmitButton,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton,
 .block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton {
-    margin-top: 0.5rem;
+    margin-top: 1.15rem !important;
+    margin-bottom: 0 !important;
+    position: relative;
+    z-index: 1;
+    flex-shrink: 0;
+    width: 100% !important;
 }
 html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"],
+html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"],
+html.cm-auth-active [data-testid="stFormSubmitButton"] button,
+html.cm-auth-active .stFormSubmitButton button,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"],
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"] {
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"],
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"] {
     min-height: 2.75rem;
     border-radius: 14px !important;
     font-size: 0.9375rem !important;
@@ -594,8 +636,12 @@ html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"],
     transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease !important;
 }
 html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
+html.cm-auth-active [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"]:hover,
+html.cm-auth-active [data-testid="stFormSubmitButton"] button:hover,
+html.cm-auth-active .stFormSubmitButton button:hover,
 .block-container:has(.auth-page-marker) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
-.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"]:hover {
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primary"]:hover,
+.block-container:has(.cm-auth-page) [data-testid="stForm"] .stButton > button[kind="primaryFormSubmit"]:hover {
     color: #FFFFFF !important;
     filter: brightness(1.06);
     box-shadow: 0 8px 24px rgba(43, 89, 255, 0.34), inset 0 1px 0 rgba(255, 255, 255, 0.14) !important;

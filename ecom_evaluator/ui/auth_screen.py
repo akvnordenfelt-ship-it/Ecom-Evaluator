@@ -120,9 +120,22 @@ def _install_auth_layout() -> None:
                 const active = !!doc.querySelector(".cm-auth-page, .auth-page-marker");
                 doc.documentElement.classList.toggle("cm-auth-active", active);
                 const host = findAuthHost();
-                if (host) {
-                    host.classList.toggle("cm-auth-card-host", active);
+                if (!host) return;
+                host.classList.toggle("cm-auth-card-host", active);
+                if (active) {
+                    host.style.maxWidth = "420px";
+                    host.style.width = "min(100%, 420px)";
+                    host.style.marginLeft = "auto";
+                    host.style.marginRight = "auto";
+                } else {
+                    host.style.maxWidth = "";
+                    host.style.width = "";
+                    host.style.marginLeft = "";
+                    host.style.marginRight = "";
                 }
+                doc.querySelectorAll('[data-testid="stFormSubmitButton"], .stFormSubmitButton').forEach(function (node) {
+                    node.style.marginTop = active ? "1.15rem" : "";
+                });
             }
 
             syncAuthLayout();
@@ -187,7 +200,7 @@ def _render_auth_footer() -> None:
 
 
 def _render_login_form() -> None:
-    with st.form("auth_login_form", clear_on_submit=False):
+    with st.form("auth_login_form", clear_on_submit=False, border=False):
         st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
         email = st.text_input(
             "Email",
@@ -195,13 +208,14 @@ def _render_login_form() -> None:
             key="auth_login_email",
             label_visibility="collapsed",
         )
-        st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label cm-auth-label--field">Password</p>', unsafe_allow_html=True)
         password = st.text_input(
             "Password",
             type="password",
             key="auth_login_password",
             label_visibility="collapsed",
         )
+        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         submitted = st.form_submit_button("Sign in", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()
@@ -231,7 +245,7 @@ def _render_verify_email_form() -> None:
         st.rerun()
         return
 
-    with st.form("auth_verify_form", clear_on_submit=False):
+    with st.form("auth_verify_form", clear_on_submit=False, border=False):
         st.markdown('<p class="cm-auth-label">Verification code</p>', unsafe_allow_html=True)
         code = st.text_input(
             "Verification code",
@@ -240,6 +254,7 @@ def _render_verify_email_form() -> None:
             label_visibility="collapsed",
             max_chars=8,
         )
+        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         submitted = st.form_submit_button("Verify and continue", type="primary", use_container_width=True)
 
     if submitted:
@@ -265,7 +280,7 @@ def _render_verify_email_form() -> None:
 
 
 def _render_signup_form() -> None:
-    with st.form("auth_signup_form", clear_on_submit=False):
+    with st.form("auth_signup_form", clear_on_submit=False, border=False):
         st.markdown('<p class="cm-auth-label">Email</p>', unsafe_allow_html=True)
         email = st.text_input(
             "Email",
@@ -273,13 +288,14 @@ def _render_signup_form() -> None:
             key="auth_signup_email",
             label_visibility="collapsed",
         )
-        st.markdown('<p class="cm-auth-label">Password</p>', unsafe_allow_html=True)
+        st.markdown('<p class="cm-auth-label cm-auth-label--field">Password</p>', unsafe_allow_html=True)
         password = st.text_input(
             "Password",
             type="password",
             key="auth_signup_password",
             label_visibility="collapsed",
         )
+        st.markdown('<div class="cm-auth-field-gap" aria-hidden="true"></div>', unsafe_allow_html=True)
         submitted = st.form_submit_button("Create account", type="primary", use_container_width=True)
     if submitted:
         clear_auth_error()

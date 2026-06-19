@@ -2745,22 +2745,14 @@ html.cm-auth-active section[data-testid="stMain"] > div,
     min-height: 0 !important;
     box-sizing: border-box;
 }
-html.cm-auth-active .cm-auth-card-host,
-html.cm-auth-active .stMainBlockContainer,
-html.cm-auth-active [data-testid="stMainBlockContainer"],
-html.cm-auth-active .block-container,
-html.cm-auth-active [data-testid="block-container"],
-.stApp:has(.cm-auth-page) .cm-auth-card-host,
-.stApp:has(.cm-auth-page) .stMainBlockContainer,
-.stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"],
-.stApp:has(.cm-auth-page) .block-container,
-.stApp:has(.cm-auth-page) [data-testid="block-container"] {
+html.cm-auth-active .cm-auth-card-host {
     position: relative;
     z-index: 1;
-    width: min(100%, 540px) !important;
-    max-width: 540px !important;
+    flex: 0 1 420px;
+    width: min(100%, 420px) !important;
+    max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 2.125rem 2.25rem 1.875rem !important;
+    padding: 2rem 2rem 1.75rem !important;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2770,6 +2762,28 @@ html.cm-auth-active [data-testid="block-container"],
     backdrop-filter: blur(20px);
     -webkit-backdrop-filter: blur(20px);
     box-sizing: border-box;
+}
+html.cm-auth-active .stMainBlockContainer:not(.cm-auth-card-host),
+html.cm-auth-active [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host),
+.stApp:has(.cm-auth-page) .stMainBlockContainer:not(.cm-auth-card-host),
+.stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host) {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+html.cm-auth-active .block-container,
+html.cm-auth-active [data-testid="block-container"],
+.stApp:has(.cm-auth-page) .block-container,
+.stApp:has(.cm-auth-page) [data-testid="block-container"] {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
 }
 html.cm-auth-active .stMainBlockContainer > [data-testid="stVerticalBlock"],
 html.cm-auth-active .block-container > [data-testid="stVerticalBlock"],
@@ -2956,6 +2970,14 @@ html.cm-auth-active [data-testid="stForm"],
     text-transform: uppercase;
     color: #94A3B8;
 }
+.cm-auth-label--field {
+    margin-top: 0.85rem;
+}
+.cm-auth-field-gap {
+    display: block;
+    height: 0.35rem;
+    width: 100%;
+}
 .cm-auth-legal {
     margin-top: 0.25rem;
     padding-top: 1.15rem;
@@ -2982,20 +3004,18 @@ html.cm-auth-active [data-testid="stForm"],
     .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
         padding: 1.25rem 0.85rem 1.5rem !important;
     }
-    html.cm-auth-active .cm-auth-card-host,
-    html.cm-auth-active .stMainBlockContainer,
-    html.cm-auth-active [data-testid="stMainBlockContainer"],
-    html.cm-auth-active .block-container,
-    html.cm-auth-active [data-testid="block-container"],
-    .stApp:has(.cm-auth-page) .cm-auth-card-host,
-    .stApp:has(.cm-auth-page) .stMainBlockContainer,
-    .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"],
-    .stApp:has(.cm-auth-page) .block-container,
-    .stApp:has(.cm-auth-page) [data-testid="block-container"] {
+    html.cm-auth-active .cm-auth-card-host {
         width: 100% !important;
         max-width: 100% !important;
         padding: 1.75rem 1.5rem 1.5rem !important;
         border-radius: 20px;
+    }
+    html.cm-auth-active .stMainBlockContainer:not(.cm-auth-card-host),
+    html.cm-auth-active [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host),
+    .stApp:has(.cm-auth-page) .stMainBlockContainer:not(.cm-auth-card-host),
+    .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"]:not(.cm-auth-card-host) {
+        width: 100% !important;
+        max-width: 100% !important;
     }
     .cm-auth-head {
         margin-bottom: 1.25rem;
