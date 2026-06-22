@@ -23,6 +23,7 @@ from ecom_evaluator.product_validation import product_name_error_message
 from ecom_evaluator.settings import resolve_api_key
 from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.branding import brand_page_title, logo_path
+from ecom_evaluator.ui.app_loader import inject_early_app_shell, install_app_loader
 from ecom_evaluator.ui.streamlit_chrome import (
     configure_streamlit_chrome,
     inject_streamlit_branding_hide_css,
@@ -177,6 +178,8 @@ def main() -> None:
         initial_sidebar_state="collapsed",
     )
     inject_streamlit_branding_hide_css()
+    inject_early_app_shell()
+    install_app_loader()
     install_streamlit_branding_hide_bridge()
 
     init_session_state()
