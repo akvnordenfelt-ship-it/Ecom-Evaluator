@@ -126,6 +126,46 @@ TOOL_FORM_CSS = """
 .stApp:has(.cm-workspace) {
     background: var(--ws-app-bg) !important;
     color: var(--ws-text) !important;
+    overscroll-behavior-y: none;
+}
+html:has(.cm-workspace) {
+    scroll-padding-top: 0 !important;
+    overscroll-behavior-y: none;
+}
+.stApp:has(.cm-workspace) [data-testid="stAppViewContainer"],
+.stApp:has(.cm-workspace) section[data-testid="stMain"],
+.stApp:has(.cm-workspace) .stMainBlockContainer,
+.stApp:has(.cm-workspace) [data-testid="stMainBlockContainer"],
+.stApp:has(.cm-workspace) .block-container {
+    padding-top: 0 !important;
+    margin-top: 0 !important;
+}
+.stApp:has(.cm-workspace) section[data-testid="stMain"] {
+    overscroll-behavior-y: none;
+}
+.form-workspace-marker,
+.cm-tool-form-layout-marker,
+.cm-tool-page-start {
+    display: block;
+    height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    border: none !important;
+    pointer-events: none !important;
+}
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.form-workspace-marker),
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-tool-form-layout-marker),
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-tool-page-start) {
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+}
+.stApp:has(.cm-workspace) .cm-tool-main-head {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
 }
 .stApp:has(.cm-workspace) .site-header__bar {
     background: var(--ws-nav-bg) !important;
