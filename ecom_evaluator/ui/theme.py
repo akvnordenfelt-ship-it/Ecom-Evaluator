@@ -6,6 +6,7 @@ import html
 
 import streamlit as st
 
+from ecom_evaluator.ui.form_styles import TOOL_FORM_CSS
 from ecom_evaluator.ui.landing_styles import AUTH_CM_CSS, LANDING_V2_CSS
 from ecom_evaluator.ui.streamlit_chrome import inject_streamlit_branding_hide_css
 
@@ -3724,7 +3725,7 @@ div[class*="st-key-ps_sample_"] {
 
 def inject_custom_css(*, saas_mode: bool = False) -> None:
     """Inject premium theme — must run immediately after st.set_page_config()."""
-    css = PREMIUM_THEME_CSS + LANDING_V2_CSS + AUTH_CM_CSS
+    css = PREMIUM_THEME_CSS + LANDING_V2_CSS + AUTH_CM_CSS + TOOL_FORM_CSS
     if saas_mode:
         css += SAAS_CHROME_CSS
     st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)

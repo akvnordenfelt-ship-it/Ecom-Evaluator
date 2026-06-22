@@ -19,7 +19,6 @@ from ecom_evaluator.ui.subscription import (
     user_can_run,
 )
 from ecom_evaluator.ui.branding import BRAND_TAGLINE, wordmark_html
-from ecom_evaluator.ui.theme import form_section_header, tool_workspace_hero
 
 
 def render_app_header(*, hide_api_status: bool = False) -> None:
@@ -88,132 +87,276 @@ def _evaluation_quota_label(data: dict) -> str:
     return "No free evaluations remaining"
 
 
-def render_readiness_panel(data: dict) -> None:
-    api_ok = bool(resolve_api_key(data["api_key"]))
+def _session_float(key: str) -> float:
+    value = st.session_state.get(key, 0.0)
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return 0.0
+
+
+def _session_str(key: str) -> str:
+    return str(st.session_state.get(key, "") or "").strip()
+
+
+def _has_uploaded_image() -> bool:
+    uploaded = st.session_state.get("form_image")
+    return uploaded is not None
+
+
+def _build_launch_checklist(data: dict) -> list[tuple[bool, str]]:
+    has_identity = bool(data.get("product_name", "").strip()) or bool(data.get("product_url", "").strip())
+    has_price = float(data.get("purchase_price", 0) or 0) > 0
+    has_sell = float(data.get("sales_price", 0) or 0) > 0
+    has_usp = bool(data.get("description", "").strip())
+    has_specs = any(
+        float(data.get(field, 0) or 0) > 0
+        for field in ("weight_kg", "length_cm", "width_cm", "height_cm")
+    )
+    has_image = bool(data.get("has_image"))
+    ready = has_identity and has_price
     checks = [
-        (bool(data["product_name"].strip()), "Product name entered"),
-        (data["purchase_price"] > 0, "Purchase price set"),
+        (has_identity, "Product link or details added"),
+        (has_price, "Purchase price set"),
+        (has_sell, "Selling price added"),
+        (has_usp, "Unique selling point added"),
+        (has_specs, "Weight / package specs added"),
+        (has_image, "Product image uploaded"),
+        (ready, "Ready to run evaluation"),
     ]
-    if data.get("product_url", "").strip():
-        checks.append((True, "Listing URL added for richer context"))
     if not has_shared_api_key():
+        api_ok = bool(resolve_api_key(data.get("api_key", "")))
         checks.insert(0, (api_ok, "API connected"))
+    return checks
+
+
+def _checklist_snapshot(api_key: str) -> dict:
+    return {
+        "api_key": api_key,
+        "product_name": _session_str("form_product_name"),
+        "product_url": _session_str("form_product_url"),
+        "purchase_price": _session_float("form_purchase_price"),
+        "sales_price": _session_float("form_sales_price"),
+        "description": _session_str("form_description"),
+        "weight_kg": _session_float("form_weight_kg"),
+        "length_cm": _session_float("form_length"),
+        "width_cm": _session_float("form_width"),
+        "height_cm": _session_float("form_height"),
+        "has_image": _has_uploaded_image(),
+    }
+
+
+def _tool_section_head(*, badge: str, badge_class: str, title: str, subtitle: str) -> str:
+    return (
+        f'<div class="cm-tool-section-head">'
+        f'<div><p class="cm-tool-section-title">{html.escape(title)}</p>'
+        f'<p class="cm-tool-section-sub">{html.escape(subtitle)}</p></div>'
+        f'<span class="cm-tool-pill cm-tool-pill--{badge_class}">{html.escape(badge)}</span>'
+        f"</div>"
+    )
+
+
+def _tool_section_open(title: str, subtitle: str, *, badge: str, badge_class: str) -> None:
+    st.markdown(
+        f'<div class="cm-tool-section">{_tool_section_head(badge=badge, badge_class=badge_class, title=title, subtitle=subtitle)}'
+        f'<div class="cm-tool-card">',
+        unsafe_allow_html=True,
+    )
+
+
+def _tool_section_close() -> None:
+    st.markdown("</div></div>", unsafe_allow_html=True)
+
+
+def _render_tool_sidebar(*, api_key: str) -> None:
+    snapshot = _checklist_snapshot(api_key)
+    checks = _build_launch_checklist(snapshot)
     done = sum(1 for ok, _ in checks if ok)
     rows_html = "".join(
-        f'<div class="check-row check-row--{"done" if ok else "pending"}">'
-        f'<span class="check-dot"></span>{html.escape(label)}</div>'
+        f'<div class="cm-tool-check-row{" is-done" if ok else ""}">'
+        f'<span class="cm-tool-check-dot" aria-hidden="true"></span>'
+        f"<span>{html.escape(label)}</span></div>"
         for ok, label in checks
     )
-    quota_label = _evaluation_quota_label(data)
+    quota_label = _evaluation_quota_label(snapshot)
     st.markdown(
-        f'<div class="readiness-card readiness-card--premium">'
-        f'<div class="readiness-header">'
-        f'<span class="readiness-label">Launch checklist</span>'
-        f'<span class="readiness-score">{done}/{len(checks)}</span>'
+        '<aside class="cm-tool-sidebar">'
+        '<div class="cm-tool-side-promo">'
+        '<p class="cm-tool-side-promo-kicker">Your workspace</p>'
+        '<p class="cm-tool-side-promo-title">We don\u2019t sugarcoat. We score.</p>'
+        '<p class="cm-tool-side-promo-copy">Honest product intelligence in about 30 seconds. '
+        "Add what you know now — refine optional fields anytime.</p>"
+        '<div class="cm-tool-side-badges">'
+        '<span class="cm-tool-side-badge">2 sections free</span>'
+        '<span class="cm-tool-side-badge">~30 sec preview</span>'
+        '<span class="cm-tool-side-badge">Premium unlocks all 6</span>'
+        "</div></div>"
+        '<div class="cm-tool-checklist">'
+        '<div class="cm-tool-checklist-head">'
+        '<span class="cm-tool-checklist-label">Launch checklist</span>'
+        f'<span class="cm-tool-checklist-score">{done}/{len(checks)}</span>'
         f"</div>{rows_html}"
-        f'<div class="readiness-quota"><span class="readiness-quota-dot"></span>'
+        f'<div class="cm-tool-check-quota"><span class="cm-tool-check-quota-dot" aria-hidden="true"></span>'
         f"{html.escape(quota_label)}</div>"
-        f"</div>",
+        "</div>"
+        '<div class="cm-tool-score-guide">'
+        '<p class="cm-tool-score-guide-title">Score guide</p>'
+        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#34D399"></span>90–100 · Strong Go</div>'
+        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#60A5FA"></span>70–89 · Promising</div>'
+        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#FBBF24"></span>50–69 · Proceed with caution</div>'
+        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#F87171"></span>0–49 · Walk away</div>'
+        "</div>"
+        '<div class="cm-tool-privacy">'
+        '<span class="cm-tool-privacy-icon" aria-hidden="true">🛡️</span>'
+        "<span>Your product data is encrypted in transit and never shared with third parties.</span>"
+        "</div>"
+        "</aside>",
+        unsafe_allow_html=True,
+    )
+
+
+def _render_tool_main_header(*, compact: bool) -> None:
+    if compact:
+        st.markdown(
+            '<div class="cm-tool-compact-banner">'
+            "<strong>Update your product inputs</strong>"
+            "<span>Change any field and run again to refresh your report.</span>"
+            "</div>",
+            unsafe_allow_html=True,
+        )
+        return
+
+    st.markdown(
+        '<header class="cm-tool-main-head">'
+        '<h1 class="cm-tool-main-title">'
+        '<span class="cm-tool-main-title-icon" aria-hidden="true">🎯</span>'
+        "Let\u2019s evaluate your product</h1>"
+        '<p class="cm-tool-main-lead">Start with a listing link or product name and your cost. '
+        "Optional details sharpen margin math and scoring — only add what you have.</p>"
+        '<p class="cm-tool-hint"><strong>Tip:</strong> More context means a sharper score, '
+        "but name + purchase price is enough to run your free preview.</p>"
+        "</header>",
+        unsafe_allow_html=True,
+    )
+
+
+def _render_tool_cta_shell() -> None:
+    st.markdown(
+        '<div class="cm-tool-cta">'
+        '<div class="cm-tool-cta-copy">'
+        '<p class="cm-tool-cta-kicker"><span aria-hidden="true">⚡</span> Final step</p>'
+        '<p class="cm-tool-cta-title">Ready for the brutal truth?</p>'
+        '<p class="cm-tool-cta-sub">You\u2019ll get Sections 1\u20132 free — upgrade for verdict &amp; execution stack.</p>'
+        "</div>"
+        '<div class="cm-tool-cta-action">',
+        unsafe_allow_html=True,
+    )
+
+
+def _render_tool_cta_close() -> None:
+    st.markdown(
+        '<div class="cm-tool-cta-meta">'
+        "<span>Takes ~30 seconds</span>"
+        "<span>Secure &amp; private</span>"
+        "<span>Cancel anytime</span>"
+        "</div></div></div>",
         unsafe_allow_html=True,
     )
 
 
 def render_evaluation_form(*, compact: bool = False) -> dict:
-    """Main-area product form (replaces sidebar)."""
+    """Main-area product form — premium dark workspace layout."""
     api_key = st.session_state.get("settings_api_key", "")
 
-    if compact:
-        st.markdown(
-            """
-            <div class="tool-workspace-compact">
-                <p class="tool-workspace-compact-title">Update your product inputs</p>
-                <p class="tool-workspace-compact-copy">Change any field and run again to refresh your report.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
-    else:
-        st.markdown(
-            tool_workspace_hero(
-                kicker="Your workspace",
-                title="Evaluate your product in ~30 seconds",
-                copy="Enter your product name and purchase cost to unlock the evaluation. "
-                "Add advanced details anytime to sharpen accuracy.",
-            ),
-            unsafe_allow_html=True,
-        )
+    st.markdown(
+        '<div class="form-workspace-marker cm-tool-form"></div>'
+        '<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
 
-    st.markdown('<div class="form-workspace-marker"></div>', unsafe_allow_html=True)
-    left, right = st.columns([1.55, 1], gap="large")
+    sidebar, main = st.columns([0.92, 2.08], gap="large")
 
-    with left:
-        st.markdown(
-            form_section_header(
-                badge="Required",
-                badge_class="form-section-badge--required",
-                icon="✅",
-                title="Minimum inputs",
-                subtitle="Only product name and purchase price are needed to run your free evaluation.",
-            ),
-            unsafe_allow_html=True,
+    with sidebar:
+        _render_tool_sidebar(api_key=api_key)
+
+    with main:
+        _render_tool_main_header(compact=compact)
+
+        sales_price = _session_float("form_sales_price")
+        weight_kg = _session_float("form_weight_kg")
+        length_cm = _session_float("form_length")
+        width_cm = _session_float("form_width")
+        height_cm = _session_float("form_height")
+        description = _session_str("form_description")
+        uploaded_file = st.session_state.get("form_image")
+
+        _tool_section_open(
+            "Product link",
+            "AliExpress, Amazon, eBay, or similar — helps the AI use real listing context.",
+            badge="Required",
+            badge_class="required",
         )
-        with st.container(border=True):
+        product_url = st.text_input(
+            "Listing URL",
+            placeholder="https://www.aliexpress.com/item/…",
+            key="form_product_url",
+            label_visibility="collapsed",
+        )
+        _tool_section_close()
+
+        _tool_section_open(
+            "Basic details",
+            "Product name and your landed cost — the minimum to run an evaluation.",
+            badge="Required",
+            badge_class="required",
+        )
+        name_col, price_col = st.columns(2)
+        with name_col:
             product_name = st.text_input(
-                "Product name *",
+                "Product name",
                 placeholder="e.g. Wireless earbud cleaning kit",
                 key="form_product_name",
             )
+        with price_col:
             purchase_price = st.number_input(
-                "Purchase price ($) *",
+                "Purchase price (your cost)",
                 min_value=0.0,
                 step=0.01,
                 format="%.2f",
                 key="form_purchase_price",
             )
-            product_url = st.text_input(
-                "Product listing URL (optional)",
-                placeholder="https://www.aliexpress.com/item/…",
-                key="form_product_url",
-                help="Paste an AliExpress, Amazon, eBay, or similar listing link so the AI can use real product context.",
-            )
+        _tool_section_close()
 
-        st.markdown(
-            form_section_header(
-                badge="Optional",
-                badge_class="form-section-badge--optional",
-                icon="⚙️",
-                title="Advanced profile options",
-                subtitle="Improves scoring accuracy for profile, risks, and margin math.",
-            ),
-            unsafe_allow_html=True,
-        )
-        with st.expander("Open advanced fields", expanded=False):
-            description = st.text_area(
-                "Description & target audience",
-                height=120,
-                placeholder="What it does, who buys it, your angle vs competitors…",
-                key="form_description",
-            )
-            sales_price = st.number_input(
-                "Target selling price ($)",
-                min_value=0.0,
-                step=0.01,
-                format="%.2f",
-                key="form_sales_price",
-                help="Leave at 0 to estimate at 3× purchase cost for margin math.",
-            )
+        with st.expander("Pricing & positioning — optional", expanded=False):
+            st.caption("Improves margin math and competitive positioning in your report.")
+            sell_col, _ = st.columns([1, 1])
+            with sell_col:
+                sales_price = st.number_input(
+                    "Target selling price",
+                    min_value=0.0,
+                    step=0.01,
+                    format="%.2f",
+                    key="form_sales_price",
+                    help="Leave at 0 to estimate at 3× purchase cost.",
+                )
             if sales_price > 0 and purchase_price >= 0:
                 margin = sales_price - purchase_price
                 margin_pct = margin / sales_price * 100 if sales_price else 0
                 st.markdown(
                     f'<div class="metric-hint">Estimated gross margin: <strong>${margin:.2f}</strong> '
-                    f'({margin_pct:.1f}% of selling price)</div>',
+                    f"({margin_pct:.1f}% of selling price)</div>",
                     unsafe_allow_html=True,
                 )
-            st.markdown(
-                '<p class="form-subsection-label">Shipping profile</p>',
-                unsafe_allow_html=True,
+            description = st.text_area(
+                "Your angle / unique selling point",
+                height=100,
+                placeholder="What makes this product different? Who is it for?",
+                key="form_description",
+                help="Describe your positioning vs competitors.",
             )
+
+        with st.expander("Shipping & package specs — optional", expanded=False):
+            st.caption("Used for shipping tier estimates. Leave at 0 for a lightweight baseline.")
             weight_kg = st.number_input(
                 "Weight (kg)", min_value=0.0, step=0.01, format="%.3f", key="form_weight_kg"
             )
@@ -225,39 +368,31 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             with dim_cols[2]:
                 height_cm = st.number_input("Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height")
             st.markdown(
-                '<p class="form-field-hint">Leave weight/dimensions at 0 to use a lightweight package baseline '
-                "(0.15 kg, 15×10×5 cm).</p>",
+                '<p class="form-field-hint">Baseline when empty: 0.15 kg, 15×10×5 cm package.</p>',
                 unsafe_allow_html=True,
             )
+
+        with st.expander("Product image — optional", expanded=False):
+            st.caption("Improves visual scoring and supplier matching when provided.")
             uploaded_file = st.file_uploader(
-                "Product image (PNG or JPG)",
+                "Upload image (PNG or JPG)",
                 type=["png", "jpg", "jpeg"],
                 key="form_image",
+                label_visibility="collapsed",
             )
             if uploaded_file is not None:
                 st.image(uploaded_file, use_container_width=True)
 
-    with right:
-        st.markdown(
-            """
-            <div class="form-action-intro">
-                <p class="form-action-kicker">Launch pad</p>
-                <p class="form-action-title">Ready when you are</p>
-                <p class="form-action-copy">Complete the checklist, then run your Shark Tank-grade evaluation.</p>
-            </div>
-            """,
-            unsafe_allow_html=True,
-        )
+        _render_tool_cta_shell()
+
+        running = st.session_state.get("analysis_running", False)
+        paywall_active = show_paywall()
         form_snapshot = {
             "api_key": api_key,
             "product_name": product_name,
             "purchase_price": purchase_price,
             "product_url": product_url,
         }
-        render_readiness_panel(form_snapshot)
-
-        running = st.session_state.get("analysis_running", False)
-        paywall_active = show_paywall()
         quota_blocked = shared_rate_limit_applies(form_snapshot) and not has_remaining_quota(form_snapshot)
         blocked = running or paywall_active or quota_blocked
 
@@ -272,18 +407,12 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 disabled=blocked,
                 key="form_run_analysis",
             )
-            st.markdown(
-                """
-                <p class="form-run-footnote">
-                    Free preview · Sections 1–2 · Upgrade for verdict &amp; execution stack
-                </p>
-                """,
-                unsafe_allow_html=True,
-            )
             if quota_blocked:
                 st.warning("Server quota reached. Try again later or upgrade to Premium.")
             if running:
                 st.info("Evaluation in progress — building your report…")
+
+        _render_tool_cta_close()
 
     return {
         "api_key": api_key,
