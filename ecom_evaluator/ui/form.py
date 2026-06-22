@@ -249,11 +249,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
     """Main-area product form — premium dark workspace layout."""
     api_key = st.session_state.get("settings_api_key", "")
 
-    st.markdown(
-        '<div class="form-workspace-marker cm-tool-form"></div>'
-        '<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>',
-        unsafe_allow_html=True,
-    )
+    st.markdown('<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
 
     sidebar, main = st.columns([0.92, 2.08], gap="large")
 

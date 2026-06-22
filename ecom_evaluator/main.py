@@ -47,6 +47,11 @@ from ecom_evaluator.ui.session import (
     set_analysis_error,
     validate_inputs,
 )
+from ecom_evaluator.ui.workspace_theme import (
+    init_workspace_theme_state,
+    render_workspace_marker,
+    render_workspace_theme_switcher,
+)
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
     APP_VIEW_LIVE_CATALOG,
@@ -174,6 +179,7 @@ def main() -> None:
     install_streamlit_branding_hide_bridge()
 
     init_session_state()
+    init_workspace_theme_state()
     if restore_auth_from_browser_cookie():
         st.rerun()
     if handle_auth_logout_sync():
@@ -217,6 +223,9 @@ def main() -> None:
         return
 
     has_report = st.session_state.get("analysis_result") is not None
+
+    render_workspace_marker()
+    render_workspace_theme_switcher()
 
     if has_report:
         tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
