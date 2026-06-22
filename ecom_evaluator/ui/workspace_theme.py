@@ -41,10 +41,19 @@ def render_workspace_marker() -> None:
 
 def render_workspace_theme_switcher() -> None:
     init_workspace_theme_state()
-    st.segmented_control(
-        "Appearance",
-        options=list(WORKSPACE_THEMES),
-        format_func=lambda key: _THEME_LABELS.get(key, str(key)),
-        key="workspace_theme",
-        label_visibility="collapsed",
-    )
+    mode = get_workspace_theme()
+    with st.container(key="workspace_theme_strip"):
+        cols = st.columns(3, gap="small")
+        for col, theme_key in zip(cols, WORKSPACE_THEMES, strict=True):
+            with col:
+                label = _THEME_LABELS[theme_key]
+                is_active = mode == theme_key
+                if st.button(
+                    label,
+                    key=f"ws_theme_pick_{theme_key}",
+                    use_container_width=True,
+                    type="primary" if is_active else "secondary",
+                ):
+                    if not is_active:
+                        st.session_state["workspace_theme"] = theme_key
+                        st.rerun()

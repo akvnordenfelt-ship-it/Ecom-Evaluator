@@ -143,53 +143,90 @@ TOOL_FORM_CSS = """
     color: var(--ws-nav-muted) !important;
 }
 
-/* Theme switcher — compact segmented control */
-.stApp:has(.cm-workspace) div[data-testid="element-container"]:has([data-testid="stSegmentedControl"]) {
+/* Theme switcher — compact pill strip (CSS only, no JS) */
+.stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] {
     display: flex;
     justify-content: flex-end;
     margin: 0 0 1.25rem;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"],
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] > div {
+.stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="stHorizontalBlock"] {
+    gap: 0.2rem !important;
+    max-width: 14.5rem;
+    width: 14.5rem;
+    margin-left: auto !important;
+    margin-right: 0 !important;
+    margin-bottom: 0 !important;
     background: var(--ws-surface) !important;
     border: 1px solid var(--ws-surface-border) !important;
     border-radius: 999px !important;
     padding: 0.15rem !important;
-    max-width: 14.5rem;
-    min-height: 0 !important;
     box-shadow: none !important;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button,
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button {
+.stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="column"] {
+    min-width: 0 !important;
+}
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] button[data-testid^="stBaseButton-"] {
     min-height: 1.75rem !important;
     height: 1.75rem !important;
-    padding: 0.1rem 0.5rem !important;
+    padding: 0.1rem 0.35rem !important;
     border-radius: 999px !important;
     font-size: 0.72rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
     line-height: 1.2 !important;
+    box-shadow: none !important;
+    filter: none !important;
+}
+.stApp:has(.cm-workspace-mode-original) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"],
+.stApp:has(.cm-workspace-mode-black) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
-    color: var(--ws-segment-idle-text) !important;
+    color: #AEAEB2 !important;
+    -webkit-text-fill-color: #AEAEB2 !important;
     border: 1px solid transparent !important;
-    box-shadow: none !important;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[kind="secondary"],
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button[kind="secondary"] {
+.stApp:has(.cm-workspace-mode-black) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
+    color: #86868B !important;
+    -webkit-text-fill-color: #86868B !important;
+}
+.stApp:has(.cm-workspace-mode-white) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
     background: transparent !important;
     background-color: transparent !important;
-    color: var(--ws-segment-idle-text) !important;
+    color: #6E6E73 !important;
+    -webkit-text-fill-color: #6E6E73 !important;
+    border: 1px solid transparent !important;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[aria-checked="true"],
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[aria-pressed="true"],
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[kind="primary"],
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button[kind="primary"] {
-    background: var(--ws-segment-active-bg) !important;
-    background-color: var(--ws-segment-active-bg) !important;
-    color: var(--ws-segment-active-text) !important;
-    border: 1px solid var(--ws-segment-active-border) !important;
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] div,
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] span,
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] div,
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] span {
+    color: inherit !important;
+    -webkit-text-fill-color: inherit !important;
+}
+.stApp:has(.cm-workspace-mode-original) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-image: none !important;
+    color: #F5F5F7 !important;
+    -webkit-text-fill-color: #F5F5F7 !important;
+    border: 1px solid rgba(147, 197, 253, 0.35) !important;
+}
+.stApp:has(.cm-workspace-mode-black) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
+    background: rgba(255, 255, 255, 0.1) !important;
+    background-color: rgba(255, 255, 255, 0.1) !important;
+    background-image: none !important;
+    color: #F5F5F7 !important;
+    -webkit-text-fill-color: #F5F5F7 !important;
+    border: 1px solid rgba(255, 255, 255, 0.22) !important;
+}
+.stApp:has(.cm-workspace-mode-white) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
+    background: #FFFFFF !important;
+    background-color: #FFFFFF !important;
+    background-image: none !important;
+    color: #1D1D1F !important;
+    -webkit-text-fill-color: #1D1D1F !important;
+    border: 1px solid #D2D2D7 !important;
 }
 
 /* Tabs (report / inputs) */
@@ -581,8 +618,9 @@ TOOL_FORM_CSS = """
         order: 1;
     }
     .cm-tool-main-head { margin-bottom: 1.5rem; }
-    .stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] {
+    .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="stHorizontalBlock"] {
         max-width: 100%;
+        width: 100%;
     }
 }
 """

@@ -184,7 +184,16 @@ _MOTION_JS = r"""
             { threshold: 0.12, rootMargin: "0px 0px -4% 0px" }
         );
         win.__cmWsMotionScan = scan;
-        new MutationObserver(scan).observe(doc.body, { childList: true, subtree: true });
+        let scanQueued = false;
+        function queueScan() {
+            if (scanQueued) return;
+            scanQueued = true;
+            win.requestAnimationFrame(function () {
+                scanQueued = false;
+                scan();
+            });
+        }
+        new MutationObserver(queueScan).observe(doc.body, { childList: true, subtree: true });
     }
 
     doc.querySelectorAll(".cm-ws-reveal:not([data-cm-ws-observed])").forEach(function (node) {

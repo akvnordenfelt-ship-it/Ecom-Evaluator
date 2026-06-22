@@ -85,7 +85,22 @@ a[href*="streamlit.io/community/profile"],
 }
 """
 
-STREAMLIT_BRANDING_HIDE_CSS = APP_STREAMLIT_HIDE_CSS + CLOUD_BADGE_HIDE_CSS
+HIDDEN_BRIDGE_HOST_CSS = """
+div[class*="st-key-ps_nav_"],
+div[class*="st-key-ps_sample_"] {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+"""
+
+STREAMLIT_BRANDING_HIDE_CSS = APP_STREAMLIT_HIDE_CSS + CLOUD_BADGE_HIDE_CSS + HIDDEN_BRIDGE_HOST_CSS
 
 _BADGE_SELECTORS = [
     '[class*="viewerBadge_container"]',
@@ -292,32 +307,49 @@ def install_streamlit_branding_hide_bridge() -> None:
         <script>
         {_BRANDING_JS}
         (function () {{
+            const win = window.parent;
+            const doc = win.document;
             const appCss = {APP_STREAMLIT_HIDE_CSS!r};
             const cloudCss = {CLOUD_BADGE_HIDE_CSS!r};
             const badgeSelectors = {list(_BADGE_SELECTORS)!r};
+
             function run() {{
-                if (window.__psStreamlitChromeSweep) {{
-                    window.__psStreamlitChromeSweep(appCss, cloudCss, badgeSelectors);
+                if (win.__psStreamlitChromeSweep) {{
+                    win.__psStreamlitChromeSweep(appCss, cloudCss, badgeSelectors);
                 }}
             }}
+
+            function runSoon() {{
+                if (win.__psBrandingRunScheduled) return;
+                win.__psBrandingRunScheduled = true;
+                win.requestAnimationFrame(function () {{
+                    win.__psBrandingRunScheduled = false;
+                    run();
+                }});
+            }}
+
+            if (win.__psBrandingBridgeInstalled) {{
+                runSoon();
+                return;
+            }}
+            win.__psBrandingBridgeInstalled = true;
+
             run();
             let ticks = 0;
-            const fast = setInterval(function () {{
+            const fast = win.setInterval(function () {{
                 run();
                 ticks += 1;
-                if (ticks >= 16) clearInterval(fast);
-            }}, 400);
-            setInterval(run, 3000);
-            try {{
-                const win = window.parent;
-                const doc = win.document;
-                if (doc.body) {{
-                    new MutationObserver(run).observe(doc.body, {{
-                        childList: true,
-                        subtree: true,
-                    }});
-                }}
-            }} catch (e) {{}}
+                if (ticks >= 8) win.clearInterval(fast);
+            }}, 500);
+            win.__psBrandingSweepInterval = win.setInterval(run, 5000);
+
+            if (doc.body) {{
+                win.__psBrandingMutationObserver = new MutationObserver(runSoon);
+                win.__psBrandingMutationObserver.observe(doc.body, {{
+                    childList: true,
+                    subtree: true,
+                }});
+            }}
         }})();
         </script>
         """,
