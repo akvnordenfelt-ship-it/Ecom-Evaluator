@@ -247,6 +247,44 @@ def inject_streamlit_branding_hide_css() -> None:
     st.markdown(f"<style>{STREAMLIT_BRANDING_HIDE_CSS}</style>", unsafe_allow_html=True)
 
 
+_APP_SHELL_SYNC_JS = r"""
+(function () {
+    const doc = window.parent.document;
+    if (!doc || !doc.documentElement) return;
+
+    const isAuth = !!doc.querySelector(".cm-auth-page, .auth-page-marker");
+    doc.documentElement.classList.toggle("cm-auth-active", isAuth);
+
+    if (!isAuth) {
+        doc.querySelectorAll(
+            ".auth-page-marker, .auth-page-backdrop, .auth-form-back, .cm-auth-backdrop, .cm-auth-back"
+        ).forEach(function (el) {
+            el.remove();
+        });
+    }
+
+    const header = doc.querySelector(".site-header");
+    const drawerOpen = !!(header && header.classList.contains("is-mobile-open"));
+    if (!drawerOpen) {
+        doc.documentElement.classList.remove("ps-nav-open");
+    }
+})();
+"""
+
+
+def install_app_shell_sync() -> None:
+    """Keep document-level layout classes in sync with the current Streamlit view."""
+    components.html(
+        f"""
+        <script>
+        {_APP_SHELL_SYNC_JS}
+        </script>
+        """,
+        height=0,
+        width=0,
+    )
+
+
 def install_streamlit_branding_hide_bridge() -> None:
     """Hide in-app chrome + Cloud badge/profile in parent frame without touching app layout."""
     components.html(

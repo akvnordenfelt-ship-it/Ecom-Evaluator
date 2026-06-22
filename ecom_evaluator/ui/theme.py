@@ -3305,6 +3305,7 @@ div[data-testid="stExpander"] details[open] > summary {
 html {
     -webkit-text-size-adjust: 100%;
     scroll-behavior: smooth;
+    scroll-padding-top: var(--ps-nav-h, 76px);
 }
 html.ps-nav-open,
 html.ps-nav-open body {
@@ -3313,9 +3314,39 @@ html.ps-nav-open body {
 .stApp {
     overflow-x: clip;
 }
+/* Tool workspace — normal document scroll (avoid auth flex / card bleed on mobile) */
+.stApp:has(.form-workspace-marker) section[data-testid="stMain"] > div {
+    display: block !important;
+    min-height: 0 !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+}
+.stApp:has(.form-workspace-marker):not(:has(.cm-auth-page)) .block-container,
+.stApp:has(.form-workspace-marker):not(:has(.cm-auth-page)) .stMainBlockContainer,
+.stApp:has(.form-workspace-marker):not(:has(.cm-auth-page)) [data-testid="stMainBlockContainer"] {
+    width: auto !important;
+    max-width: 1180px !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+    padding-top: 0 !important;
+    border-radius: 0 !important;
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+}
 
 /* Stack Streamlit multi-column rows on small screens */
 @media (max-width: 768px) {
+    .stApp:has(.form-workspace-marker) [data-testid="stAppViewContainer"],
+    .stApp:has(.form-workspace-marker) section[data-testid="stMain"],
+    .stApp:has(.form-workspace-marker) section[data-testid="stMain"] > div {
+        overflow: visible !important;
+        height: auto !important;
+        min-height: 0 !important;
+        max-height: none !important;
+    }
     section[data-testid="stMain"] [data-testid="stHorizontalBlock"] {
         flex-direction: column !important;
         flex-wrap: nowrap !important;

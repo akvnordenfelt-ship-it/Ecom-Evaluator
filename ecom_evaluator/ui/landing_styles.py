@@ -2735,10 +2735,10 @@ html.cm-auth-active .site-header__spacer,
 html.cm-auth-active section[data-testid="stMain"] > div,
 .stApp:has(.cm-auth-page) section[data-testid="stMain"] > div {
     max-width: 100% !important;
-    padding: 0 1rem 2rem !important;
+    padding: max(1.25rem, 6dvh) 1rem 2rem !important;
     min-height: 100dvh;
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: center;
     box-sizing: border-box;
 }
@@ -2753,7 +2753,7 @@ html.cm-auth-active [data-testid="stMainBlockContainer"],
     width: min(100%, 420px) !important;
     max-width: 420px !important;
     margin: 0 auto !important;
-    padding: 2rem 1.75rem 1.5rem !important;
+    padding: 2rem 1.75rem 2.25rem !important;
     border-radius: 24px;
     background: rgba(255, 255, 255, 0.05);
     border: 1px solid rgba(255, 255, 255, 0.1);
@@ -2924,25 +2924,36 @@ html.cm-auth-active [data-testid="stVerticalBlock"],
     color: #94A3B8;
 }
 .cm-auth-legal {
-    margin-top: 1.35rem;
-    padding-top: 1.15rem;
+    margin: 1.35rem 0 0;
+    padding: 1.15rem 0 0.15rem;
     border-top: 1px solid rgba(255, 255, 255, 0.08);
     text-align: center;
 }
 .cm-auth-legal p {
     margin: 0;
+    padding-bottom: 0.1rem;
     font-size: 0.72rem;
-    line-height: 1.65;
+    line-height: 1.55;
     color: #64748B;
 }
 .cm-auth-legal .cm-auth-link {
     color: #94A3B8 !important;
     font-weight: 500;
-    border-bottom-color: rgba(148, 163, 184, 0.35);
+    border-bottom: none !important;
+    text-decoration: underline;
+    text-decoration-color: rgba(148, 163, 184, 0.45);
+    text-underline-offset: 0.15em;
 }
 .cm-auth-legal .cm-auth-link:hover {
     color: #FFFFFF !important;
-    border-bottom-color: #FFFFFF;
+    text-decoration-color: #FFFFFF;
+}
+html.cm-auth-active [data-testid="stMarkdownContainer"]:has(.cm-auth-legal),
+html.cm-auth-active [data-testid="element-container"]:has(.cm-auth-legal),
+.stApp:has(.cm-auth-page) [data-testid="stMarkdownContainer"]:has(.cm-auth-legal),
+.stApp:has(.cm-auth-page) [data-testid="element-container"]:has(.cm-auth-legal) {
+    margin: 0 !important;
+    padding: 0 !important;
 }
 @media (max-width: 640px) {
     html.cm-auth-active .block-container,
@@ -2951,7 +2962,7 @@ html.cm-auth-active [data-testid="stVerticalBlock"],
     .stApp:has(.cm-auth-page) .block-container,
     .stApp:has(.cm-auth-page) .stMainBlockContainer,
     .stApp:has(.cm-auth-page) [data-testid="stMainBlockContainer"] {
-        padding: 1.65rem 1.25rem 1.35rem !important;
+        padding: 1.65rem 1.25rem 2rem !important;
         border-radius: 20px;
     }
     .cm-auth-back {

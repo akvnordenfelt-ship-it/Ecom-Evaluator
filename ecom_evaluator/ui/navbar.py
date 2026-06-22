@@ -186,6 +186,7 @@ def install_in_app_nav_bridge() -> None:
 
                     event.preventDefault();
                     event.stopImmediatePropagation();
+                    setMobileNavOpen(false);
 
                     if (target.action) {
                         clickNavKey(target.action, 0);
