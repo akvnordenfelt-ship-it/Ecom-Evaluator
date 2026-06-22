@@ -50,6 +50,7 @@ from ecom_evaluator.ui.session import (
 )
 from ecom_evaluator.ui.workspace_theme import (
     init_workspace_theme_state,
+    install_workspace_theme_button_sync,
     render_workspace_marker,
     render_workspace_theme_switcher,
 )
@@ -230,6 +231,7 @@ def main() -> None:
 
     render_workspace_marker()
     render_workspace_theme_switcher()
+    install_workspace_theme_button_sync()
     install_workspace_motion()
 
     if has_report:
