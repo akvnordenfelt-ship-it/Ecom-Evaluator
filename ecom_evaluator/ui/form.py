@@ -146,26 +146,8 @@ def _checklist_snapshot(api_key: str) -> dict:
     }
 
 
-def _tool_section_head(*, badge: str, badge_class: str, title: str, subtitle: str) -> str:
-    return (
-        f'<div class="cm-tool-section-head">'
-        f'<div><p class="cm-tool-section-title">{html.escape(title)}</p>'
-        f'<p class="cm-tool-section-sub">{html.escape(subtitle)}</p></div>'
-        f'<span class="cm-tool-pill cm-tool-pill--{badge_class}">{html.escape(badge)}</span>'
-        f"</div>"
-    )
-
-
-def _tool_section_open(title: str, subtitle: str, *, badge: str, badge_class: str) -> None:
-    st.markdown(
-        f'<div class="cm-tool-section">{_tool_section_head(badge=badge, badge_class=badge_class, title=title, subtitle=subtitle)}'
-        f'<div class="cm-tool-card">',
-        unsafe_allow_html=True,
-    )
-
-
-def _tool_section_close() -> None:
-    st.markdown("</div></div>", unsafe_allow_html=True)
+def _tool_fields_label(text: str) -> None:
+    st.markdown(f'<p class="cm-tool-fields-label">{html.escape(text)}</p>', unsafe_allow_html=True)
 
 
 def _render_tool_sidebar(*, api_key: str) -> None:
@@ -184,8 +166,7 @@ def _render_tool_sidebar(*, api_key: str) -> None:
         '<div class="cm-tool-side-promo">'
         '<p class="cm-tool-side-promo-kicker">Your workspace</p>'
         '<p class="cm-tool-side-promo-title">We don\u2019t sugarcoat. We score.</p>'
-        '<p class="cm-tool-side-promo-copy">Honest product intelligence in about 30 seconds. '
-        "Add what you know now — refine optional fields anytime.</p>"
+        '<p class="cm-tool-side-promo-copy">Product intelligence in ~30 seconds.</p>'
         '<div class="cm-tool-side-badges">'
         '<span class="cm-tool-side-badge">2 sections free</span>'
         '<span class="cm-tool-side-badge">~30 sec preview</span>'
@@ -207,8 +188,7 @@ def _render_tool_sidebar(*, api_key: str) -> None:
         '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#F87171"></span>0–49 · Walk away</div>'
         "</div>"
         '<div class="cm-tool-privacy">'
-        '<span class="cm-tool-privacy-icon" aria-hidden="true">🛡️</span>'
-        "<span>Your product data is encrypted in transit and never shared with third parties.</span>"
+        "<span>Encrypted in transit. Never shared.</span>"
         "</div>"
         "</aside>",
         unsafe_allow_html=True,
@@ -228,40 +208,41 @@ def _render_tool_main_header(*, compact: bool) -> None:
 
     st.markdown(
         '<header class="cm-tool-main-head">'
-        '<h1 class="cm-tool-main-title">'
-        '<span class="cm-tool-main-title-icon" aria-hidden="true">🎯</span>'
-        "Let\u2019s evaluate your product</h1>"
-        '<p class="cm-tool-main-lead">Start with a listing link or product name and your cost. '
-        "Optional details sharpen margin math and scoring — only add what you have.</p>"
-        '<p class="cm-tool-hint"><strong>Tip:</strong> More context means a sharper score, '
-        "but name + purchase price is enough to run your free preview.</p>"
+        '<h1 class="cm-tool-main-title">Evaluate your product</h1>'
+        '<p class="cm-tool-main-lead">Name and cost are enough to start.</p>'
         "</header>",
         unsafe_allow_html=True,
     )
 
 
-def _render_tool_cta_shell() -> None:
+def _render_tool_cta(
+    *,
+    blocked: bool,
+    paywall_active: bool,
+    quota_blocked: bool,
+    running: bool,
+) -> bool:
+    st.markdown('<div class="cm-tool-cta-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+    if paywall_active:
+        render_paywall_card()
+        return False
+
+    run_analysis = st.button(
+        "Run evaluation",
+        type="primary",
+        use_container_width=True,
+        disabled=blocked,
+        key="form_run_analysis",
+    )
+    if quota_blocked:
+        st.warning("Server quota reached. Try again later or upgrade to Premium.")
+    if running:
+        st.info("Evaluation in progress…")
     st.markdown(
-        '<div class="cm-tool-cta">'
-        '<div class="cm-tool-cta-copy">'
-        '<p class="cm-tool-cta-kicker"><span aria-hidden="true">⚡</span> Final step</p>'
-        '<p class="cm-tool-cta-title">Ready for the brutal truth?</p>'
-        '<p class="cm-tool-cta-sub">You\u2019ll get Sections 1\u20132 free — upgrade for verdict &amp; execution stack.</p>'
-        "</div>"
-        '<div class="cm-tool-cta-action">',
+        '<p class="cm-tool-cta-footnote">Sections 1–2 free · ~30 seconds</p>',
         unsafe_allow_html=True,
     )
-
-
-def _render_tool_cta_close() -> None:
-    st.markdown(
-        '<div class="cm-tool-cta-meta">'
-        "<span>Takes ~30 seconds</span>"
-        "<span>Secure &amp; private</span>"
-        "<span>Cancel anytime</span>"
-        "</div></div></div>",
-        unsafe_allow_html=True,
-    )
+    return run_analysis
 
 
 def render_evaluation_form(*, compact: bool = False) -> dict:
@@ -290,73 +271,56 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
         description = _session_str("form_description")
         uploaded_file = st.session_state.get("form_image")
 
-        _tool_section_open(
-            "Product link",
-            "AliExpress, Amazon, eBay, or similar — helps the AI use real listing context.",
-            badge="Required",
-            badge_class="required",
-        )
-        product_url = st.text_input(
-            "Listing URL",
-            placeholder="https://www.aliexpress.com/item/…",
-            key="form_product_url",
-            label_visibility="collapsed",
-        )
-        _tool_section_close()
-
-        _tool_section_open(
-            "Basic details",
-            "Product name and your landed cost — the minimum to run an evaluation.",
-            badge="Required",
-            badge_class="required",
-        )
-        name_col, price_col = st.columns(2)
-        with name_col:
-            product_name = st.text_input(
-                "Product name",
-                placeholder="e.g. Wireless earbud cleaning kit",
-                key="form_product_name",
+        st.markdown('<div class="cm-tool-required-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+        _tool_fields_label("Required")
+        with st.container(border=True, key="form_required_card"):
+            product_url = st.text_input(
+                "Product link",
+                placeholder="https://www.aliexpress.com/item/…",
+                key="form_product_url",
             )
-        with price_col:
-            purchase_price = st.number_input(
-                "Purchase price (your cost)",
-                min_value=0.0,
-                step=0.01,
-                format="%.2f",
-                key="form_purchase_price",
-            )
-        _tool_section_close()
-
-        with st.expander("Pricing & positioning — optional", expanded=False):
-            st.caption("Improves margin math and competitive positioning in your report.")
-            sell_col, _ = st.columns([1, 1])
-            with sell_col:
-                sales_price = st.number_input(
-                    "Target selling price",
+            name_col, price_col = st.columns(2)
+            with name_col:
+                product_name = st.text_input(
+                    "Product name",
+                    placeholder="Wireless earbud cleaning kit",
+                    key="form_product_name",
+                )
+            with price_col:
+                purchase_price = st.number_input(
+                    "Purchase price",
                     min_value=0.0,
                     step=0.01,
                     format="%.2f",
-                    key="form_sales_price",
-                    help="Leave at 0 to estimate at 3× purchase cost.",
+                    key="form_purchase_price",
                 )
+
+        st.markdown('<div class="cm-tool-optional-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+        _tool_fields_label("Optional")
+
+        with st.expander("Pricing", expanded=False):
+            sales_price = st.number_input(
+                "Target selling price",
+                min_value=0.0,
+                step=0.01,
+                format="%.2f",
+                key="form_sales_price",
+            )
             if sales_price > 0 and purchase_price >= 0:
                 margin = sales_price - purchase_price
                 margin_pct = margin / sales_price * 100 if sales_price else 0
                 st.markdown(
-                    f'<div class="metric-hint">Estimated gross margin: <strong>${margin:.2f}</strong> '
-                    f"({margin_pct:.1f}% of selling price)</div>",
+                    f'<div class="metric-hint">Margin: <strong>${margin:.2f}</strong> ({margin_pct:.1f}%)</div>',
                     unsafe_allow_html=True,
                 )
             description = st.text_area(
-                "Your angle / unique selling point",
-                height=100,
-                placeholder="What makes this product different? Who is it for?",
+                "Unique selling point",
+                height=88,
+                placeholder="Who buys this and why?",
                 key="form_description",
-                help="Describe your positioning vs competitors.",
             )
 
-        with st.expander("Shipping & package specs — optional", expanded=False):
-            st.caption("Used for shipping tier estimates. Leave at 0 for a lightweight baseline.")
+        with st.expander("Shipping", expanded=False):
             weight_kg = st.number_input(
                 "Weight (kg)", min_value=0.0, step=0.01, format="%.3f", key="form_weight_kg"
             )
@@ -367,23 +331,15 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                 width_cm = st.number_input("Width (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_width")
             with dim_cols[2]:
                 height_cm = st.number_input("Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height")
-            st.markdown(
-                '<p class="form-field-hint">Baseline when empty: 0.15 kg, 15×10×5 cm package.</p>',
-                unsafe_allow_html=True,
-            )
 
-        with st.expander("Product image — optional", expanded=False):
-            st.caption("Improves visual scoring and supplier matching when provided.")
+        with st.expander("Image", expanded=False):
             uploaded_file = st.file_uploader(
-                "Upload image (PNG or JPG)",
+                "Product image",
                 type=["png", "jpg", "jpeg"],
                 key="form_image",
-                label_visibility="collapsed",
             )
             if uploaded_file is not None:
                 st.image(uploaded_file, use_container_width=True)
-
-        _render_tool_cta_shell()
 
         running = st.session_state.get("analysis_running", False)
         paywall_active = show_paywall()
@@ -396,23 +352,12 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
         quota_blocked = shared_rate_limit_applies(form_snapshot) and not has_remaining_quota(form_snapshot)
         blocked = running or paywall_active or quota_blocked
 
-        if paywall_active:
-            render_paywall_card()
-            run_analysis = False
-        else:
-            run_analysis = st.button(
-                "Run evaluation →",
-                type="primary",
-                use_container_width=True,
-                disabled=blocked,
-                key="form_run_analysis",
-            )
-            if quota_blocked:
-                st.warning("Server quota reached. Try again later or upgrade to Premium.")
-            if running:
-                st.info("Evaluation in progress — building your report…")
-
-        _render_tool_cta_close()
+        run_analysis = _render_tool_cta(
+            blocked=blocked,
+            paywall_active=paywall_active,
+            quota_blocked=quota_blocked,
+            running=running,
+        )
 
     return {
         "api_key": api_key,
