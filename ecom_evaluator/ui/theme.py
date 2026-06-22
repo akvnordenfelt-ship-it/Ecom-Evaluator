@@ -6,7 +6,6 @@ import html
 
 import streamlit as st
 
-from ecom_evaluator.ui.app_loader import HIDDEN_BRIDGE_HOST_CSS
 from ecom_evaluator.ui.form_styles import TOOL_FORM_CSS
 from ecom_evaluator.ui.landing_styles import AUTH_CM_CSS, LANDING_V2_CSS
 from ecom_evaluator.ui.workspace_motion import WORKSPACE_MOTION_CSS
@@ -3702,9 +3701,26 @@ html.ps-nav-open body {
 }
 """
 
-SAAS_CHROME_CSS = f"""
-header[data-testid="stHeader"] {{ display: none !important; }}
-{HIDDEN_BRIDGE_HOST_CSS}
+SAAS_CHROME_CSS = """
+header[data-testid="stHeader"] { display: none !important; }
+div[class*="st-key-ps_nav_"] {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+}
+div[class*="st-key-ps_sample_"] {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+}
 """
 
 
