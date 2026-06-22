@@ -143,65 +143,53 @@ TOOL_FORM_CSS = """
     color: var(--ws-nav-muted) !important;
 }
 
-/* Theme switcher — custom pills */
-.cm-workspace-theme-row {
+/* Theme switcher — compact segmented control */
+.stApp:has(.cm-workspace) div[data-testid="element-container"]:has([data-testid="stSegmentedControl"]) {
     display: flex;
     justify-content: flex-end;
     margin: 0 0 1.25rem;
 }
-.cm-theme-pills-marker + [data-testid="stHorizontalBlock"],
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] {
-    gap: 0.3rem !important;
-    max-width: 15.5rem;
-    margin-left: auto !important;
-    margin-bottom: 0 !important;
-}
-.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] [data-testid="column"],
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] [data-testid="column"] {
-    min-width: 0 !important;
-}
-.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button,
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button {
-    min-height: 2.15rem !important;
-    padding: 0.35rem 0.5rem !important;
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"],
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] > div {
+    background: var(--ws-surface) !important;
+    border: 1px solid var(--ws-surface-border) !important;
     border-radius: 999px !important;
-    font-size: 0.76rem !important;
+    padding: 0.15rem !important;
+    max-width: 14.5rem;
+    min-height: 0 !important;
+    box-shadow: none !important;
+}
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button,
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button {
+    min-height: 1.75rem !important;
+    height: 1.75rem !important;
+    padding: 0.1rem 0.5rem !important;
+    border-radius: 999px !important;
+    font-size: 0.72rem !important;
     font-weight: 600 !important;
     letter-spacing: -0.01em !important;
-    box-shadow: none !important;
-    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
-}
-.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"],
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
+    line-height: 1.2 !important;
     background: transparent !important;
-    color: var(--ws-segment-idle-text) !important;
-    border: 1px solid transparent !important;
-}
-.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"]:hover,
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"]:hover {
-    background: var(--ws-surface) !important;
-    color: var(--ws-text) !important;
-    border-color: var(--ws-surface-border) !important;
-    transform: translateY(-1px);
-}
-.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="primary"],
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="primary"] {
-    background: var(--ws-segment-active-bg) !important;
-    color: var(--ws-segment-active-text) !important;
-    border: 1px solid var(--ws-segment-active-border) !important;
-}
-
-.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] .stButton > button[kind="secondary"] {
-    background: transparent !important;
+    background-color: transparent !important;
+    background-image: none !important;
     color: var(--ws-segment-idle-text) !important;
     border: 1px solid transparent !important;
     box-shadow: none !important;
 }
-.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] .stButton > button[kind="primary"] {
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[kind="secondary"],
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button[kind="secondary"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    color: var(--ws-segment-idle-text) !important;
+}
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[aria-checked="true"],
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[aria-pressed="true"],
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[kind="primary"],
+.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] .stButton > button[kind="primary"] {
     background: var(--ws-segment-active-bg) !important;
+    background-color: var(--ws-segment-active-bg) !important;
     color: var(--ws-segment-active-text) !important;
     border: 1px solid var(--ws-segment-active-border) !important;
-    box-shadow: none !important;
 }
 
 /* Tabs (report / inputs) */
@@ -593,9 +581,7 @@ TOOL_FORM_CSS = """
         order: 1;
     }
     .cm-tool-main-head { margin-bottom: 1.5rem; }
-    .cm-workspace-theme-row { justify-content: stretch; }
-    .cm-theme-pills-marker + [data-testid="stHorizontalBlock"],
-    .stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] {
+    .stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] {
         max-width: 100%;
     }
 }
