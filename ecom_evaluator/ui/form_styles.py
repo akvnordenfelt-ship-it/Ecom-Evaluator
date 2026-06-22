@@ -369,3 +369,4 @@ TOOL_FORM_CSS = """
         margin-bottom: 1.5rem;
     }
 }
+"""
