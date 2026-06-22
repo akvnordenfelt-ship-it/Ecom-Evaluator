@@ -28,6 +28,10 @@ TOOL_FORM_CSS = """
     --ws-tab-bg: rgba(255, 255, 255, 0.05);
     --ws-tab-text: #AEAEB2;
     --ws-tab-active: #F5F5F7;
+    --ws-segment-idle-text: #AEAEB2;
+    --ws-segment-active-text: #F5F5F7;
+    --ws-segment-active-bg: rgba(255, 255, 255, 0.1);
+    --ws-segment-active-border: rgba(147, 197, 253, 0.35);
     --ws-status-bg: rgba(52, 211, 153, 0.12);
     --ws-status-border: rgba(52, 211, 153, 0.28);
     --ws-status-text: #6EE7B7;
@@ -63,6 +67,10 @@ TOOL_FORM_CSS = """
     --ws-tab-bg: rgba(255, 255, 255, 0.05);
     --ws-tab-text: #86868B;
     --ws-tab-active: #F5F5F7;
+    --ws-segment-idle-text: #86868B;
+    --ws-segment-active-text: #F5F5F7;
+    --ws-segment-active-bg: rgba(255, 255, 255, 0.1);
+    --ws-segment-active-border: rgba(255, 255, 255, 0.22);
     --ws-status-bg: rgba(52, 211, 153, 0.12);
     --ws-status-border: rgba(52, 211, 153, 0.28);
     --ws-status-text: #6EE7B7;
@@ -98,6 +106,10 @@ TOOL_FORM_CSS = """
     --ws-tab-bg: #FFFFFF;
     --ws-tab-text: #6E6E73;
     --ws-tab-active: #1D1D1F;
+    --ws-segment-idle-text: #6E6E73;
+    --ws-segment-active-text: #1D1D1F;
+    --ws-segment-active-bg: #FFFFFF;
+    --ws-segment-active-border: #D2D2D7;
     --ws-status-bg: #ECFDF5;
     --ws-status-border: #A7F3D0;
     --ws-status-text: #065F46;
@@ -131,33 +143,65 @@ TOOL_FORM_CSS = """
     color: var(--ws-nav-muted) !important;
 }
 
-/* Theme switcher */
+/* Theme switcher — custom pills */
 .cm-workspace-theme-row {
     display: flex;
     justify-content: flex-end;
     margin: 0 0 1.25rem;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] {
-    background: var(--ws-surface) !important;
-    border: 1px solid var(--ws-surface-border) !important;
-    border-radius: 999px !important;
-    padding: 0.2rem !important;
-    max-width: 16.5rem;
-    margin-left: auto;
+.cm-theme-pills-marker + [data-testid="stHorizontalBlock"],
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] {
+    gap: 0.3rem !important;
+    max-width: 15.5rem;
+    margin-left: auto !important;
+    margin-bottom: 0 !important;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button {
+.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] [data-testid="column"],
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] [data-testid="column"] {
+    min-width: 0 !important;
+}
+.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button,
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button {
+    min-height: 2.15rem !important;
+    padding: 0.35rem 0.5rem !important;
     border-radius: 999px !important;
-    font-size: 0.78rem !important;
+    font-size: 0.76rem !important;
     font-weight: 600 !important;
-    color: var(--ws-tab-text) !important;
+    letter-spacing: -0.01em !important;
+    box-shadow: none !important;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease !important;
+}
+.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"],
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"] {
     background: transparent !important;
-    border: none !important;
+    color: var(--ws-segment-idle-text) !important;
+    border: 1px solid transparent !important;
+}
+.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"]:hover,
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="secondary"]:hover {
+    background: var(--ws-surface) !important;
+    color: var(--ws-text) !important;
+    border-color: var(--ws-surface-border) !important;
+    transform: translateY(-1px);
+}
+.stApp:has(.cm-workspace) .cm-theme-pills-marker + [data-testid="stHorizontalBlock"] .stButton > button[kind="primary"],
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] .stButton > button[kind="primary"] {
+    background: var(--ws-segment-active-bg) !important;
+    color: var(--ws-segment-active-text) !important;
+    border: 1px solid var(--ws-segment-active-border) !important;
+}
+
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] .stButton > button[kind="secondary"] {
+    background: transparent !important;
+    color: var(--ws-segment-idle-text) !important;
+    border: 1px solid transparent !important;
     box-shadow: none !important;
 }
-.stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] button[aria-checked="true"] {
-    color: var(--ws-tab-active) !important;
-    background: var(--ws-card-bg) !important;
-    border: 1px solid var(--ws-card-border) !important;
+.stApp:has(.cm-workspace) div[class*="st-key-ws_theme_pick_"] .stButton > button[kind="primary"] {
+    background: var(--ws-segment-active-bg) !important;
+    color: var(--ws-segment-active-text) !important;
+    border: 1px solid var(--ws-segment-active-border) !important;
+    box-shadow: none !important;
 }
 
 /* Tabs (report / inputs) */
@@ -422,6 +466,34 @@ TOOL_FORM_CSS = """
     border: 1px solid var(--ws-surface-border) !important;
     border-radius: 14px !important;
     margin-bottom: 0.5rem !important;
+    overflow: hidden;
+    contain: layout style;
+}
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
+    padding: 0.75rem 1rem 1rem !important;
+    overflow: hidden;
+    max-width: 100%;
+}
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stHorizontalBlock"] {
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    gap: 0.65rem !important;
+    width: 100% !important;
+    max-width: 100% !important;
+}
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="column"] {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 auto !important;
+}
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stNumberInput"],
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stTextInput"],
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stTextArea"] {
+    max-width: 100% !important;
+    width: 100% !important;
+}
+.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stNumberInput"] > div {
+    max-width: 100% !important;
 }
 .stApp:has(.cm-workspace) [data-testid="stExpander"] details summary {
     font-size: 0.9375rem !important;
@@ -432,9 +504,6 @@ TOOL_FORM_CSS = """
 }
 .stApp:has(.cm-workspace) [data-testid="stExpander"] details[open] > summary {
     border-bottom: 1px solid var(--ws-divider) !important;
-}
-.stApp:has(.cm-workspace) [data-testid="stExpander"] [data-testid="stExpanderDetails"] {
-    padding: 0.75rem 1rem 1rem !important;
 }
 .stApp:has(.cm-workspace) [data-testid="stFileUploader"] section {
     padding: 1rem !important;
@@ -525,7 +594,8 @@ TOOL_FORM_CSS = """
     }
     .cm-tool-main-head { margin-bottom: 1.5rem; }
     .cm-workspace-theme-row { justify-content: stretch; }
-    .stApp:has(.cm-workspace) div[data-testid="stSegmentedControl"] {
+    .cm-theme-pills-marker + [data-testid="stHorizontalBlock"],
+    .stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-theme-pills-marker) + [data-testid="stHorizontalBlock"] {
         max-width: 100%;
     }
 }

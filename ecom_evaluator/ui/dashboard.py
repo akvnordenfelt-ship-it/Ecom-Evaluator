@@ -478,7 +478,7 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
     unlocked = sum(1 for s in REPORT_SECTIONS if has_section_access(s.id, tier))
 
     st.markdown(
-        f'<div class="status-banner status-banner--success">'
+        f'<div class="status-banner status-banner--success cm-ws-reveal">'
         f"Evaluation complete · {unlocked}/6 sections unlocked</div>",
         unsafe_allow_html=True,
     )

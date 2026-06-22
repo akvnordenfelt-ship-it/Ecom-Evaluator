@@ -163,7 +163,7 @@ def _render_tool_sidebar(*, api_key: str) -> None:
     quota_label = _evaluation_quota_label(snapshot)
     st.markdown(
         '<aside class="cm-tool-sidebar">'
-        '<div class="cm-tool-side-promo">'
+        '<div class="cm-tool-side-promo cm-ws-reveal">'
         '<p class="cm-tool-side-promo-kicker">Your workspace</p>'
         '<p class="cm-tool-side-promo-title">We don\u2019t sugarcoat. We score.</p>'
         '<p class="cm-tool-side-promo-copy">Product intelligence in ~30 seconds.</p>'
@@ -172,7 +172,7 @@ def _render_tool_sidebar(*, api_key: str) -> None:
         '<span class="cm-tool-side-badge">~30 sec preview</span>'
         '<span class="cm-tool-side-badge">Premium unlocks all 6</span>'
         "</div></div>"
-        '<div class="cm-tool-checklist">'
+        '<div class="cm-tool-checklist cm-ws-reveal cm-ws-reveal-delay-1">'
         '<div class="cm-tool-checklist-head">'
         '<span class="cm-tool-checklist-label">Launch checklist</span>'
         f'<span class="cm-tool-checklist-score">{done}/{len(checks)}</span>'
@@ -180,14 +180,18 @@ def _render_tool_sidebar(*, api_key: str) -> None:
         f'<div class="cm-tool-check-quota"><span class="cm-tool-check-quota-dot" aria-hidden="true"></span>'
         f"{html.escape(quota_label)}</div>"
         "</div>"
-        '<div class="cm-tool-score-guide">'
+        '<div class="cm-tool-score-guide cm-ws-reveal cm-ws-reveal-delay-2">'
         '<p class="cm-tool-score-guide-title">Score guide</p>'
-        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#34D399"></span>90–100 · Strong Go</div>'
-        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#60A5FA"></span>70–89 · Promising</div>'
-        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#FBBF24"></span>50–69 · Proceed with caution</div>'
-        '<div class="cm-tool-score-row"><span class="cm-tool-score-swatch" style="background:#F87171"></span>0–49 · Walk away</div>'
+        '<div class="cm-tool-score-row cm-ws-score-row" title="90+ = strong opportunity">'
+        '<span class="cm-tool-score-swatch" style="background:#34D399"></span>90–100 · Strong Go</div>'
+        '<div class="cm-tool-score-row cm-ws-score-row" title="Solid fundamentals">'
+        '<span class="cm-tool-score-swatch" style="background:#60A5FA"></span>70–89 · Promising</div>'
+        '<div class="cm-tool-score-row cm-ws-score-row" title="Validate before scaling">'
+        '<span class="cm-tool-score-swatch" style="background:#FBBF24"></span>50–69 · Caution</div>'
+        '<div class="cm-tool-score-row cm-ws-score-row" title="High risk profile">'
+        '<span class="cm-tool-score-swatch" style="background:#F87171"></span>0–49 · Walk away</div>'
         "</div>"
-        '<div class="cm-tool-privacy">'
+        '<div class="cm-tool-privacy cm-ws-reveal cm-ws-reveal-delay-3">'
         "<span>Encrypted in transit. Never shared.</span>"
         "</div>"
         "</aside>",
@@ -291,7 +295,7 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
                     key="form_purchase_price",
                 )
 
-        st.markdown('<div class="cm-tool-optional-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+        st.markdown('<div class="cm-tool-optional-marker cm-ws-reveal cm-ws-reveal-delay-1" aria-hidden="true"></div>', unsafe_allow_html=True)
         _tool_fields_label("Optional")
 
         with st.expander("Pricing", expanded=False):
@@ -320,13 +324,15 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
             weight_kg = st.number_input(
                 "Weight (kg)", min_value=0.0, step=0.01, format="%.3f", key="form_weight_kg"
             )
-            dim_cols = st.columns(3)
-            with dim_cols[0]:
-                length_cm = st.number_input("Length (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_length")
-            with dim_cols[1]:
-                width_cm = st.number_input("Width (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_width")
-            with dim_cols[2]:
-                height_cm = st.number_input("Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height")
+            length_cm = st.number_input(
+                "Length (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_length"
+            )
+            width_cm = st.number_input(
+                "Width (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_width"
+            )
+            height_cm = st.number_input(
+                "Height (cm)", min_value=0.0, step=0.1, format="%.1f", key="form_height"
+            )
 
         with st.expander("Image", expanded=False):
             uploaded_file = st.file_uploader(

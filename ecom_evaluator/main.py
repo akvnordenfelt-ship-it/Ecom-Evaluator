@@ -52,6 +52,7 @@ from ecom_evaluator.ui.workspace_theme import (
     render_workspace_marker,
     render_workspace_theme_switcher,
 )
+from ecom_evaluator.ui.workspace_motion import install_workspace_motion
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
     APP_VIEW_LIVE_CATALOG,
@@ -226,6 +227,7 @@ def main() -> None:
 
     render_workspace_marker()
     render_workspace_theme_switcher()
+    install_workspace_motion()
 
     if has_report:
         tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
