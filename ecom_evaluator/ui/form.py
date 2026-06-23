@@ -19,7 +19,7 @@ from ecom_evaluator.ui.subscription import (
     user_can_run,
 )
 from ecom_evaluator.ui.branding import BRAND_TAGLINE, wordmark_html
-from ecom_evaluator.ui.workspace_theme import render_workspace_theme_switcher
+from ecom_evaluator.ui.workspace_theme import get_workspace_theme, render_workspace_theme_switcher
 
 
 def render_app_header(*, hide_api_status: bool = False) -> None:
@@ -254,7 +254,13 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
     """Main-area product form — premium dark workspace layout."""
     api_key = st.session_state.get("settings_api_key", "")
 
-    st.markdown('<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+    mode = get_workspace_theme()
+    st.markdown(
+        f'<div class="form-workspace-marker cm-tool-form cm-workspace cm-workspace-mode-{html.escape(mode)}" '
+        f'data-workspace-theme="{html.escape(mode)}" aria-hidden="true"></div>'
+        '<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>',
+        unsafe_allow_html=True,
+    )
 
     sidebar, main = st.columns([0.92, 2.08], gap="large")
 

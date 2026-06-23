@@ -79,7 +79,7 @@ html.cm-ws-motion-ready .cm-ws-reveal-delay-4.is-visible { animation-delay: 0.24
     background: rgba(43, 89, 255, 0.1);
     color: var(--ws-text);
 }
-.stApp:has(.cm-workspace-mode-white) .cm-ws-score-row:hover {
+.stApp:has(.cm-workspace-mode-bright) .cm-ws-score-row:hover {
     background: rgba(43, 89, 255, 0.08);
 }
 .cm-tool-main-head {

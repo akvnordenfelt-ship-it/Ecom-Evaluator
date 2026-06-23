@@ -1,4 +1,4 @@
-"""Workspace appearance — black, original (dark blue), or white."""
+"""Workspace appearance — dark (navy) or bright."""
 
 from __future__ import annotations
 
@@ -6,28 +6,41 @@ import html
 
 import streamlit as st
 
-WORKSPACE_THEME_BLACK = "black"
-WORKSPACE_THEME_ORIGINAL = "original"
-WORKSPACE_THEME_WHITE = "white"
-WORKSPACE_THEMES = (WORKSPACE_THEME_BLACK, WORKSPACE_THEME_ORIGINAL, WORKSPACE_THEME_WHITE)
-DEFAULT_WORKSPACE_THEME = WORKSPACE_THEME_ORIGINAL
+WORKSPACE_THEME_DARK = "dark"
+WORKSPACE_THEME_BRIGHT = "bright"
+WORKSPACE_THEMES = (WORKSPACE_THEME_DARK, WORKSPACE_THEME_BRIGHT)
+DEFAULT_WORKSPACE_THEME = WORKSPACE_THEME_DARK
+
+_LEGACY_THEME_MAP = {
+    "black": WORKSPACE_THEME_DARK,
+    "original": WORKSPACE_THEME_DARK,
+    "white": WORKSPACE_THEME_BRIGHT,
+    "dark": WORKSPACE_THEME_DARK,
+    "bright": WORKSPACE_THEME_BRIGHT,
+}
 
 _THEME_LABELS = {
-    WORKSPACE_THEME_BLACK: "Black",
-    WORKSPACE_THEME_ORIGINAL: "Blue",
-    WORKSPACE_THEME_WHITE: "White",
+    WORKSPACE_THEME_DARK: "Dark",
+    WORKSPACE_THEME_BRIGHT: "Bright",
 }
+
+
+def _normalize_theme(mode: str | None) -> str:
+    if not mode:
+        return DEFAULT_WORKSPACE_THEME
+    return _LEGACY_THEME_MAP.get(mode, DEFAULT_WORKSPACE_THEME)
 
 
 def init_workspace_theme_state() -> None:
     if "workspace_theme" not in st.session_state:
         st.session_state["workspace_theme"] = DEFAULT_WORKSPACE_THEME
+        return
+    st.session_state["workspace_theme"] = _normalize_theme(st.session_state.get("workspace_theme"))
 
 
 def get_workspace_theme() -> str:
     init_workspace_theme_state()
-    mode = st.session_state.get("workspace_theme", DEFAULT_WORKSPACE_THEME)
-    return mode if mode in WORKSPACE_THEMES else DEFAULT_WORKSPACE_THEME
+    return _normalize_theme(st.session_state.get("workspace_theme"))
 
 
 def render_workspace_marker() -> None:
@@ -43,7 +56,7 @@ def render_workspace_theme_switcher() -> None:
     init_workspace_theme_state()
     mode = get_workspace_theme()
     with st.container(key="workspace_theme_strip"):
-        cols = st.columns(3, gap="small")
+        cols = st.columns(2, gap="small")
         for col, theme_key in zip(cols, WORKSPACE_THEMES, strict=True):
             with col:
                 label = _THEME_LABELS[theme_key]

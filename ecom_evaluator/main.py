@@ -167,6 +167,16 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         st.session_state["analysis_running"] = False
 
 
+def _install_page_bridges() -> None:
+    """Render hidden nav targets + JS bridges at the end so they do not create top gap."""
+    render_hidden_nav_buttons()
+    install_in_app_nav_bridge()
+    install_app_shell_sync()
+    install_oauth_callback_bridge()
+    install_auth_sync_bridge()
+    install_streamlit_branding_hide_bridge()
+
+
 def main() -> None:
     configure_streamlit_chrome()
     page_icon = str(logo_path()) if logo_path() else "📊"
@@ -177,7 +187,6 @@ def main() -> None:
         initial_sidebar_state="collapsed",
     )
     inject_streamlit_branding_hide_css()
-    install_streamlit_branding_hide_bridge()
 
     init_session_state()
     init_workspace_theme_state()
@@ -190,75 +199,73 @@ def main() -> None:
     if handle_oauth_callback():
         st.rerun()
 
-    render_hidden_nav_buttons()
+    if handle_oauth_callback():
+        st.rerun()
 
     inject_custom_css(saas_mode=True)
-
-    install_in_app_nav_bridge()
-    install_app_shell_sync()
-    install_oauth_callback_bridge()
-    install_auth_sync_bridge()
 
     handle_nav_query()
     view = st.session_state.get("app_view", "landing")
     if view != APP_VIEW_AUTH:
         render_site_navbar()
 
-    if auth_is_required() and not is_authenticated():
-        if view == APP_VIEW_AUTH:
-            render_auth_screen()
-        elif view == APP_VIEW_LIVE_CATALOG:
-            render_live_catalog_page()
-        else:
-            render_landing_page()
-        return
-
-    sync_user_evaluation_quota()
-
-    if not is_tool_view():
-        view = st.session_state.get("app_view", "landing")
-        if view == APP_VIEW_LIVE_CATALOG:
-            render_live_catalog_page()
-        else:
-            render_landing_page()
-        return
-
-    has_report = st.session_state.get("analysis_result") is not None
-
-    render_workspace_marker()
-
-    if has_report:
-        render_workspace_theme_switcher()
-        tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
-        with tab_inputs:
-            data = render_evaluation_form(compact=True)
-            render_analysis_error()
-        with tab_report:
-            meta = st.session_state.get("analysis_meta") or {}
-            render_dashboard(st.session_state["analysis_result"], meta)
-    else:
-        data = render_evaluation_form(compact=False)
-
-    render_analysis_error()
-
-    resolved_key = resolve_api_key(data["api_key"])
-
-    if data["run_analysis"]:
-        clear_analysis_error()
-        if show_paywall():
-            return
-        if st.session_state.get("analysis_running"):
-            st.warning("An analysis is already running. Please wait for it to finish.")
-        else:
-            errors = validate_inputs(data)
-            if errors:
-                st.error("Fix these items before running:")
-                for err in errors:
-                    st.markdown(f"- {err}")
+    try:
+        if auth_is_required() and not is_authenticated():
+            if view == APP_VIEW_AUTH:
+                render_auth_screen()
+            elif view == APP_VIEW_LIVE_CATALOG:
+                render_live_catalog_page()
             else:
-                _run_analysis_pipeline(data, resolved_key)
+                render_landing_page()
+            return
 
-    install_workspace_motion()
+        sync_user_evaluation_quota()
+
+        if not is_tool_view():
+            view = st.session_state.get("app_view", "landing")
+            if view == APP_VIEW_LIVE_CATALOG:
+                render_live_catalog_page()
+            else:
+                render_landing_page()
+            return
+
+        has_report = st.session_state.get("analysis_result") is not None
+
+        if has_report:
+            render_workspace_marker()
+            render_workspace_theme_switcher()
+            tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
+            with tab_inputs:
+                data = render_evaluation_form(compact=True)
+                render_analysis_error()
+            with tab_report:
+                meta = st.session_state.get("analysis_meta") or {}
+                render_dashboard(st.session_state["analysis_result"], meta)
+        else:
+            data = render_evaluation_form(compact=False)
+
+        render_analysis_error()
+
+        resolved_key = resolve_api_key(data["api_key"])
+
+        if data["run_analysis"]:
+            clear_analysis_error()
+            if show_paywall():
+                return
+            if st.session_state.get("analysis_running"):
+                st.warning("An analysis is already running. Please wait for it to finish.")
+            else:
+                errors = validate_inputs(data)
+                if errors:
+                    st.error("Fix these items before running:")
+                    for err in errors:
+                        st.markdown(f"- {err}")
+                else:
+                    _run_analysis_pipeline(data, resolved_key)
+
+        install_workspace_motion()
+    finally:
+        _install_page_bridges()
 
 
 if __name__ == "__main__":
