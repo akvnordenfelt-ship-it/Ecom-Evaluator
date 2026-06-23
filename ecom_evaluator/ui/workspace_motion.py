@@ -159,6 +159,12 @@ _MOTION_JS = r"""
     const doc = win.document;
     if (!doc.querySelector(".cm-workspace")) return;
 
+    delete win.__cmToolScrollState;
+    delete win.__cmToolScrollCeilListeners;
+    win.scrollTo(0, 0);
+    doc.documentElement.scrollTop = 0;
+    doc.body.scrollTop = 0;
+
     function reveal(node) {
         if (!node.classList.contains("is-visible")) {
             node.classList.add("is-visible");

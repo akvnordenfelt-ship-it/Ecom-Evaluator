@@ -256,17 +256,14 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
 
     st.markdown('<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
 
-    if not compact:
-        _, theme_col = st.columns([2.2, 1], gap="small")
-        with theme_col:
-            render_workspace_theme_switcher()
-
     sidebar, main = st.columns([0.92, 2.08], gap="large")
 
     with sidebar:
         _render_tool_sidebar(api_key=api_key)
 
     with main:
+        if not compact:
+            render_workspace_theme_switcher()
         _render_tool_main_header(compact=compact)
 
         sales_price = _session_float("form_sales_price")

@@ -163,9 +163,13 @@ html:has(.cm-workspace) {
 .stApp:has(.cm-workspace) .block-container > div > [data-testid="stVerticalBlock"] {
     gap: 0.35rem !important;
 }
+.stApp:has(.cm-workspace) [data-testid="element-container"]:has(div[class*="st-key-ps_nav_"]),
+.stApp:has(.cm-workspace) [data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]),
 .stApp:has(.cm-workspace) [data-testid="element-container"]:has(iframe) {
+    display: none !important;
     height: 0 !important;
     min-height: 0 !important;
+    max-height: 0 !important;
     margin: 0 !important;
     padding: 0 !important;
     overflow: hidden !important;
@@ -174,7 +178,7 @@ html:has(.cm-workspace) {
 }
 .stApp:has(.cm-workspace) .cm-tool-form-layout-marker + [data-testid="stHorizontalBlock"] {
     margin-top: 0 !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0 !important;
 }
 .stApp:has(.cm-workspace) .cm-tool-main-head {
     animation: none !important;
@@ -201,7 +205,7 @@ html:has(.cm-workspace) {
 .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] {
     display: flex;
     justify-content: flex-end;
-    margin: 0 0 0.5rem;
+    margin: 0 0 0.65rem !important;
 }
 .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="stHorizontalBlock"] {
     gap: 0.2rem !important;
@@ -662,15 +666,6 @@ html:has(.cm-workspace) {
 }
 
 @media (max-width: 900px) {
-    .cm-tool-form-layout-marker + [data-testid="stHorizontalBlock"] {
-        flex-direction: column !important;
-    }
-    .cm-tool-form-layout-marker + [data-testid="stHorizontalBlock"] > [data-testid="column"]:first-child {
-        order: 2;
-    }
-    .cm-tool-form-layout-marker + [data-testid="stHorizontalBlock"] > [data-testid="column"]:last-child {
-        order: 1;
-    }
     .cm-tool-main-head { margin-bottom: 1.5rem; }
     .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="stHorizontalBlock"] {
         max-width: 100%;

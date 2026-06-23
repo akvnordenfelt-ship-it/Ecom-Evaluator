@@ -3703,15 +3703,7 @@ html.ps-nav-open body {
 
 SAAS_CHROME_CSS = """
 header[data-testid="stHeader"] { display: none !important; }
-div[class*="st-key-ps_nav_"] {
-    position: fixed !important;
-    left: -10000px !important;
-    top: 0 !important;
-    width: 1px !important;
-    height: 1px !important;
-    overflow: hidden !important;
-    opacity: 0 !important;
-}
+div[class*="st-key-ps_nav_"],
 div[class*="st-key-ps_sample_"] {
     position: fixed !important;
     left: -10000px !important;
@@ -3720,6 +3712,22 @@ div[class*="st-key-ps_sample_"] {
     height: 1px !important;
     overflow: hidden !important;
     opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+}
+[data-testid="element-container"]:has(div[class*="st-key-ps_nav_"]),
+[data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]),
+[data-testid="element-container"]:has(iframe) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    border: none !important;
 }
 """
 

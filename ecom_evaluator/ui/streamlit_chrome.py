@@ -98,6 +98,30 @@ div[class*="st-key-ps_sample_"] {
     visibility: hidden !important;
     pointer-events: none !important;
 }
+[data-testid="element-container"]:has(div[class*="st-key-ps_nav_"]),
+[data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
+    border: none !important;
+}
+[data-testid="element-container"]:has(iframe) {
+    display: none !important;
+    height: 0 !important;
+    min-height: 0 !important;
+    max-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    line-height: 0 !important;
+    border: none !important;
+}
 """
 
 STREAMLIT_BRANDING_HIDE_CSS = APP_STREAMLIT_HIDE_CSS + CLOUD_BADGE_HIDE_CSS + HIDDEN_BRIDGE_HOST_CSS
