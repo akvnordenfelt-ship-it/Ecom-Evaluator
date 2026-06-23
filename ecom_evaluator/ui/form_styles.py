@@ -2,7 +2,9 @@
 
 TOOL_FORM_CSS = """
 /* ── Theme tokens ─────────────────────────────────────────────────────────── */
-.stApp:has(.cm-workspace-mode-dark) {
+.stApp:has(.cm-workspace-mode-dark),
+.stApp:has(.cm-workspace-mode-original),
+.stApp:has(.cm-workspace-mode-black) {
     --ws-app-bg:
         radial-gradient(ellipse 70% 45% at 10% -5%, rgba(43, 89, 255, 0.16) 0%, transparent 55%),
         radial-gradient(ellipse 55% 40% at 95% 0%, rgba(30, 58, 138, 0.14) 0%, transparent 50%),
@@ -18,12 +20,13 @@ TOOL_FORM_CSS = """
     --ws-promo-border: rgba(147, 197, 253, 0.22);
     --ws-surface: rgba(255, 255, 255, 0.04);
     --ws-surface-border: rgba(255, 255, 255, 0.08);
-    --ws-card-bg: rgba(255, 255, 255, 0.05);
-    --ws-card-border: rgba(255, 255, 255, 0.1);
-    --ws-input-bg: rgba(255, 255, 255, 0.07);
-    --ws-input-border: rgba(255, 255, 255, 0.14);
-    --ws-input-focus: rgba(43, 89, 255, 0.65);
-    --ws-input-focus-ring: rgba(43, 89, 255, 0.15);
+    --ws-card-bg: rgba(19, 29, 50, 0.92);
+    --ws-card-border: rgba(147, 197, 253, 0.22);
+    --ws-input-bg: #131D32;
+    --ws-input-text: #F5F5F7;
+    --ws-input-border: rgba(147, 197, 253, 0.28);
+    --ws-input-focus: #5B8CFF;
+    --ws-input-focus-ring: rgba(91, 140, 255, 0.22);
     --ws-divider: rgba(255, 255, 255, 0.08);
     --ws-tab-bg: rgba(255, 255, 255, 0.05);
     --ws-tab-text: #AEAEB2;
@@ -46,7 +49,8 @@ TOOL_FORM_CSS = """
     --ws-locked-border: rgba(255, 255, 255, 0.08);
 }
 
-.stApp:has(.cm-workspace-mode-bright) {
+.stApp:has(.cm-workspace-mode-bright),
+.stApp:has(.cm-workspace-mode-white) {
     --ws-app-bg: #F5F5FA;
     --ws-text: #1D1D1F;
     --ws-text-muted: #48484A;
@@ -62,6 +66,7 @@ TOOL_FORM_CSS = """
     --ws-card-bg: #FFFFFF;
     --ws-card-border: #C7C7CC;
     --ws-input-bg: #FFFFFF;
+    --ws-input-text: #1D1D1F;
     --ws-input-border: #AEAEB2;
     --ws-input-focus: #2B59FF;
     --ws-input-focus-ring: rgba(43, 89, 255, 0.18);
@@ -214,7 +219,9 @@ html:has(.cm-workspace) {
     box-shadow: none !important;
     filter: none !important;
 }
-.stApp:has(.cm-workspace-mode-dark) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
+.stApp:has(.cm-workspace-mode-dark) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"],
+.stApp:has(.cm-workspace-mode-original) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"],
+.stApp:has(.cm-workspace-mode-black) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
     background: transparent !important;
     background-color: transparent !important;
     background-image: none !important;
@@ -222,7 +229,8 @@ html:has(.cm-workspace) {
     -webkit-text-fill-color: var(--ws-segment-idle-text) !important;
     border: 1px solid transparent !important;
 }
-.stApp:has(.cm-workspace-mode-bright) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
+.stApp:has(.cm-workspace-mode-bright) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"],
+.stApp:has(.cm-workspace-mode-white) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-secondary"] {
     background: transparent !important;
     background-color: transparent !important;
     color: var(--ws-segment-idle-text) !important;
@@ -236,7 +244,9 @@ html:has(.cm-workspace) {
     color: inherit !important;
     -webkit-text-fill-color: inherit !important;
 }
-.stApp:has(.cm-workspace-mode-dark) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
+.stApp:has(.cm-workspace-mode-dark) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"],
+.stApp:has(.cm-workspace-mode-original) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"],
+.stApp:has(.cm-workspace-mode-black) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
     background: var(--ws-segment-active-bg) !important;
     background-color: var(--ws-segment-active-bg) !important;
     background-image: none !important;
@@ -244,7 +254,8 @@ html:has(.cm-workspace) {
     -webkit-text-fill-color: var(--ws-segment-active-text) !important;
     border: 1px solid var(--ws-segment-active-border) !important;
 }
-.stApp:has(.cm-workspace-mode-bright) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
+.stApp:has(.cm-workspace-mode-bright) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"],
+.stApp:has(.cm-workspace-mode-white) div[class*="st-key-ws_theme_pick_"] button[data-testid="stBaseButton-primary"] {
     background: var(--ws-segment-active-bg) !important;
     background-color: var(--ws-segment-active-bg) !important;
     background-image: none !important;
@@ -487,13 +498,67 @@ html:has(.cm-workspace) {
 .stApp:has(.cm-workspace) [data-testid="stTextInput"] input,
 .stApp:has(.cm-workspace) [data-testid="stNumberInput"] input,
 .stApp:has(.cm-workspace) [data-testid="stTextArea"] textarea {
+    background-color: var(--ws-input-bg) !important;
     background: var(--ws-input-bg) !important;
     border: 1px solid var(--ws-input-border) !important;
     border-radius: 12px !important;
-    color: var(--ws-text) !important;
+    color: var(--ws-input-text, var(--ws-text)) !important;
+    -webkit-text-fill-color: var(--ws-input-text, var(--ws-text)) !important;
+    caret-color: var(--ws-input-text, var(--ws-text)) !important;
     min-height: 2.85rem;
     font-size: 0.9375rem !important;
     box-shadow: none !important;
+}
+.stApp:has(.cm-workspace) [data-testid="stTextInput"] > div,
+.stApp:has(.cm-workspace) [data-testid="stTextInput"] > div > div,
+.stApp:has(.cm-workspace) [data-testid="stNumberInput"] > div,
+.stApp:has(.cm-workspace) [data-testid="stNumberInput"] > div > div,
+.stApp:has(.cm-workspace) [data-testid="stTextArea"] > div,
+.stApp:has(.cm-workspace) [data-testid="stTextArea"] > div > div,
+.stApp:has(.cm-workspace) [data-testid="stTextInput"] [data-baseweb="input"],
+.stApp:has(.cm-workspace) [data-testid="stNumberInput"] [data-baseweb="input"],
+.stApp:has(.cm-workspace) [data-testid="stTextArea"] [data-baseweb="textarea"] {
+    background: transparent !important;
+    background-color: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+}
+.stApp:has(.cm-workspace-mode-dark) [data-testid="stTextInput"] input,
+.stApp:has(.cm-workspace-mode-dark) [data-testid="stNumberInput"] input,
+.stApp:has(.cm-workspace-mode-dark) [data-testid="stTextArea"] textarea,
+.stApp:has(.cm-workspace-mode-original) [data-testid="stTextInput"] input,
+.stApp:has(.cm-workspace-mode-original) [data-testid="stNumberInput"] input,
+.stApp:has(.cm-workspace-mode-original) [data-testid="stTextArea"] textarea,
+.stApp:has(.cm-workspace-mode-black) [data-testid="stTextInput"] input,
+.stApp:has(.cm-workspace-mode-black) [data-testid="stNumberInput"] input,
+.stApp:has(.cm-workspace-mode-black) [data-testid="stTextArea"] textarea {
+    background-color: #131D32 !important;
+    background: #131D32 !important;
+    color: #F5F5F7 !important;
+    -webkit-text-fill-color: #F5F5F7 !important;
+    caret-color: #F5F5F7 !important;
+    border-color: rgba(147, 197, 253, 0.28) !important;
+}
+.stApp:has(.cm-workspace-mode-dark) [data-testid="stTextInput"] input:-webkit-autofill,
+.stApp:has(.cm-workspace-mode-dark) [data-testid="stNumberInput"] input:-webkit-autofill,
+.stApp:has(.cm-workspace-mode-original) [data-testid="stTextInput"] input:-webkit-autofill,
+.stApp:has(.cm-workspace-mode-original) [data-testid="stNumberInput"] input:-webkit-autofill {
+    -webkit-box-shadow: 0 0 0 1000px #131D32 inset !important;
+    -webkit-text-fill-color: #F5F5F7 !important;
+    caret-color: #F5F5F7 !important;
+}
+.stApp:has(.cm-workspace-mode-bright) [data-testid="stTextInput"] input,
+.stApp:has(.cm-workspace-mode-bright) [data-testid="stNumberInput"] input,
+.stApp:has(.cm-workspace-mode-bright) [data-testid="stTextArea"] textarea,
+.stApp:has(.cm-workspace-mode-white) [data-testid="stTextInput"] input,
+.stApp:has(.cm-workspace-mode-white) [data-testid="stNumberInput"] input,
+.stApp:has(.cm-workspace-mode-white) [data-testid="stTextArea"] textarea {
+    background-color: #FFFFFF !important;
+    background: #FFFFFF !important;
+    color: #1D1D1F !important;
+    -webkit-text-fill-color: #1D1D1F !important;
+    caret-color: #1D1D1F !important;
+    border-color: #AEAEB2 !important;
 }
 .stApp:has(.cm-workspace) [data-testid="stTextInput"] input::placeholder,
 .stApp:has(.cm-workspace) [data-testid="stTextArea"] textarea::placeholder {

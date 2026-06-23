@@ -62,14 +62,14 @@ header[data-testid="stHeader"] { background: transparent !important; }
 
 /* Hide default Streamlit chrome — see streamlit_chrome.py for full rules */
 
-/* Cards & bordered containers */
-div[data-testid="stVerticalBlockBorderWrapper"] {
+/* Cards & bordered containers — not on tool workspace */
+.stApp:not(:has(.cm-workspace)) div[data-testid="stVerticalBlockBorderWrapper"] {
     background: var(--ps-surface) !important;
     border: 1px solid var(--ps-border) !important;
     border-radius: var(--ps-radius) !important;
     box-shadow: var(--ps-shadow) !important;
 }
-div[data-testid="stVerticalBlockBorderWrapper"] > div {
+.stApp:not(:has(.cm-workspace)) div[data-testid="stVerticalBlockBorderWrapper"] > div {
     padding: 0.35rem 0.15rem !important;
 }
 
@@ -724,27 +724,27 @@ html.cm-auth-active [data-testid="stExpander"] code,
 }
 .form-card-label { display: none; }
 
-/* Inputs */
-div[data-testid="stTextInput"] label,
-div[data-testid="stNumberInput"] label,
-div[data-testid="stTextArea"] label,
-div[data-testid="stFileUploader"] label {
+/* Inputs — landing / legacy forms only (workspace has its own rules in form_styles.py) */
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextInput"] label,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stNumberInput"] label,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextArea"] label,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stFileUploader"] label {
     font-size: 0.82rem !important;
     font-weight: 600 !important;
     color: #334155 !important;
 }
-div[data-testid="stTextInput"] input,
-div[data-testid="stNumberInput"] input,
-div[data-testid="stTextArea"] textarea {
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextInput"] input,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stNumberInput"] input,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextArea"] textarea {
     background: var(--ps-surface) !important;
     border: 1px solid var(--ps-border) !important;
     border-radius: 8px !important;
     color: var(--ps-text) !important;
     transition: border-color 0.15s ease, box-shadow 0.15s ease !important;
 }
-div[data-testid="stTextInput"] input:focus,
-div[data-testid="stNumberInput"] input:focus,
-div[data-testid="stTextArea"] textarea:focus {
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextInput"] input:focus,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stNumberInput"] input:focus,
+.stApp:not(:has(.cm-workspace)) div[data-testid="stTextArea"] textarea:focus {
     outline: none !important;
     border-color: var(--ps-blue) !important;
     box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.18) !important;
