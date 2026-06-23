@@ -52,7 +52,7 @@ from ecom_evaluator.ui.workspace_theme import (
     render_workspace_marker,
     render_workspace_theme_switcher,
 )
-from ecom_evaluator.ui.workspace_motion import install_tool_scroll_ceil, install_workspace_motion
+from ecom_evaluator.ui.workspace_motion import install_workspace_motion
 from ecom_evaluator.ui.subscription import (
     APP_VIEW_AUTH,
     APP_VIEW_LIVE_CATALOG,
@@ -226,12 +226,9 @@ def main() -> None:
     has_report = st.session_state.get("analysis_result") is not None
 
     render_workspace_marker()
-    st.markdown('<div class="cm-tool-page-start" aria-hidden="true"></div>', unsafe_allow_html=True)
-    render_workspace_theme_switcher()
-    install_tool_scroll_ceil()
-    install_workspace_motion()
 
     if has_report:
+        render_workspace_theme_switcher()
         tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
         with tab_inputs:
             data = render_evaluation_form(compact=True)
@@ -260,6 +257,8 @@ def main() -> None:
                     st.markdown(f"- {err}")
             else:
                 _run_analysis_pipeline(data, resolved_key)
+
+    install_workspace_motion()
 
 
 if __name__ == "__main__":

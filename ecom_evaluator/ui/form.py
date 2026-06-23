@@ -19,6 +19,7 @@ from ecom_evaluator.ui.subscription import (
     user_can_run,
 )
 from ecom_evaluator.ui.branding import BRAND_TAGLINE, wordmark_html
+from ecom_evaluator.ui.workspace_theme import render_workspace_theme_switcher
 
 
 def render_app_header(*, hide_api_status: bool = False) -> None:
@@ -254,6 +255,11 @@ def render_evaluation_form(*, compact: bool = False) -> dict:
     api_key = st.session_state.get("settings_api_key", "")
 
     st.markdown('<div class="cm-tool-form-layout-marker" aria-hidden="true"></div>', unsafe_allow_html=True)
+
+    if not compact:
+        _, theme_col = st.columns([2.2, 1], gap="small")
+        with theme_col:
+            render_workspace_theme_switcher()
 
     sidebar, main = st.columns([0.92, 2.08], gap="large")
 

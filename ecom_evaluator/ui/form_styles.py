@@ -144,8 +144,7 @@ html:has(.cm-workspace) {
     overscroll-behavior-y: none;
 }
 .form-workspace-marker,
-.cm-tool-form-layout-marker,
-.cm-tool-page-start {
+.cm-tool-form-layout-marker {
     display: block;
     height: 0 !important;
     max-height: 0 !important;
@@ -156,11 +155,26 @@ html:has(.cm-workspace) {
     pointer-events: none !important;
 }
 .stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.form-workspace-marker),
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-tool-form-layout-marker),
-.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-tool-page-start) {
+.stApp:has(.cm-workspace) [data-testid="stMarkdownContainer"]:has(.cm-tool-form-layout-marker) {
     margin: 0 !important;
     padding: 0 !important;
     min-height: 0 !important;
+}
+.stApp:has(.cm-workspace) .block-container > div > [data-testid="stVerticalBlock"] {
+    gap: 0.35rem !important;
+}
+.stApp:has(.cm-workspace) [data-testid="element-container"]:has(iframe) {
+    height: 0 !important;
+    min-height: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    line-height: 0 !important;
+    border: none !important;
+}
+.stApp:has(.cm-workspace) .cm-tool-form-layout-marker + [data-testid="stHorizontalBlock"] {
+    margin-top: 0 !important;
+    margin-bottom: 0.5rem !important;
 }
 .stApp:has(.cm-workspace) .cm-tool-main-head {
     animation: none !important;
@@ -187,7 +201,7 @@ html:has(.cm-workspace) {
 .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] {
     display: flex;
     justify-content: flex-end;
-    margin: 0 0 1.25rem;
+    margin: 0 0 0.5rem;
 }
 .stApp:has(.cm-workspace) div[class*="st-key-workspace_theme_strip"] [data-testid="stHorizontalBlock"] {
     gap: 0.2rem !important;
@@ -418,7 +432,7 @@ html:has(.cm-workspace) {
 /* ── Main form ────────────────────────────────────────────────────────────── */
 .cm-tool-main-head {
     margin-bottom: 2rem;
-    padding-top: 0.25rem;
+    padding-top: 0;
 }
 .cm-tool-main-title {
     margin: 0 0 0.4rem;
