@@ -7,7 +7,7 @@ import html
 import streamlit as st
 import streamlit.components.v1 as components
 
-from ecom_evaluator.auth.session import get_current_user, is_authenticated, logout_user
+from ecom_evaluator.auth.session import auth_is_required, get_current_user, is_authenticated, logout_user
 from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT
 from ecom_evaluator.ui.branding import header_brand_html
 from ecom_evaluator.ui.subscription import (
@@ -15,6 +15,7 @@ from ecom_evaluator.ui.subscription import (
     APP_VIEW_LANDING,
     APP_VIEW_LIVE_CATALOG,
     APP_VIEW_TOOL,
+    enter_tool_view,
     evaluations_status_label,
     user_can_run,
 )
@@ -31,7 +32,7 @@ _CHEVRON_SVG = (
 _NavAction = str | None
 _NavAnchor = str | None
 
-NAV_ACTIONS = ("home", "login", "signup", "tool", "logout", "live_catalog")
+NAV_ACTIONS = ("home", "login", "signup", "evaluate", "tool", "logout", "live_catalog")
 NAV_ANCHORS = ("process", "sample", "pricing", "reviews", "resources")
 
 
@@ -68,8 +69,15 @@ def apply_nav_state(*, action: _NavAction = None, anchor: _NavAnchor = None) -> 
     elif action == "signup":
         st.session_state["app_view"] = APP_VIEW_AUTH
         st.session_state["auth_mode"] = "signup"
+    elif action == "evaluate":
+        if auth_is_required() and not is_authenticated():
+            st.session_state["app_view"] = APP_VIEW_AUTH
+            st.session_state["auth_mode"] = "signup"
+            st.session_state["auth_intent"] = "evaluate"
+        else:
+            enter_tool_view(focus_inputs=True)
     elif action == "tool":
-        st.session_state["app_view"] = APP_VIEW_TOOL
+        enter_tool_view(focus_inputs=True)
     elif action == "live_catalog":
         st.session_state["app_view"] = APP_VIEW_LIVE_CATALOG
     elif action == "logout":
@@ -153,19 +161,19 @@ def install_in_app_nav_bridge() -> None:
                 const selector = '[class*="st-key-ps_nav_' + keySuffix + '"]';
                 const host = doc.querySelector(selector);
                 if (!host) {
-                    if (tries < 8) {
+                    if (tries < 24) {
                         win.setTimeout(function () {
                             clickNavKey(keySuffix, tries + 1);
-                        }, 40);
+                        }, 50);
                     }
                     return false;
                 }
                 const button = host.querySelector("button");
                 if (!button) {
-                    if (tries < 8) {
+                    if (tries < 24) {
                         win.setTimeout(function () {
                             clickNavKey(keySuffix, tries + 1);
-                        }, 40);
+                        }, 50);
                     }
                     return false;
                 }
@@ -261,7 +269,7 @@ def _mega_menu_html() -> str:
         '<p class="site-header__mega-desc">Upload a product and get Sections 1–2 free in about 30 seconds. '
         f"{FREE_EVALUATIONS_PER_ACCOUNT} evaluations included — no credit card.</p>"
         + _nav_action_link(
-            action="signup",
+            action="evaluate",
             class_name="site-header__mega-link",
             text="Start free evaluation →",
         )
@@ -299,7 +307,7 @@ def _guest_actions_html() -> str:
     return (
         _nav_action_link(action="login", class_name="site-header__login", text="Log in")
         + _nav_action_link(
-            action="signup",
+            action="evaluate",
             class_name="site-header__cta",
             text="Start Free Evaluation →",
         )
@@ -332,7 +340,7 @@ def _mobile_nav_links_html() -> str:
 
 def _guest_mobile_bar_html() -> str:
     return _nav_action_link(
-        action="signup",
+        action="evaluate",
         class_name="site-header__cta site-header__cta--mobile-bar",
         text="Start Free →",
     )

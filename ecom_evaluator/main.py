@@ -216,6 +216,11 @@ def main() -> None:
                 render_auth_screen()
             elif view == APP_VIEW_LIVE_CATALOG:
                 render_live_catalog_page()
+            elif view == APP_VIEW_TOOL:
+                st.session_state["app_view"] = APP_VIEW_AUTH
+                st.session_state["auth_mode"] = "login"
+                st.session_state["auth_intent"] = "evaluate"
+                render_auth_screen()
             else:
                 render_landing_page()
             return
@@ -235,7 +240,11 @@ def main() -> None:
         if has_report:
             render_workspace_marker()
             render_workspace_theme_switcher()
-            tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
+            focus_inputs = bool(st.session_state.pop("tool_focus_inputs", False))
+            if focus_inputs:
+                tab_inputs, tab_report = st.tabs(["Product inputs", "Evaluation report"])
+            else:
+                tab_report, tab_inputs = st.tabs(["Evaluation report", "Product inputs"])
             with tab_inputs:
                 data = render_evaluation_form(compact=True)
                 render_analysis_error()

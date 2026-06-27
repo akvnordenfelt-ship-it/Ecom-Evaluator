@@ -96,20 +96,21 @@ div[class*="st-key-ps_sample_"] {
     overflow: hidden !important;
     opacity: 0 !important;
     visibility: hidden !important;
-    pointer-events: none !important;
 }
 [data-testid="element-container"]:has(div[class*="st-key-ps_nav_"]),
 [data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]) {
-    display: none !important;
-    height: 0 !important;
-    min-height: 0 !important;
-    max-height: 0 !important;
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    overflow: hidden !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
     margin: 0 !important;
     padding: 0 !important;
-    overflow: hidden !important;
-    visibility: hidden !important;
-    pointer-events: none !important;
     border: none !important;
+    z-index: -1 !important;
 }
 [data-testid="element-container"]:has(iframe) {
     display: none !important;

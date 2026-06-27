@@ -148,9 +148,21 @@ html:has(.cm-workspace) {
     gap: 0.35rem !important;
 }
 .stApp:has(.cm-workspace) [data-testid="element-container"]:has(div[class*="st-key-ps_nav_"]),
-.stApp:has(.cm-workspace) [data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]),
+.stApp:has(.cm-workspace) [data-testid="element-container"]:has(div[class*="st-key-ps_sample_"]) {
+    position: fixed !important;
+    left: -10000px !important;
+    top: 0 !important;
+    width: 1px !important;
+    height: 1px !important;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: hidden !important;
+    z-index: -1 !important;
+    border: none !important;
+}
 .stApp:has(.cm-workspace) [data-testid="element-container"]:has(iframe) {
-    display: none !important;
     height: 0 !important;
     min-height: 0 !important;
     max-height: 0 !important;

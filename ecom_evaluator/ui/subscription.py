@@ -62,8 +62,10 @@ def init_subscription_state() -> None:
     sync_user_evaluation_quota()
 
 
-def enter_tool_view() -> None:
+def enter_tool_view(*, focus_inputs: bool = False) -> None:
     st.session_state["app_view"] = APP_VIEW_TOOL
+    if focus_inputs:
+        st.session_state["tool_focus_inputs"] = True
 
 
 def go_to_landing(*, anchor: str | None = None) -> None:
@@ -87,14 +89,14 @@ def request_free_evaluation() -> None:
     if auth_is_required() and not is_authenticated():
         open_auth_screen(mode="login", intent="evaluate")
         return
-    enter_tool_view()
+    enter_tool_view(focus_inputs=True)
     st.rerun()
 
 
 def complete_post_auth_navigation() -> None:
     intent = st.session_state.pop("auth_intent", None)
     if intent == "evaluate":
-        enter_tool_view()
+        enter_tool_view(focus_inputs=True)
     else:
         st.session_state["app_view"] = APP_VIEW_LANDING
 

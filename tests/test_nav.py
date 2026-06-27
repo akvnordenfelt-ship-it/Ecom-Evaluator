@@ -25,6 +25,24 @@ def test_apply_nav_state_tool(monkeypatch):
     monkeypatch.setattr(st, "session_state", state, raising=False)
     assert apply_nav_state(action="tool") is True
     assert state["app_view"] == APP_VIEW_TOOL
+    assert state.get("tool_focus_inputs") is True
+
+
+def test_apply_nav_state_evaluate_guest(monkeypatch):
+    state = {"app_view": APP_VIEW_LANDING}
+    monkeypatch.setattr(st, "session_state", state, raising=False)
+    monkeypatch.setattr(
+        "ecom_evaluator.ui.navbar.auth_is_required",
+        lambda: True,
+    )
+    monkeypatch.setattr(
+        "ecom_evaluator.ui.navbar.is_authenticated",
+        lambda: False,
+    )
+    assert apply_nav_state(action="evaluate") is True
+    assert state["app_view"] == APP_VIEW_AUTH
+    assert state["auth_mode"] == "signup"
+    assert state["auth_intent"] == "evaluate"
 
 
 def test_apply_nav_state_login(monkeypatch):
