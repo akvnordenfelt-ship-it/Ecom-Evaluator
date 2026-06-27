@@ -20,7 +20,7 @@ from ecom_evaluator.gemini_client import run_product_evaluation
 from ecom_evaluator.plans import get_plan_config
 from ecom_evaluator.product_links import validate_product_url
 from ecom_evaluator.product_validation import product_name_error_message
-from ecom_evaluator.settings import resolve_api_key
+from ecom_evaluator.settings import resolve_api_key, resolve_anthropic_api_key
 from ecom_evaluator.ui.auth_screen import render_auth_screen
 from ecom_evaluator.ui.branding import brand_page_title, logo_path
 from ecom_evaluator.ui.streamlit_chrome import (
@@ -119,6 +119,7 @@ def _run_analysis_pipeline(data: dict, resolved_key: str) -> None:
         with st.spinner("Running product evaluation…"):
             result = run_product_evaluation(
                 api_key=resolved_key,
+                anthropic_api_key=resolve_anthropic_api_key(),
                 product_name=data["product_name"].strip(),
                 purchase_price=resolved.purchase_price,
                 sales_price=resolved.sales_price,

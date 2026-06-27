@@ -6,6 +6,7 @@ import html
 
 import streamlit as st
 
+from ecom_evaluator.ui.form_styles import TOOL_FORM_CSS
 from ecom_evaluator.ui.report_section_styles import REPORT_S12_CSS
 from ecom_evaluator.ui.landing_styles import AUTH_CM_CSS, LANDING_V2_CSS
 from ecom_evaluator.ui.workspace_motion import WORKSPACE_MOTION_CSS

@@ -26,4 +26,4 @@ def test_build_markdown_report_contains_sections():
     assert f"# Crow Metrics — Test Widget" in md
     assert "## Section 2 — Red flags" in md
     assert "## Section 3 — Verdict" in md
-    assert "## Section 4 — Marketing teaser" in md
+    assert "## Section 4 — Marketing blueprint" in md

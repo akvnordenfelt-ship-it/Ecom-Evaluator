@@ -58,3 +58,44 @@ def has_shared_api_key() -> bool:
 
 def uses_shared_api_key(form_key: str) -> bool:
     return has_shared_api_key() and not form_key.strip()
+
+
+def _read_anthropic_key_from_env() -> str:
+    return os.getenv("ANTHROPIC_API_KEY", "").strip()
+
+
+def _read_anthropic_key_from_streamlit_secrets() -> str:
+    try:
+        import streamlit as st
+
+        if not hasattr(st, "secrets"):
+            return ""
+        key = (st.secrets.get("ANTHROPIC_API_KEY") or "").strip()
+        if key:
+            return key
+        anthropic_block = st.secrets.get("anthropic")
+        if isinstance(anthropic_block, dict):
+            nested = (anthropic_block.get("api_key") or "").strip()
+            if nested:
+                return nested
+    except Exception:
+        pass
+    return ""
+
+
+def load_anthropic_api_key() -> str:
+    try:
+        from dotenv import load_dotenv
+
+        load_dotenv(PROJECT_ROOT / ".env")
+    except ImportError:
+        pass
+    return _read_anthropic_key_from_env() or _read_anthropic_key_from_streamlit_secrets()
+
+
+def resolve_anthropic_api_key() -> str:
+    return load_anthropic_api_key()
+
+
+def has_anthropic_api_key() -> bool:
+    return bool(load_anthropic_api_key())

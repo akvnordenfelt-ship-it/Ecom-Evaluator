@@ -1,6 +1,7 @@
 """Tests for Gemini client helpers (no live API calls)."""
 
-from ecom_evaluator.gemini_client import build_input_context, extract_json_text
+from ecom_evaluator.gemini_client import build_input_context
+from ecom_evaluator.llm_utils import extract_json_text
 
 
 def test_extract_json_text_strips_fences():

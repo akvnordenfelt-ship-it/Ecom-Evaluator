@@ -10,6 +10,19 @@ LIGHTWEIGHT_BASELINE_WIDTH_CM = 10.0
 LIGHTWEIGHT_BASELINE_HEIGHT_CM = 5.0
 DEFAULT_SALES_PRICE_MULTIPLIER = 3.0
 
+SALES_PLATFORMS = ("shopify", "amazon", "tiktok")
+PLATFORM_LABELS = {
+    "shopify": "Shopify / DTC",
+    "amazon": "Amazon FBA",
+    "tiktok": "TikTok Shop",
+}
+# Simplified all-in fee rates (payment + platform referral). Tune per your actual fee stack.
+PLATFORM_FEE_RATES: dict[str, float] = {
+    "shopify": 0.029,
+    "amazon": 0.15,
+    "tiktok": 0.08,
+}
+
 
 @dataclass(frozen=True)
 class ResolvedProductInputs:
@@ -155,6 +168,22 @@ class FinancialSummary:
     roi_pct: float
     break_even_cpa: float
     shipping_per_unit_usd: float
+    platform_fee_usd: float
+    platform_fee_pct: float
+    net_margin_usd: float
+    net_margin_pct: float
+    break_even_cpa_net: float
+
+
+@dataclass(frozen=True)
+class PlatformEconomicsRow:
+    platform: str
+    platform_label: str
+    fee_rate_pct: float
+    platform_fee_usd: float
+    net_margin_usd: float
+    net_margin_pct: float
+    break_even_cpa: float
 
 
 @dataclass(frozen=True)
@@ -167,16 +196,84 @@ class ScalingMatrixRow:
     net_profit_stressed: float
 
 
-def compute_financial_summary(econ: EconomicsSnapshot) -> FinancialSummary:
+def compute_platform_economics(econ: EconomicsSnapshot, platform: str = "shopify") -> PlatformEconomicsRow:
+    key = platform if platform in PLATFORM_FEE_RATES else "shopify"
+    fee_rate = PLATFORM_FEE_RATES[key]
+    ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
+    platform_fee = econ.sales_price * fee_rate if econ.sales_price > 0 else 0.0
+    net_margin = econ.gross_margin_usd - ship_mid - platform_fee
+    net_pct = (net_margin / econ.sales_price * 100) if econ.sales_price > 0 else 0.0
+    return PlatformEconomicsRow(
+        platform=key,
+        platform_label=PLATFORM_LABELS[key],
+        fee_rate_pct=fee_rate * 100,
+        platform_fee_usd=platform_fee,
+        net_margin_usd=net_margin,
+        net_margin_pct=net_pct,
+        break_even_cpa=max(0.0, net_margin),
+    )
+
+
+def compute_all_platform_economics(econ: EconomicsSnapshot) -> list[PlatformEconomicsRow]:
+    return [compute_platform_economics(econ, platform) for platform in SALES_PLATFORMS]
+
+
+def format_economics_for_verdict(
+    *,
+    econ: EconomicsSnapshot,
+    fin: FinancialSummary,
+    matrix: list[ScalingMatrixRow],
+    platform_rows: list[PlatformEconomicsRow],
+) -> str:
+    ship_low, ship_high = econ.shipping_band_usd
+    lines = [
+        "## Python-computed unit economics (authoritative — do not recalculate)",
+        f"- Purchase: ${econ.purchase_price:.2f} | Sell: ${econ.sales_price:.2f}",
+        f"- Gross margin: ${econ.gross_margin_usd:.2f} ({econ.gross_margin_pct:.1f}%)",
+        f"- Est. shipping: ${ship_low:.2f}–${ship_high:.2f} (mid ${fin.shipping_per_unit_usd:.2f})",
+        f"- Contribution after shipping: ${econ.contribution_margin_usd:.2f}",
+        f"- ROI on product cost: {fin.roi_pct:.1f}%",
+        f"- Break-even CPA (after shipping): ${fin.break_even_cpa:.2f}",
+        "",
+        "## Platform fees & net margin (Shopify default)",
+        f"- Platform fee: ${fin.platform_fee_usd:.2f} ({fin.platform_fee_pct:.1f}%)",
+        f"- Net margin after shipping + fees: ${fin.net_margin_usd:.2f} ({fin.net_margin_pct:.1f}%)",
+        f"- Break-even CPA (net): ${fin.break_even_cpa_net:.2f}",
+        "",
+        "## All platforms",
+    ]
+    for row in platform_rows:
+        lines.append(
+            f"- {row.platform_label}: fee {row.fee_rate_pct:.1f}% → "
+            f"net ${row.net_margin_usd:.2f}/unit ({row.net_margin_pct:.1f}%), "
+            f"break-even CPA ${row.break_even_cpa:.2f}"
+        )
+    lines.append("")
+    lines.append("## Volume scaling matrix (100 / 500 / 1000 units per month)")
+    for row in matrix:
+        lines.append(
+            f"- {row.units_per_month} units: revenue ${row.gross_revenue:,.0f}, "
+            f"net profit ${row.net_profit:,.0f} (stressed shipping +20%: ${row.net_profit_stressed:,.0f})"
+        )
+    return "\n".join(lines)
+
+
+def compute_financial_summary(econ: EconomicsSnapshot, platform: str = "shopify") -> FinancialSummary:
     ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
     roi = (econ.gross_margin_usd / econ.purchase_price * 100) if econ.purchase_price > 0 else 0.0
     break_even_cpa = max(0.0, econ.contribution_margin_usd)
+    platform_row = compute_platform_economics(econ, platform)
     return FinancialSummary(
         gross_margin_usd=econ.gross_margin_usd,
         gross_margin_pct=econ.gross_margin_pct,
         roi_pct=roi,
         break_even_cpa=break_even_cpa,
         shipping_per_unit_usd=ship_mid,
+        platform_fee_usd=platform_row.platform_fee_usd,
+        platform_fee_pct=platform_row.fee_rate_pct,
+        net_margin_usd=platform_row.net_margin_usd,
+        net_margin_pct=platform_row.net_margin_pct,
+        break_even_cpa_net=platform_row.break_even_cpa,
     )
 
 

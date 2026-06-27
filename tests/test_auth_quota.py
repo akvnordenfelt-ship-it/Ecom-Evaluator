@@ -19,7 +19,8 @@ def test_new_user_has_full_quota(quota_store):
 def test_increment_tracks_used_evaluations(quota_store):
     assert quota_store.increment_used("user-1") == 1
     assert quota_store.increment_used("user-1") == 2
-    assert evaluations_remaining(user_id="user-1", used_count=2) == 0
+    remaining = evaluations_remaining(user_id="user-1", used_count=2)
+    assert remaining == max(0, FREE_EVALUATIONS_PER_ACCOUNT - 2)
 
 
 def test_quota_isolated_per_user(quota_store):

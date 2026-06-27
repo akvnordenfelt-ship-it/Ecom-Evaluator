@@ -5,7 +5,12 @@ from __future__ import annotations
 from dataclasses import dataclass
 from enum import Enum
 
-from ecom_evaluator.config import FREE_EVALUATIONS_PER_ACCOUNT, GEMINI_MODEL, GEMINI_PRO_MODEL
+from ecom_evaluator.config import (
+    CLAUDE_OPUS_MODEL,
+    CLAUDE_SONNET_MODEL,
+    FREE_EVALUATIONS_PER_ACCOUNT,
+    GEMINI_MODEL,
+)
 
 UNLIMITED_EVALUATIONS = 999_999
 
@@ -23,9 +28,11 @@ class PlanConfig:
     monthly_evaluations: int
     ai_model_label: str
     gemini_model: str
-    gemini_pro_model: str
+    claude_sonnet_model: str
+    claude_opus_model: str
     runs_web_search: bool
     runs_marketing_teaser: bool
+    runs_financial_verdict: bool
     runs_competitor_sentiment: bool
     core_max_tokens: int
     premium_max_tokens: int
@@ -40,9 +47,11 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         monthly_evaluations=FREE_EVALUATIONS_PER_ACCOUNT,
         ai_model_label="Fast product analysis",
         gemini_model=GEMINI_MODEL,
-        gemini_pro_model=GEMINI_PRO_MODEL,
+        claude_sonnet_model=CLAUDE_SONNET_MODEL,
+        claude_opus_model=CLAUDE_OPUS_MODEL,
         runs_web_search=False,
         runs_marketing_teaser=False,
+        runs_financial_verdict=False,
         runs_competitor_sentiment=False,
         core_max_tokens=4096,
         premium_max_tokens=0,
@@ -53,15 +62,17 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Premium",
         price_usd_monthly=29,
         monthly_evaluations=UNLIMITED_EVALUATIONS,
-        ai_model_label="Full platform · advanced commercial AI engine",
+        ai_model_label="Full platform · Claude Sonnet + Opus CFO verdict",
         gemini_model=GEMINI_MODEL,
-        gemini_pro_model=GEMINI_PRO_MODEL,
+        claude_sonnet_model=CLAUDE_SONNET_MODEL,
+        claude_opus_model=CLAUDE_OPUS_MODEL,
         runs_web_search=True,
         runs_marketing_teaser=True,
+        runs_financial_verdict=True,
         runs_competitor_sentiment=True,
         core_max_tokens=4096,
         premium_max_tokens=8192,
-        web_search_max_results=4,
+        web_search_max_results=6,
     ),
 }
 

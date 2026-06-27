@@ -55,19 +55,34 @@ def build_markdown_report(
     ]
 
     if has_section_access("margin_matrix", tier):
-        lines.extend(
-            [
-                "## Section 3 — Verdict",
-                "",
-                f"**{verdict.emoji} {verdict.label}** — {verdict.subtitle} ({result.overall_score}/100)",
-                "",
-            ]
-        )
+        if result.has_financial_verdict():
+            lines.extend(
+                [
+                    "## Section 3 — Financial verdict",
+                    "",
+                    f"**{result.financial_verdict}** — {result.financial_verdict_headline}",
+                    "",
+                    result.cfo_summary or "",
+                    "",
+                ]
+            )
+            for condition in result.financial_conditions or []:
+                lines.append(f"- Condition: {condition}")
+            lines.append("")
+        else:
+            lines.extend(
+                [
+                    "## Section 3 — Verdict",
+                    "",
+                    f"**{verdict.emoji} {verdict.label}** — {verdict.subtitle} ({result.overall_score}/100)",
+                    "",
+                ]
+            )
 
     if result.has_marketing_teaser() and has_section_access("marketing_teaser", tier):
         lines.extend(
             [
-                "## Section 4 — Marketing teaser",
+                "## Section 4 — Marketing blueprint",
                 "",
                 f"- Primary channel: {result.marketing_primary_channel}",
                 f"- Hook index: {result.scroll_stopping_hook_index}/10",
@@ -77,6 +92,9 @@ def build_markdown_report(
                 "",
             ]
         )
+        for angle in result.marketing_angles or []:
+            lines.append(f"- Fresh angle: {angle}")
+        lines.append("")
 
     if result.has_web_intelligence():
         lines.extend(
@@ -84,6 +102,11 @@ def build_markdown_report(
                 "## Section 5 — Web intelligence",
                 "",
                 result.web_intelligence_summary or "",
+                "",
+                f"Price range: {result.competitor_price_range or 'N/A'}",
+                f"Demand trend: {result.demand_trend or 'N/A'}",
+                "",
+                result.market_timing_assessment or "",
                 "",
                 result.web_sourcing_links or "",
                 "",
@@ -99,6 +122,9 @@ def build_markdown_report(
                 "",
             ]
         )
+        if result.category_sentiment_score is not None:
+            lines.append(f"Category sentiment score: {result.category_sentiment_score}/100")
+            lines.append("")
         for point in result.sentiment_pain_points or []:
             lines.extend(
                 [

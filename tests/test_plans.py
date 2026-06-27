@@ -14,6 +14,7 @@ def test_free_plan_has_no_premium_features():
     assert free.monthly_evaluations == FREE_EVALUATIONS_PER_ACCOUNT
     assert not free.runs_web_search
     assert not free.runs_marketing_teaser
+    assert not free.runs_financial_verdict
     assert not free.runs_competitor_sentiment
 
 
@@ -21,7 +22,10 @@ def test_premium_runs_all_features():
     premium = PLAN_CONFIG[PlanTier.PREMIUM]
     assert premium.runs_web_search
     assert premium.runs_marketing_teaser
+    assert premium.runs_financial_verdict
     assert premium.runs_competitor_sentiment
+    assert premium.claude_sonnet_model
+    assert premium.claude_opus_model
     assert premium.monthly_evaluations == UNLIMITED_EVALUATIONS
 
 

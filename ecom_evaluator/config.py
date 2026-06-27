@@ -9,6 +9,16 @@ GEMINI_MODEL = os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
 GEMINI_PRO_MODEL = os.getenv("GEMINI_PRO_MODEL", "gemini-2.5-pro")
 GEMINI_MAX_OUTPUT_TOKENS = int(os.getenv("GEMINI_MAX_OUTPUT_TOKENS", "8192"))
 
+# Premium paid sections — Claude Sonnet default, Opus for Section 3 CFO verdict only
+CLAUDE_SONNET_MODEL = os.getenv("CLAUDE_SONNET_MODEL", "claude-sonnet-4-6")
+CLAUDE_OPUS_MODEL = os.getenv("CLAUDE_OPUS_MODEL", "claude-opus-4-8")
+CLAUDE_MAX_OUTPUT_TOKENS = int(os.getenv("CLAUDE_MAX_OUTPUT_TOKENS", "8192"))
+
+# Optional scraping provider for Sections 5–6 (apify | scraperapi | none)
+SCRAPER_PROVIDER = os.getenv("SCRAPER_PROVIDER", "none").strip().lower()
+APIFY_API_TOKEN = os.getenv("APIFY_API_TOKEN", "").strip()
+SCRAPERAPI_KEY = os.getenv("SCRAPERAPI_KEY", "").strip()
+
 # Legacy env names still supported
 GROQ_MODEL = GEMINI_MODEL
 GROQ_VISION_MODEL = GEMINI_MODEL

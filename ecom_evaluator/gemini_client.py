@@ -13,34 +13,41 @@ from google.genai import types
 from pydantic import BaseModel, ValidationError
 
 from ecom_evaluator.config import (
-    GEMINI_MAX_OUTPUT_TOKENS,
     GEMINI_MODEL,
-    GEMINI_PRO_MODEL,
     MAX_API_ATTEMPTS,
     MAX_PARSE_ATTEMPTS,
     RETRY_BACKOFF_SECONDS,
     TRANSIENT_API_CODES,
 )
-from ecom_evaluator.economics import compute_economics_snapshot
+from ecom_evaluator.economics import (
+    compute_all_platform_economics,
+    compute_economics_snapshot,
+    compute_financial_summary,
+    compute_scaling_matrix,
+    format_economics_for_verdict,
+)
 from ecom_evaluator.exceptions import AnalysisError
 from ecom_evaluator.llm_normalize import (
-    normalize_free_evaluation_payload,
     normalize_competitor_sentiment_payload,
-    normalize_marketing_teaser_payload,
+    normalize_financial_verdict_payload,
+    normalize_free_evaluation_payload,
+    normalize_marketing_blueprint_payload,
     normalize_web_intelligence_payload,
 )
+from ecom_evaluator.llm_utils import extract_json_text, is_transient_api_error
+from ecom_evaluator.market_data import run_market_research
 from ecom_evaluator.models import (
+    CompetitorSentimentPayload,
+    FinancialVerdictPayload,
     FreeCorePayload,
     MarketSearchHit,
-    CompetitorSentimentPayload,
-    MarketingTeaserPayload,
+    MarketingBlueprintPayload,
     ProductEvaluationResponse,
     WebIntelligencePayload,
 )
 from ecom_evaluator.plans import PlanTier, get_plan_config
 from ecom_evaluator.product_links import ProductLinkInfo, format_product_link_for_prompt
 from ecom_evaluator.scoring import format_scoring_guidance_for_prompt
-from ecom_evaluator.web_search import format_web_research_for_prompt, run_web_market_research
 
 FREE_TIER_JSON = """
 Return ONE flat JSON object. Use STRING values for all scores (e.g. "72" not 72).
@@ -90,42 +97,87 @@ anchors in the user message. Do NOT output marketing channel recommendations or 
 
 {FREE_TIER_JSON}"""
 
-MARKETING_TEASER_JSON = """
+FINANCIAL_VERDICT_JSON = """
 Return ONE flat JSON object with STRING values only:
-"marketing_primary_channel", "scroll_stopping_hook_index", "buyer_persona_hint", "marketing_teaser"
+"financial_verdict", "financial_verdict_headline", "cfo_summary",
+"financial_conditions", "financial_key_risks"
 
-marketing_primary_channel: TikTok Organic vs Meta Paid (pick one primary recommendation).
-scroll_stopping_hook_index: string "1" to "10" for Scroll-Stopping Visual Hook Index.
-buyer_persona_hint: Core Buyer Persona mapping in 2-3 sentences.
-marketing_teaser: Strategic direction only — NO full ad scripts.
+financial_verdict: exactly one of "GO", "NO-GO", or "CONDITIONAL GO"
+- GO only if net margins survive realistic shipping + platform fees AND break-even CPA leaves room for paid acquisition.
+- NO-GO if contribution or net margin is negative, or break-even CPA is below typical Meta/TikTok CPCs for this category.
+- CONDITIONAL GO when viable only with specific guardrails (MOQ, price floor, channel choice).
+
+financial_verdict_headline: one punchy CFO-style headline (max 12 words).
+cfo_summary: 3–5 sentences — read like a finance committee memo referencing the Python numbers provided.
+financial_conditions: array of 2–5 specific conditions for launch (e.g. "Hold CPA below $X", "Confirm COGS at MOQ 500").
+financial_key_risks: array of 2–5 quantified or operational risks tied to this product's numbers.
+Do NOT recalculate margins — treat Python economics as ground truth.
 """
 
-MARKETING_TEASER_SYSTEM = f"""You are a DTC growth strategist.
-Based on the product profile and scores already computed, output the Marketing Viability Teaser.
+FINANCIAL_VERDICT_SYSTEM = f"""You are a CFO who has scaled multiple 8-figure DTC brands.
+Synthesize the provided Python-computed unit economics into a final investment verdict.
+Be decisive. Reference specific dollar amounts from the data. No generic platitudes.
 
-{MARKETING_TEASER_JSON}"""
+{FINANCIAL_VERDICT_JSON}"""
+
+MARKETING_BLUEPRINT_JSON = """
+Return ONE flat JSON object. Use STRING values for scroll_stopping_hook_index (e.g. "7" not 7).
+
+Keys exactly:
+"marketing_primary_channel", "scroll_stopping_hook_index", "buyer_persona_hint", "marketing_teaser",
+"competitor_ad_angles", "marketing_angles", "ad_script_frameworks", "targeting_stack", "influencer_dm_templates"
+
+marketing_primary_channel: TikTok Organic vs Meta Paid (pick one primary).
+scroll_stopping_hook_index: string "1" to "10".
+buyer_persona_hint: 2–3 sentences.
+marketing_teaser: strategic direction summary (2–3 sentences).
+
+competitor_ad_angles: array of 3 strings — angles competitors are likely running in Meta Ad Library / TikTok Creative Center for THIS product category.
+marketing_angles: array of EXACTLY 3 DISTINCT fresh angles the user has NOT seen in competitor ads.
+ad_script_frameworks: array of EXACTLY 5 objects, each with "platform", "hook", "body", "cta" — TikTok/Reels ready frameworks.
+targeting_stack: multi-paragraph brief covering Facebook AND TikTok interest categories, age/gender, exclusions, and budget split guidance.
+influencer_dm_templates: array of EXACTLY 3 copy-paste DM templates for micro-influencer outreach.
+"""
+
+MARKETING_BLUEPRINT_SYSTEM = f"""You are a senior performance media buyer and creative strategist for 8-figure DTC brands.
+Using the product profile, scores, and category knowledge, produce a complete marketing blueprint — not a teaser.
+Competitor angles should reflect realistic Meta/TikTok ad patterns for this niche.
+Fresh marketing_angles must be genuinely differentiated from competitor_ad_angles.
+
+{MARKETING_BLUEPRINT_JSON}"""
 
 WEB_INTEL_JSON = """
-Return ONE flat JSON object with STRING values only:
-"web_intelligence_summary", "web_amazon_snapshot", "web_aliexpress_sourcing",
-"web_competitor_tracking", "web_sourcing_links"
+Return ONE flat JSON object with STRING values only except supplier_recommendations array and demand_trend.
 
-Cite real URLs and listing titles from the web research provided. sourcing_links should list actionable supplier/competitor URLs.
+Keys exactly:
+"web_intelligence_summary", "web_amazon_snapshot", "web_aliexpress_sourcing",
+"web_competitor_tracking", "web_sourcing_links",
+"supplier_recommendations", "competitor_price_range", "demand_trend", "market_timing_assessment"
+
+Cite real URLs and listing titles from the web research provided.
+supplier_recommendations: array of EXACTLY 3 objects with "name", "url", "price_signal", "moq_signal", "rating_signal".
+competitor_price_range: e.g. "$19–$34 on Amazon for comparable SKUs".
+demand_trend: exactly "rising", "stable", or "declining" based on search/trend signals in the research.
+market_timing_assessment: 2–3 sentences on whether now is a good window to launch.
 """
 
 WEB_INTEL_SYSTEM = f"""You are a competitive intelligence analyst for e-commerce brands.
-Synthesize the live web research into sourcing and competitor intelligence.
+Synthesize live web research into a structured intelligence report — suppliers, pricing, demand trend, and timing.
+If research is thin, state uncertainty explicitly rather than inventing listings.
 
 {WEB_INTEL_JSON}"""
 
 COMPETITOR_SENTIMENT_JSON = """
-Return ONE flat JSON object. Use STRING values for anger_frustration_index (e.g. "78" not 78).
+Return ONE flat JSON object. Use STRING values for anger_frustration_index and category_sentiment_score.
 
 Keys exactly:
-"sentiment_executive_summary",
-"sentiment_pain_points",
-"sentiment_improvement_directives",
-"sentiment_shopify_hooks"
+"sentiment_executive_summary", "category_sentiment_score",
+"praised_features", "unmet_needs",
+"sentiment_pain_points", "sentiment_improvement_directives", "sentiment_shopify_hooks"
+
+category_sentiment_score: string "0" to "100" — overall category sentiment (100 = delighted customers, 0 = toxic category).
+praised_features: array of 3–5 strings — what customers love in competing products.
+unmet_needs: array of 2–4 strings — gaps competitors are NOT addressing.
 
 sentiment_executive_summary: 2-3 sentences summarizing competitor weakness patterns in THIS niche.
 
@@ -137,26 +189,22 @@ sentiment_pain_points: array of EXACTLY 3 objects, each with:
 
 sentiment_improvement_directives: array of EXACTLY 3 objects aligned 1:1 with pain_points, each with:
 - "linked_category": must match the corresponding pain point category
-- "engineering_directive": concrete manufacturing, materials, QC, packaging, or sourcing fix — not generic marketing advice
+- "engineering_directive": concrete manufacturing, materials, QC, packaging, or sourcing fix
 - "roi_badge": exactly "High ROI Improvement" or "Low-Cost / High-Value"
 
-sentiment_shopify_hooks: array of 2–3 objects with:
-- "angle": short label for the positioning angle
-- "copy_block": 1–2 sentences of Shopify-ready copy that explicitly contrasts your improved product vs. competitor failures
+sentiment_shopify_hooks: array of 2–3 objects with "angle" and "copy_block".
 """
 
-COMPETITOR_SENTIMENT_SYSTEM = f"""You are a senior product strategist and manufacturing consultant for DTC brands.
-Analyze the specific product niche using web research, category knowledge, and the user's product inputs.
+COMPETITOR_SENTIMENT_SYSTEM = f"""You are a senior product strategist who has read thousands of Amazon and Trustpilot reviews.
+Analyze the product niche using web research, category knowledge, and the user's product inputs.
 
-Your job: extract realistic competitor weaknesses from typical 1–3 star review patterns in this category,
-then translate each weakness into an exact engineering or sourcing improvement for the user's product.
+Extract realistic competitor weaknesses from typical 1–3 star review patterns, praised features customers value,
+and unmet needs. Translate weaknesses into exact engineering improvements.
 
 Rules:
 - Be niche-specific — reference materials, components, sizing, instructions, or QC steps relevant to THIS product.
-- Do NOT output generic advice like "improve quality" without naming what to change.
 - Do NOT invent fake review counts or star averages.
-- Each improvement must map directly to a listed pain point.
-- Shopify hooks must call out competitor failures and your concrete fixes.
+- category_sentiment_score reflects how happy buyers are with CURRENT competitors overall.
 
 {COMPETITOR_SENTIMENT_JSON}"""
 
@@ -246,26 +294,6 @@ def build_user_parts(
     if image_bytes:
         parts.append(types.Part.from_bytes(data=image_bytes, mime_type=image_mime or "image/jpeg"))
     return parts
-
-
-def extract_json_text(raw: str) -> str:
-    text = raw.strip()
-    if not text.startswith("```"):
-        return text
-    lines = text.splitlines()
-    if lines[0].startswith("```"):
-        lines = lines[1:]
-    if lines and lines[-1].strip() == "```":
-        lines = lines[:-1]
-    return "\n".join(lines).strip()
-
-
-def is_transient_api_error(exc: Exception) -> bool:
-    status_code = getattr(exc, "status_code", None) or getattr(exc, "code", None)
-    if status_code in TRANSIENT_API_CODES:
-        return True
-    message = str(exc).lower()
-    return any(p in message for p in ("rate limit", "overloaded", "try again", "503", "429"))
 
 
 def api_error_message(exc: Exception) -> str:
@@ -370,6 +398,7 @@ def run_phase_with_retries(
 def run_product_evaluation(
     *,
     api_key: str,
+    anthropic_api_key: str = "",
     product_name: str,
     purchase_price: float,
     sales_price: float,
@@ -432,43 +461,91 @@ def run_product_evaluation(
 
     result = ProductEvaluationResponse.model_validate(free_core.model_dump())
 
-    if plan.runs_marketing_teaser:
-        with st.spinner("Building marketing blueprint (advanced AI engine)…"):
-            teaser = run_phase_with_retries(
-                client,
-                model=plan.gemini_model,
-                system_instruction=MARKETING_TEASER_SYSTEM,
-                user_parts=build_user_parts(
-                    f"{context}\n\nOverall score: {result.overall_score}/100.\n"
-                    "Return marketing teaser JSON now.",
-                    image_bytes,
-                    image_mime,
+    from ecom_evaluator.llm_router import run_phase_with_retries as run_routed_phase
+
+    if plan.runs_financial_verdict:
+        econ = compute_economics_snapshot(
+            purchase_price=purchase_price,
+            sales_price=sales_price,
+            weight_kg=weight_kg,
+            length_cm=length_cm,
+            width_cm=width_cm,
+            height_cm=height_cm,
+        )
+        fin = compute_financial_summary(econ)
+        matrix = compute_scaling_matrix(econ)
+        platform_rows = compute_all_platform_economics(econ)
+        economics_block = format_economics_for_verdict(
+            econ=econ,
+            fin=fin,
+            matrix=matrix,
+            platform_rows=platform_rows,
+        )
+        with st.spinner("CFO verdict synthesis (Claude Opus)…"):
+            verdict_block = run_routed_phase(
+                provider="anthropic",
+                gemini_client=client,
+                anthropic_api_key=anthropic_api_key,
+                model=plan.claude_opus_model,
+                system_instruction=FINANCIAL_VERDICT_SYSTEM,
+                user_prompt=(
+                    f"{context}\n\n{economics_block}\n\n"
+                    f"Overall product score: {result.overall_score}/100.\n"
+                    "Return financial verdict JSON now."
                 ),
-                model_class=MarketingTeaserPayload,
-                normalize_fn=normalize_marketing_teaser_payload,
-                phase_label="Marketing teaser",
+                image_bytes=image_bytes,
+                image_mime=image_mime,
+                model_class=FinancialVerdictPayload,
+                normalize_fn=normalize_financial_verdict_payload,
+                phase_label="Financial verdict",
+                max_output_tokens=plan.premium_max_tokens,
+                temperature=0.25,
+            )
+        result = result.model_copy(update=verdict_block.model_dump())
+
+    if plan.runs_marketing_teaser:
+        with st.spinner("Building marketing blueprint (Claude Sonnet)…"):
+            blueprint = run_routed_phase(
+                provider="anthropic",
+                gemini_client=client,
+                anthropic_api_key=anthropic_api_key,
+                model=plan.claude_sonnet_model,
+                system_instruction=MARKETING_BLUEPRINT_SYSTEM,
+                user_prompt=(
+                    f"{context}\n\nOverall score: {result.overall_score}/100.\n"
+                    "Return marketing blueprint JSON now."
+                ),
+                image_bytes=image_bytes,
+                image_mime=image_mime,
+                model_class=MarketingBlueprintPayload,
+                normalize_fn=normalize_marketing_blueprint_payload,
+                phase_label="Marketing blueprint",
                 max_output_tokens=plan.premium_max_tokens,
             )
-        result = result.model_copy(update=teaser.model_dump())
+        result = result.model_copy(update=blueprint.model_dump())
 
     if plan.runs_web_search:
-        hits = web_research or run_web_market_research(
-            product_name=product_name,
-            description=description,
-            max_results=plan.web_search_max_results,
-            product_url=product_url,
-        )
-        web_text = format_web_research_for_prompt(hits)
-        with st.spinner("Scanning live market intelligence…"):
-            web_block = run_phase_with_retries(
-                client,
-                model=plan.gemini_model,
+        if web_research is not None:
+            from ecom_evaluator.web_search import format_web_research_for_prompt
+
+            web_text = format_web_research_for_prompt(web_research)
+        else:
+            _, web_text = run_market_research(
+                product_name=product_name,
+                description=description,
+                max_results=plan.web_search_max_results,
+                product_url=product_url,
+            )
+        with st.spinner("Scanning live market intelligence (Claude Sonnet)…"):
+            web_block = run_routed_phase(
+                provider="anthropic",
+                gemini_client=client,
+                anthropic_api_key=anthropic_api_key,
+                model=plan.claude_sonnet_model,
                 system_instruction=WEB_INTEL_SYSTEM,
-                user_parts=build_user_parts(
-                    f"{context}\n\n{web_text}\n\nReturn web intelligence JSON now.",
-                    image_bytes,
-                    image_mime,
-                ),
+                user_prompt=f"{context}\n\n{web_text}\n\nReturn web intelligence JSON now.",
+                image_bytes=image_bytes,
+                image_mime=image_mime,
                 model_class=WebIntelligencePayload,
                 normalize_fn=normalize_web_intelligence_payload,
                 phase_label="Web intelligence",
@@ -477,19 +554,21 @@ def run_product_evaluation(
         result = result.model_copy(update=web_block.model_dump())
 
         if plan.runs_competitor_sentiment:
-            with st.spinner("Analyzing competitor review sentiment…"):
-                sentiment_block = run_phase_with_retries(
-                    client,
-                    model=plan.gemini_pro_model or GEMINI_PRO_MODEL,
+            with st.spinner("Analyzing competitor review sentiment (Claude Sonnet)…"):
+                sentiment_block = run_routed_phase(
+                    provider="anthropic",
+                    gemini_client=client,
+                    anthropic_api_key=anthropic_api_key,
+                    model=plan.claude_sonnet_model,
                     system_instruction=COMPETITOR_SENTIMENT_SYSTEM,
-                    user_parts=build_user_parts(
+                    user_prompt=(
                         f"{context}\n\n{web_text}\n\n"
                         f"Overall score: {result.overall_score}. "
                         f"Primary channel: {result.marketing_primary_channel or 'N/A'}.\n"
-                        "Return competitor sentiment JSON now.",
-                        image_bytes,
-                        image_mime,
+                        "Return competitor sentiment JSON now."
                     ),
+                    image_bytes=image_bytes,
+                    image_mime=image_mime,
                     model_class=CompetitorSentimentPayload,
                     normalize_fn=normalize_competitor_sentiment_payload,
                     phase_label="Competitor sentiment",

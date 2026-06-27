@@ -13,6 +13,7 @@ import streamlit as st
 
 from ecom_evaluator.config import PLOTLY_CHART_CONFIG
 from ecom_evaluator.economics import (
+    compute_all_platform_economics,
     compute_economics_snapshot,
     compute_financial_summary,
     compute_scaling_matrix,
@@ -487,7 +488,7 @@ def render_section_2(result: ProductEvaluationResponse) -> None:
     )
 
 
-def render_section_3(meta: dict | None, overall_score: int, tier: PlanTier) -> None:
+def render_section_3(result: ProductEvaluationResponse, meta: dict | None, tier: PlanTier) -> None:
     render_section_header("margin_matrix")
     if not has_section_access("margin_matrix", tier):
         render_locked_card(section_id="margin_matrix")
@@ -507,6 +508,7 @@ def render_section_3(meta: dict | None, overall_score: int, tier: PlanTier) -> N
     )
     fin = compute_financial_summary(econ)
     matrix = compute_scaling_matrix(econ)
+    platform_rows = compute_all_platform_economics(econ)
 
     if meta.get("used_sales_price_estimate"):
         st.caption("Selling price was estimated at 3× purchase cost — confirm your target price before scaling.")
@@ -516,13 +518,31 @@ def render_section_3(meta: dict | None, overall_score: int, tier: PlanTier) -> N
     summary_df = pd.DataFrame(
         [
             {"Metric": "Gross margin (per unit)", "Value": f"${fin.gross_margin_usd:.2f} ({fin.gross_margin_pct:.1f}%)"},
+            {"Metric": "Net margin after shipping + Shopify fees", "Value": f"${fin.net_margin_usd:.2f} ({fin.net_margin_pct:.1f}%)"},
+            {"Metric": "Platform fee (Shopify est.)", "Value": f"${fin.platform_fee_usd:.2f} ({fin.platform_fee_pct:.1f}%)"},
             {"Metric": "ROI on product cost", "Value": f"{fin.roi_pct:.1f}%"},
-            {"Metric": "Break-even CPA (after est. shipping)", "Value": f"${fin.break_even_cpa:.2f}"},
+            {"Metric": "Break-even CPA (gross, after shipping)", "Value": f"${fin.break_even_cpa:.2f}"},
+            {"Metric": "Break-even CPA (net, after fees)", "Value": f"${fin.break_even_cpa_net:.2f}"},
             {"Metric": "Est. shipping / unit", "Value": f"${fin.shipping_per_unit_usd:.2f}"},
         ]
     )
     st.markdown("#### Unit economics snapshot")
     st.dataframe(summary_df, use_container_width=True, hide_index=True)
+
+    platform_df = pd.DataFrame(
+        [
+            {
+                "Platform": row.platform_label,
+                "Fee %": f"{row.fee_rate_pct:.1f}%",
+                "Net margin / unit": f"${row.net_margin_usd:.2f}",
+                "Net margin %": f"{row.net_margin_pct:.1f}%",
+                "Break-even CPA": f"${row.break_even_cpa:.2f}",
+            }
+            for row in platform_rows
+        ]
+    )
+    st.markdown("#### Platform fee comparison")
+    st.dataframe(platform_df, use_container_width=True, hide_index=True)
 
     st.markdown("#### Volume scaling matrix")
     matrix_df = pd.DataFrame(
@@ -543,21 +563,49 @@ def render_section_3(meta: dict | None, overall_score: int, tier: PlanTier) -> N
         "Stress-test row assumes logistics costs spike 20% — common when carriers re-rate dimensional weight."
     )
 
-    verdict = verdict_status(overall_score)
-    st.markdown(
-        f"""
-        <div class="verdict-banner verdict-banner--{verdict.css_class}">
-            <p class="verdict-banner-emoji">{verdict.emoji}</p>
-            <div class="verdict-banner-copy">
-                <p class="verdict-banner-label">{html.escape(verdict.label)}</p>
-                <p class="verdict-banner-subtitle">{html.escape(verdict.subtitle)}</p>
+    if result.has_financial_verdict():
+        verdict_class = {
+            "GO": "go",
+            "NO-GO": "nogo",
+            "CONDITIONAL GO": "conditional",
+        }.get(result.financial_verdict or "", "conditional")
+        conditions_html = "".join(
+            f"<li>{html.escape(item)}</li>" for item in (result.financial_conditions or [])
+        )
+        risks_html = "".join(
+            f"<li>{html.escape(item)}</li>" for item in (result.financial_key_risks or [])
+        )
+        st.markdown(
+            f"""
+            <div class="verdict-banner verdict-banner--{verdict_class}">
+                <p class="verdict-banner-emoji">{"✅" if result.financial_verdict == "GO" else "⚠️" if result.financial_verdict == "CONDITIONAL GO" else "🛑"}</p>
+                <div class="verdict-banner-copy">
+                    <p class="verdict-banner-label">CFO Verdict · {html.escape(result.financial_verdict or "")}</p>
+                    <p class="verdict-banner-subtitle">{html.escape(result.financial_verdict_headline or "")}</p>
+                </div>
             </div>
-            <p class="verdict-banner-score">{overall_score}<span>/100</span></p>
-        </div>
-        <p class="verdict-banner-context">Products scoring above 70 statistically represent healthy e-commerce foundations.</p>
-        """,
-        unsafe_allow_html=True,
-    )
+            <div class="insight-card"><p>{html.escape(result.cfo_summary or "")}</p></div>
+            <p><strong>Conditions for launch</strong></p><ul>{conditions_html}</ul>
+            <p><strong>Key financial risks</strong></p><ul>{risks_html}</ul>
+            """,
+            unsafe_allow_html=True,
+        )
+    else:
+        verdict = verdict_status(result.overall_score)
+        st.markdown(
+            f"""
+            <div class="verdict-banner verdict-banner--{verdict.css_class}">
+                <p class="verdict-banner-emoji">{verdict.emoji}</p>
+                <div class="verdict-banner-copy">
+                    <p class="verdict-banner-label">{html.escape(verdict.label)}</p>
+                    <p class="verdict-banner-subtitle">{html.escape(verdict.subtitle)}</p>
+                </div>
+                <p class="verdict-banner-score">{result.overall_score}<span>/100</span></p>
+            </div>
+            <p class="verdict-banner-context">Re-run on Premium for Claude Opus CFO verdict synthesis.</p>
+            """,
+            unsafe_allow_html=True,
+        )
 
 
 def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
@@ -589,12 +637,37 @@ def render_section_4(result: ProductEvaluationResponse, tier: PlanTier) -> None:
             f'<div class="persona-card"><p>{html.escape(result.buyer_persona_hint or "")}</p></div>',
             unsafe_allow_html=True,
         )
-        st.markdown("#### Strategic marketing teaser")
+        st.markdown("#### Strategic direction")
         st.markdown(
             f'<div class="insight-card insight-card--marketing"><p>{html.escape(result.marketing_teaser or "")}</p></div>',
             unsafe_allow_html=True,
         )
-    st.info("Section 6 unlocks competitor review sentiment analysis and product improvement directives on Premium.")
+
+    if result.has_marketing_blueprint():
+        if result.competitor_ad_angles:
+            st.markdown("#### Competitor ad angles (Meta / TikTok patterns)")
+            for angle in result.competitor_ad_angles:
+                st.markdown(f"- {html.escape(angle)}")
+        if result.marketing_angles:
+            st.markdown("#### Fresh angles (differentiated)")
+            for angle in result.marketing_angles:
+                st.markdown(f"- {html.escape(angle)}")
+        if result.ad_script_frameworks:
+            st.markdown("#### Ad script frameworks")
+            for script in result.ad_script_frameworks:
+                st.markdown(
+                    f"**{html.escape(script.platform)}** — "
+                    f"*Hook:* {html.escape(script.hook)}  \n"
+                    f"*Body:* {html.escape(script.body)}  \n"
+                    f"*CTA:* {html.escape(script.cta)}"
+                )
+        if result.targeting_stack:
+            st.markdown("#### Targeting stack")
+            st.markdown(result.targeting_stack)
+        if result.influencer_dm_templates:
+            st.markdown("#### Influencer outreach DMs")
+            for template in result.influencer_dm_templates:
+                st.code(template, language=None)
 
 
 def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
@@ -603,11 +676,31 @@ def render_section_5(result: ProductEvaluationResponse, tier: PlanTier) -> None:
         render_locked_card(section_id="web_intelligence")
         return
 
+    trend = result.demand_trend or "stable"
+    trend_emoji = {"rising": "📈", "stable": "➡️", "declining": "📉"}.get(trend, "➡️")
     st.markdown(
         f'<div class="insight-card insight-card--hero">'
         f"<p>{html.escape(result.web_intelligence_summary or '')}</p></div>",
         unsafe_allow_html=True,
     )
+    if result.competitor_price_range or result.demand_trend:
+        st.markdown(
+            f"**Competitor price range:** {html.escape(result.competitor_price_range or 'N/A')} · "
+            f"**Demand trend:** {trend_emoji} {html.escape(trend.title())}"
+        )
+    if result.market_timing_assessment:
+        st.markdown(f"**Market timing:** {html.escape(result.market_timing_assessment)}")
+
+    if result.supplier_recommendations:
+        st.markdown("#### Top supplier recommendations")
+        for supplier in result.supplier_recommendations:
+            st.markdown(
+                f"**[{html.escape(supplier.name)}]({html.escape(supplier.url)})**  \n"
+                f"Price: {html.escape(supplier.price_signal)} · "
+                f"MOQ: {html.escape(supplier.moq_signal)} · "
+                f"Rating: {html.escape(supplier.rating_signal)}"
+            )
+
     c1, c2 = st.columns(2)
     with c1:
         st.markdown("#### Amazon snapshot")
@@ -680,6 +773,14 @@ def render_section_6(result: ProductEvaluationResponse, tier: PlanTier) -> None:
     improvements = result.sentiment_improvement_directives or []
     hooks = result.sentiment_shopify_hooks or []
 
+    praised_html = "".join(
+        f"<li>{html.escape(item)}</li>" for item in (result.praised_features or [])
+    )
+    unmet_html = "".join(
+        f"<li>{html.escape(item)}</li>" for item in (result.unmet_needs or [])
+    )
+    category_score = result.category_sentiment_score
+
     pain_html = "".join(_render_pain_point_card(point) for point in pain_points)
     win_html = "".join(_render_improvement_row(item) for item in improvements)
     hooks_html = "".join(_render_shopify_hook_card(hook) for hook in hooks)
@@ -692,7 +793,11 @@ def render_section_6(result: ProductEvaluationResponse, tier: PlanTier) -> None:
                 <h4 class="s6-title">Competitor Review Sentiment Analysis</h4>
                 <p class="s6-subtitle">AI-driven extraction of competitor weaknesses, negative review trends, and engineering solutions.</p>
                 <p class="s6-summary">{html.escape(result.sentiment_executive_summary or "")}</p>
+                {f'<p class="s6-category-score">Category sentiment score · <strong>{category_score}/100</strong></p>' if category_score is not None else ""}
             </div>
+
+            {f'<div class="s6-card"><p class="s6-card-title">What customers value</p><ul>{praised_html}</ul></div>' if praised_html else ""}
+            {f'<div class="s6-card"><p class="s6-card-title">Unmet needs in the category</p><ul>{unmet_html}</ul></div>' if unmet_html else ""}
 
             <div class="s6-card s6-card--pain">
                 <p class="s6-card-title">The Critical Pain Points</p>
@@ -781,7 +886,7 @@ def render_dashboard(result: ProductEvaluationResponse, meta: dict | None = None
         st.divider()
         render_cliffhanger_banner()
     st.divider()
-    render_section_3(meta, result.overall_score, tier)
+    render_section_3(result, meta, tier)
     st.divider()
     render_section_4(result, tier)
     st.divider()

@@ -133,19 +133,189 @@ def normalize_marketing_teaser_payload(raw: Any) -> dict[str, Any]:
         ),
         "marketing_teaser": _ensure_text(
             data.get("marketing_teaser"),
-            "Lead with visual proof and a clear before/after — Premium unlocks competitor sentiment analysis.",
+            "Lead with visual proof and a clear before/after — Premium unlocks the full marketing blueprint.",
         ),
     }
 
 
+def _normalize_string_list(raw: Any, *, count: int, fallback_prefix: str) -> list[str]:
+    items = raw if isinstance(raw, list) else []
+    normalized: list[str] = []
+    for index in range(count):
+        item = items[index] if index < len(items) else ""
+        normalized.append(_ensure_text(item, f"{fallback_prefix} {index + 1}"))
+    return normalized
+
+
+def _normalize_ad_scripts(raw: Any) -> list[dict[str, str]]:
+    defaults = [
+        {
+            "platform": "TikTok",
+            "hook": "POV: you finally found the version that actually works",
+            "body": "Show the problem in 2 seconds, demo the fix in 5, reveal price anchor vs competitors.",
+            "cta": "Link in bio — 48h launch discount",
+        },
+        {
+            "platform": "Instagram Reels",
+            "hook": "Stop scrolling if [pain point] ruins your day",
+            "body": "Before/after split screen with text overlays; social proof sticker.",
+            "cta": "Shop now — free returns",
+        },
+        {
+            "platform": "TikTok",
+            "hook": "I tested 5 Amazon versions so you don't have to",
+            "body": "Side-by-side durability test; call out competitor failure modes.",
+            "cta": "Comment SEND for the link",
+        },
+        {
+            "platform": "Meta Feed",
+            "hook": "The [category] everyone on my FYP is gatekeeping",
+            "body": "UGC selfie + product in use; mention specific improvement vs reviews.",
+            "cta": "Learn more",
+        },
+        {
+            "platform": "TikTok",
+            "hook": "3 reasons this beats the viral version",
+            "body": "Fast cuts: material, sizing, warranty — each tied to a review complaint.",
+            "cta": "Tap to shop",
+        },
+    ]
+    items = raw if isinstance(raw, list) else []
+    normalized: list[dict[str, str]] = []
+    for index in range(5):
+        item = items[index] if index < len(items) and isinstance(items[index], dict) else {}
+        fallback = defaults[index]
+        normalized.append(
+            {
+                "platform": _ensure_text(item.get("platform"), fallback["platform"]),
+                "hook": _ensure_text(item.get("hook"), fallback["hook"]),
+                "body": _ensure_text(item.get("body"), fallback["body"]),
+                "cta": _ensure_text(item.get("cta"), fallback["cta"]),
+            }
+        )
+    return normalized
+
+
+def normalize_marketing_blueprint_payload(raw: Any) -> dict[str, Any]:
+    base = normalize_marketing_teaser_payload(raw)
+    data = dict(raw) if isinstance(raw, dict) else {}
+    base.update(
+        {
+            "competitor_ad_angles": _normalize_string_list(
+                data.get("competitor_ad_angles"),
+                count=3,
+                fallback_prefix="Competitor angle",
+            ),
+            "marketing_angles": _normalize_string_list(
+                data.get("marketing_angles"),
+                count=3,
+                fallback_prefix="Fresh angle",
+            ),
+            "ad_script_frameworks": _normalize_ad_scripts(data.get("ad_script_frameworks")),
+            "targeting_stack": _ensure_text(
+                data.get("targeting_stack"),
+                "Meta: interest stacks around the core use case + lookalike 1–3% from add-to-cart. "
+                "TikTok: broad + creative-led, age 22–44, exclude purchasers 30d.",
+            ),
+            "influencer_dm_templates": _normalize_string_list(
+                data.get("influencer_dm_templates"),
+                count=3,
+                fallback_prefix="DM template",
+            ),
+        }
+    )
+    return base
+
+
+def normalize_financial_verdict_payload(raw: Any) -> dict[str, Any]:
+    data = dict(raw) if isinstance(raw, dict) else {}
+    verdict = _ensure_text(data.get("financial_verdict"), "CONDITIONAL GO").upper()
+    if verdict not in {"GO", "NO-GO", "CONDITIONAL GO"}:
+        verdict = "CONDITIONAL GO"
+    conditions = _normalize_string_list(
+        data.get("financial_conditions"),
+        count=3,
+        fallback_prefix="Condition",
+    )
+    risks = _normalize_string_list(
+        data.get("financial_key_risks"),
+        count=3,
+        fallback_prefix="Risk",
+    )
+    return {
+        "financial_verdict": verdict,
+        "financial_verdict_headline": _ensure_text(
+            data.get("financial_verdict_headline"),
+            "Margins workable only if acquisition stays below break-even CPA",
+        ),
+        "cfo_summary": _ensure_text(
+            data.get("cfo_summary"),
+            "Unit economics require disciplined paid spend and confirmed supplier COGS before scaling.",
+        ),
+        "financial_conditions": conditions[:5],
+        "financial_key_risks": risks[:5],
+    }
+
+
+def _normalize_suppliers(raw: Any) -> list[dict[str, str]]:
+    defaults = [
+        {
+            "name": "AliExpress top-rated listing",
+            "url": "https://www.aliexpress.com",
+            "price_signal": "Lowest MOQ tier — verify sample quality",
+            "moq_signal": "1–50 units typical",
+            "rating_signal": "4.5+ stars with 500+ orders",
+        },
+        {
+            "name": "1688 / domestic supplier cluster",
+            "url": "https://www.1688.com",
+            "price_signal": "15–30% below retail COGS at volume",
+            "moq_signal": "100+ units for best pricing",
+            "rating_signal": "Factory audit recommended",
+        },
+        {
+            "name": "Amazon competitor reference SKU",
+            "url": "https://www.amazon.com",
+            "price_signal": "Retail anchor for positioning",
+            "moq_signal": "N/A — benchmark only",
+            "rating_signal": "Check BSR and review velocity",
+        },
+    ]
+    items = raw if isinstance(raw, list) else []
+    normalized: list[dict[str, str]] = []
+    for index in range(3):
+        item = items[index] if index < len(items) and isinstance(items[index], dict) else {}
+        fallback = defaults[index]
+        normalized.append(
+            {
+                "name": _ensure_text(item.get("name"), fallback["name"]),
+                "url": _ensure_text(item.get("url"), fallback["url"]),
+                "price_signal": _ensure_text(item.get("price_signal"), fallback["price_signal"]),
+                "moq_signal": _ensure_text(item.get("moq_signal"), fallback["moq_signal"]),
+                "rating_signal": _ensure_text(item.get("rating_signal"), fallback["rating_signal"]),
+            }
+        )
+    return normalized[:3]
+
+
 def normalize_web_intelligence_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
+    trend = _ensure_text(data.get("demand_trend"), "stable").lower()
+    if trend not in {"rising", "stable", "declining"}:
+        trend = "stable"
     return {
         "web_intelligence_summary": _ensure_text(data.get("web_intelligence_summary"), "Summary unavailable."),
         "web_amazon_snapshot": _ensure_text(data.get("web_amazon_snapshot"), "No Amazon data captured."),
         "web_aliexpress_sourcing": _ensure_text(data.get("web_aliexpress_sourcing"), "No AliExpress sourcing data."),
         "web_competitor_tracking": _ensure_text(data.get("web_competitor_tracking"), "No competitor tracking data."),
         "web_sourcing_links": _ensure_text(data.get("web_sourcing_links"), "No sourcing links found."),
+        "supplier_recommendations": _normalize_suppliers(data.get("supplier_recommendations")),
+        "competitor_price_range": _ensure_text(data.get("competitor_price_range"), "Price range unavailable."),
+        "demand_trend": trend,
+        "market_timing_assessment": _ensure_text(
+            data.get("market_timing_assessment"),
+            "Validate demand with a small test batch before committing inventory.",
+        ),
     }
 
 
@@ -251,10 +421,22 @@ def _normalize_shopify_hooks(raw_items: Any) -> list[dict[str, Any]]:
 def normalize_competitor_sentiment_payload(raw: Any) -> dict[str, Any]:
     data = dict(raw) if isinstance(raw, dict) else {}
     pain_points = _normalize_pain_points(data.get("sentiment_pain_points"))
+    category_score = _coerce_score(data.get("category_sentiment_score"), default=55)
     return {
         "sentiment_executive_summary": _ensure_text(
             data.get("sentiment_executive_summary"),
             "Competitor review sentiment synthesized from typical 1–3★ patterns in this niche.",
+        ),
+        "category_sentiment_score": 50 if category_score is None else category_score,
+        "praised_features": _normalize_string_list(
+            data.get("praised_features"),
+            count=3,
+            fallback_prefix="Praised feature",
+        ),
+        "unmet_needs": _normalize_string_list(
+            data.get("unmet_needs"),
+            count=3,
+            fallback_prefix="Unmet need",
         ),
         "sentiment_pain_points": pain_points,
         "sentiment_improvement_directives": _normalize_improvements(
