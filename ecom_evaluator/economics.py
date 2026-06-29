@@ -16,11 +16,11 @@ PLATFORM_LABELS = {
     "amazon": "Amazon FBA",
     "tiktok": "TikTok Shop",
 }
-# Simplified all-in fee rates (payment + platform referral). Tune per your actual fee stack.
+# All-in platform fee rates per brief (Shopify/TikTok 15%, Amazon 30%)
 PLATFORM_FEE_RATES: dict[str, float] = {
-    "shopify": 0.029,
-    "amazon": 0.15,
-    "tiktok": 0.08,
+    "shopify": 0.15,
+    "amazon": 0.30,
+    "tiktok": 0.15,
 }
 
 
@@ -277,23 +277,26 @@ def compute_financial_summary(econ: EconomicsSnapshot, platform: str = "shopify"
     )
 
 
-def compute_scaling_matrix(econ: EconomicsSnapshot) -> list[ScalingMatrixRow]:
+def compute_scaling_matrix(econ: EconomicsSnapshot, platform: str = "shopify") -> list[ScalingMatrixRow]:
     ship_mid = (econ.shipping_band_usd[0] + econ.shipping_band_usd[1]) / 2
     stressed_ship = ship_mid * 1.2
+    platform_row = compute_platform_economics(econ, platform)
+    fee_per_unit = platform_row.platform_fee_usd
     rows: list[ScalingMatrixRow] = []
     for units in (100, 500, 1000):
         gross = econ.sales_price * units
         cogs = econ.purchase_price * units
         shipping = ship_mid * units
         stressed_shipping = stressed_ship * units
+        platform_fees = fee_per_unit * units
         rows.append(
             ScalingMatrixRow(
                 units_per_month=units,
                 gross_revenue=gross,
                 total_product_cost=cogs,
                 total_shipping=shipping,
-                net_profit=gross - cogs - shipping,
-                net_profit_stressed=gross - cogs - stressed_shipping,
+                net_profit=gross - cogs - shipping - platform_fees,
+                net_profit_stressed=gross - cogs - stressed_shipping - platform_fees,
             )
         )
     return rows

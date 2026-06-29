@@ -60,31 +60,34 @@ _FLAG_IMPACTS = ("Severe", "High", "Moderate")
 def _display_verdict_label(score: int) -> tuple[str, str]:
     if score >= 90:
         return "STRONG GO", "go"
-    if score >= 70:
+    if score >= 80:
         return "GO", "go"
-    if score >= 50:
+    if score >= 60:
         return "CAUTION", "caution"
     if score >= 40:
         return "HIGH RISK", "risk"
     return "WALK AWAY", "walk"
 
 
-def _risk_summary_score(overall: int) -> int:
-    if overall >= 70:
+def _risk_summary_score(result: ProductEvaluationResponse) -> int:
+    if result.risk_score is not None:
+        return result.risk_score
+    overall = result.overall_score
+    if overall >= 80:
         return max(12, 100 - overall)
-    if overall >= 50:
-        return 55 + (70 - overall) // 2
-    return min(95, 70 + (50 - overall))
+    if overall >= 60:
+        return 55 + (80 - overall) // 2
+    return min(95, 70 + (60 - overall))
 
 
 def _risk_label(risk_score: int) -> str:
-    if risk_score >= 80:
-        return "Very High Risk"
-    if risk_score >= 60:
-        return "High Risk"
-    if risk_score >= 40:
+    if risk_score <= 30:
+        return "Low Risk"
+    if risk_score <= 55:
         return "Moderate Risk"
-    return "Lower Risk"
+    if risk_score <= 75:
+        return "High Risk"
+    return "Very High Risk"
 
 
 def _gauge_needle_deg(score: int) -> float:
@@ -417,27 +420,46 @@ def render_section_1(result: ProductEvaluationResponse, meta: dict | None = None
 
 
 def render_section_2(result: ProductEvaluationResponse) -> None:
-    risk_score = _risk_summary_score(result.overall_score)
+    risk_score = _risk_summary_score(result)
     risk_pct = risk_score / 100
-    invest_yes = result.overall_score >= 55
+    invest_yes = result.would_invest if result.would_invest is not None else result.overall_score >= 60
     invest_class = "yes" if invest_yes else "no"
     invest_icon = "✓" if invest_yes else "✕"
-    invest_answer = "Maybe — validate further." if invest_yes and result.overall_score < 70 else (
-        "Yes — fundamentals look investable." if invest_yes else "No — not recommended at this stage."
-    )
+    if result.invest_reasoning:
+        invest_answer = result.invest_reasoning
+    elif invest_yes and result.overall_score < 80:
+        invest_answer = "Yes — with conditions. Validate margins and acquisition cost before scaling."
+    elif invest_yes:
+        invest_answer = "Yes — fundamentals look investable."
+    else:
+        invest_answer = "No — not recommended at this stage."
 
-    flags = [result.red_flag_1, result.red_flag_2, result.red_flag_3]
+    flags = result.risk_flags or []
     flag_rows = []
-    for idx, flag in enumerate(flags):
-        impact = _FLAG_IMPACTS[min(idx, len(_FLAG_IMPACTS) - 1)].lower()
-        flag_rows.append(
-            f'<div class="rpt-flag-row">'
-            f'<span class="rpt-flag-icon" aria-hidden="true">⚠</span>'
-            f'<div><p class="rpt-flag-title">{html.escape(_short_flag_title(flag))}</p>'
-            f'<p class="rpt-flag-desc">{html.escape(_flag_detail(flag, result.red_flag_analysis, idx))}</p></div>'
-            f'<span class="rpt-flag-impact rpt-flag-impact--{impact}">{_FLAG_IMPACTS[min(idx, 2)]}</span>'
-            f"</div>"
-        )
+    if flags:
+        for idx, flag in enumerate(flags[:6]):
+            severity = getattr(flag, "severity", "MEDIUM").lower()
+            flag_rows.append(
+                f'<div class="rpt-flag-row">'
+                f'<span class="rpt-flag-icon" aria-hidden="true">⚠</span>'
+                f'<div><p class="rpt-flag-title">{html.escape(flag.title)}</p>'
+                f'<p class="rpt-flag-desc">{html.escape(flag.explanation)}</p>'
+                f'<p class="rpt-flag-desc">{html.escape(flag.means_for_you)}</p></div>'
+                f'<span class="rpt-flag-impact rpt-flag-impact--{severity}">{html.escape(flag.severity)}</span>'
+                f"</div>"
+            )
+    else:
+        legacy_flags = [result.red_flag_1, result.red_flag_2, result.red_flag_3]
+        for idx, flag in enumerate(legacy_flags):
+            impact = _FLAG_IMPACTS[min(idx, len(_FLAG_IMPACTS) - 1)].lower()
+            flag_rows.append(
+                f'<div class="rpt-flag-row">'
+                f'<span class="rpt-flag-icon" aria-hidden="true">⚠</span>'
+                f'<div><p class="rpt-flag-title">{html.escape(_short_flag_title(flag))}</p>'
+                f'<p class="rpt-flag-desc">{html.escape(_flag_detail(flag, result.red_flag_analysis, idx))}</p></div>'
+                f'<span class="rpt-flag-impact rpt-flag-impact--{impact}">{_FLAG_IMPACTS[min(idx, 2)]}</span>'
+                f"</div>"
+            )
 
     rail_extra = (
         '<span class="rpt-rail-badge" aria-hidden="true">☠ We don\u2019t sugarcoat it</span>'
@@ -463,7 +485,7 @@ def render_section_2(result: ProductEvaluationResponse) -> None:
                                         <p class="rpt-risk-ring-value">{risk_score}<span>/100</span></p>
                                     </div>
                                 </div>
-                                <p class="rpt-risk-ring-label">{html.escape(_risk_label(risk_score))}</p>
+                                <p class="rpt-risk-ring-label">{html.escape(result.risk_tier or _risk_label(risk_score))}</p>
                                 <p class="rpt-risk-ring-caption">Composite risk from score + red-flag severity</p>
                             </div>
                             <div class="rpt-invest-box rpt-invest-box--{invest_class}">

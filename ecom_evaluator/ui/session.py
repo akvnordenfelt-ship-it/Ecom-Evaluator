@@ -96,8 +96,8 @@ def validate_inputs(data: dict) -> list[str]:
     errors: list[str] = []
     if not resolve_api_key(data["api_key"]):
         errors.append(
-            "No API key is configured on the server. Ask the site owner to set "
-            "`GEMINI_API_KEY` (or `GOOGLE_AI_API_KEY`), or paste your own key in Settings (top right)."
+            "No API key is configured. Add `ANTHROPIC_API_KEY` to Streamlit secrets or `.env`, "
+            "or paste your key in Settings."
         )
     if not data["product_name"].strip():
         errors.append("Enter a product name.")

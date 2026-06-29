@@ -3,8 +3,17 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from typing import Literal
 
 from ecom_evaluator.economics import EconomicsSnapshot
+
+Severity = Literal["SEVERE", "HIGH", "MEDIUM", "LOW"]
+SEVERITY_POINTS: dict[str, int] = {
+    "SEVERE": 25,
+    "HIGH": 15,
+    "MEDIUM": 8,
+    "LOW": 3,
+}
 
 
 @dataclass(frozen=True)
@@ -33,6 +42,31 @@ def compute_overall_score(
     return max(0, min(100, round(raw)))
 
 
+def compute_confidence_percentage(*, input_count: int, max_inputs: int = 8) -> int:
+    """Higher when more product inputs were provided."""
+    if max_inputs <= 0:
+        return 50
+    return max(25, min(98, round((input_count / max_inputs) * 100)))
+
+
+def compute_risk_score(severities: list[str]) -> int:
+    """Section 2 risk score from flag severities — computed in Python."""
+    total = 0
+    for severity in severities:
+        total += SEVERITY_POINTS.get(str(severity).upper(), 0)
+    return min(100, total)
+
+
+def risk_tier_label(risk_score: int) -> str:
+    if risk_score <= 30:
+        return "Low Risk"
+    if risk_score <= 55:
+        return "Moderate Risk"
+    if risk_score <= 75:
+        return "High Risk"
+    return "Very High Risk"
+
+
 def format_scoring_guidance_for_prompt(econ: EconomicsSnapshot) -> str:
     """Deterministic anchors so the LLM does not cluster every product in the 60–80 band."""
     lines = [
@@ -48,53 +82,67 @@ def format_scoring_guidance_for_prompt(econ: EconomicsSnapshot) -> str:
     if econ.contribution_margin_usd <= 0:
         lines.append(
             f"- Contribution after shipping is ${econ.contribution_margin_usd:.2f} — "
-            "metric_logistics_margin must be **below 25**."
+            "logistics_score must be **below 25**."
         )
     elif econ.contribution_margin_usd < 8:
         lines.append(
             f"- Contribution after shipping is only ${econ.contribution_margin_usd:.2f} — "
-            "metric_logistics_margin should usually be **20–45**."
+            "logistics_score should usually be **20–45**."
         )
     elif econ.gross_margin_pct >= 55 and econ.contribution_margin_usd >= 15:
         lines.append(
             f"- Strong unit economics (${econ.contribution_margin_usd:.2f} contribution) — "
-            "metric_logistics_margin may reach **70–92** if shipping stays light."
+            "logistics_score may reach **70–92** if shipping stays light."
         )
 
     if econ.gross_margin_pct < 25:
         lines.append(
             f"- Gross margin is only {econ.gross_margin_pct:.1f}% — "
-            "do not score metric_logistics_margin above **45** without a sharp justification."
+            "do not score logistics_score above **45** without a sharp justification."
         )
 
     lines.append(
-        "- metric_market_saturation: score **market opportunity** (100 = open niche, 0 = hyper-saturated red ocean)."
+        "- saturation_score: score **market opportunity** (100 = open niche, 0 = hyper-saturated red ocean)."
     )
     lines.append(
-        "- If red_flag_analysis describes deal-breakers, at least two metrics must be **below 40**."
+        "- If flags describe deal-breakers, at least two sub-scores must be **below 40**."
     )
     return "\n".join(lines)
 
 
 def verdict_status(score: int) -> VerdictStatus:
-    if score >= 70:
+    if score >= 90:
+        return VerdictStatus(
+            emoji="🟢",
+            label="Strong GO",
+            subtitle="High conviction opportunity",
+            css_class="go",
+        )
+    if score >= 80:
         return VerdictStatus(
             emoji="🟢",
             label="GO",
-            subtitle="High potential, solid foundation",
+            subtitle="Solid fundamentals",
             css_class="go",
         )
-    if score >= 50:
+    if score >= 60:
         return VerdictStatus(
             emoji="🟡",
-            label="PROCEED WITH CAUTION",
-            subtitle="Viable, but check the Red Flags",
+            label="Caution",
+            subtitle="Validate before scaling",
+            css_class="caution",
+        )
+    if score >= 40:
+        return VerdictStatus(
+            emoji="🟠",
+            label="High Risk",
+            subtitle="Major concerns to resolve",
             css_class="caution",
         )
     return VerdictStatus(
         emoji="🔴",
-        label="NO-GO",
-        subtitle="High risk or weak margins",
+        label="Walk Away",
+        subtitle="Fundamentals too weak",
         css_class="nogo",
     )
 
@@ -104,8 +152,10 @@ def verdict_label(score: int) -> str:
 
 
 def score_bar_color(score: int) -> str:
-    if score >= 70:
+    if score >= 80:
         return "#059669"
-    if score >= 40:
+    if score >= 60:
         return "#d97706"
+    if score >= 40:
+        return "#ea580c"
     return "#dc2626"

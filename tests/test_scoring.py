@@ -15,14 +15,23 @@ def test_compute_overall_score_weighted():
 
 
 def test_verdict_status_bands():
-    assert verdict_status(75).label == "GO"
-    assert verdict_status(55).label == "PROCEED WITH CAUTION"
-    assert verdict_status(40).label == "NO-GO"
+    assert verdict_status(85).label == "GO"
+    assert verdict_status(65).label == "Caution"
+    assert verdict_status(45).label == "High Risk"
+    assert verdict_status(30).label == "Walk Away"
 
 
 def test_verdict_label_bands():
-    assert verdict_label(80) == "GO"
-    assert verdict_label(8) == "NO-GO"
+    assert verdict_label(85) == "GO"
+    assert verdict_label(8) == "Walk Away"
+
+
+def test_compute_risk_score_from_severities():
+    from ecom_evaluator.scoring import compute_risk_score, risk_tier_label
+
+    score = compute_risk_score(["SEVERE", "HIGH", "LOW"])
+    assert score == 43
+    assert risk_tier_label(score) == "Moderate Risk"
 
 
 def test_score_bar_color_bands():

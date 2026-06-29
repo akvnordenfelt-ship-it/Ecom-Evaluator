@@ -46,14 +46,15 @@ def load_env_api_key() -> str:
     return _read_key_from_env() or _read_key_from_streamlit_secrets()
 
 
-def resolve_api_key(form_key: str) -> str:
+def resolve_api_key(form_key: str = "") -> str:
+    """Primary API key — Anthropic for all evaluation sections."""
     if form_key.strip():
         return form_key.strip()
-    return load_env_api_key()
+    return load_anthropic_api_key()
 
 
 def has_shared_api_key() -> bool:
-    return bool(load_env_api_key())
+    return bool(load_anthropic_api_key())
 
 
 def uses_shared_api_key(form_key: str) -> bool:

@@ -1,10 +1,10 @@
-"""Coerce lightweight Gemini JSON (mostly strings) before Pydantic validation."""
+"""Coerce lightweight Claude JSON (mostly strings) before Pydantic validation."""
 
 from __future__ import annotations
 
 from typing import Any
 
-from ecom_evaluator.scoring import compute_overall_score
+from ecom_evaluator.scoring import compute_confidence_percentage, compute_overall_score, compute_risk_score, risk_tier_label
 
 
 def _as_str(value: Any) -> str:
@@ -42,15 +42,25 @@ def _ensure_text(value: Any, fallback: str) -> str:
     return text if text else fallback
 
 
-def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
-    """Sections 1–2 only. Overall score is computed in Python — never from the LLM."""
+def normalize_section1_payload(raw: Any, *, input_count: int = 5) -> dict[str, Any]:
+    """Section 1 — profile and sub-scores. Overall score computed in Python."""
     data = dict(raw) if isinstance(raw, dict) else {}
 
-    logistics = _coerce_score(data.get("metric_logistics_margin"), default=50)
-    saturation = _coerce_score(data.get("metric_market_saturation"), default=50)
-    velocity = _coerce_score(data.get("metric_marketing_velocity"), default=50)
-    brandability = _coerce_score(data.get("metric_brandability"), default=50)
-    seasonality = _coerce_score(data.get("metric_seasonality"), default=50)
+    logistics = _coerce_score(
+        data.get("logistics_score") or data.get("metric_logistics_margin"), default=50
+    )
+    saturation = _coerce_score(
+        data.get("saturation_score") or data.get("metric_market_saturation"), default=50
+    )
+    velocity = _coerce_score(
+        data.get("marketing_score") or data.get("metric_marketing_velocity"), default=50
+    )
+    brandability = _coerce_score(
+        data.get("brandability_score") or data.get("metric_brandability"), default=50
+    )
+    seasonality = _coerce_score(
+        data.get("seasonality_score") or data.get("metric_seasonality"), default=50
+    )
     logistics = 50 if logistics is None else logistics
     saturation = 50 if saturation is None else saturation
     velocity = 50 if velocity is None else velocity
@@ -58,65 +68,157 @@ def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
     seasonality = 50 if seasonality is None else seasonality
     overall = compute_overall_score(logistics, saturation, velocity, brandability, seasonality)
 
+    category = _ensure_text(data.get("category"), "General e-commerce")
+    product_type = _ensure_text(data.get("product_type"), "Consumer product")
+    main_use = _ensure_text(data.get("main_use"), "Everyday use")
+    key_feature = _ensure_text(data.get("key_feature"), "Core utility")
+    weight_class = _ensure_text(data.get("weight_class"), "Standard parcel")
+    fragility = _ensure_text(data.get("fragility"), "Standard handling")
+    variants = _ensure_text(data.get("variants"), "Single SKU assumed")
+    shipping = _ensure_text(data.get("shipping_complexity"), "Standard shipping")
+
+    confidence = _coerce_score(data.get("confidence_percentage"))
+    if confidence is None:
+        confidence = compute_confidence_percentage(input_count=input_count)
+
+    summary = _ensure_text(
+        data.get("product_profile_summary"),
+        f"{category} — {product_type}. {main_use}. Key feature: {key_feature}.",
+    )
+    one_line = _ensure_text(data.get("one_line_verdict"), "Evaluate margins before scaling.")
+
     return {
         "overall_score": overall,
-        "product_profile_summary": _ensure_text(
-            data.get("product_profile_summary"),
-            "Product profile could not be fully analyzed — re-run with a clearer image and description.",
-        ),
-        "physical_weight_assessment": _ensure_text(
-            data.get("physical_weight_assessment"),
-            "Confirm weight and dimensions with your supplier before quoting shipping.",
-        ),
-        "fragility_assessment": _ensure_text(
-            data.get("fragility_assessment"),
-            "Assess packaging requirements with a sample unit before scaling.",
-        ),
-        "variant_complexity": _ensure_text(
-            data.get("variant_complexity"),
-            "Variant complexity depends on SKU count and packaging differences.",
-        ),
-        "shipping_complexity": _ensure_text(
-            data.get("shipping_complexity"),
-            "Shipping complexity should be validated against billable weight and carrier rules.",
-        ),
+        "product_category": category,
+        "product_type": product_type,
+        "main_use": main_use,
+        "key_feature": key_feature,
+        "one_line_verdict": one_line[:120],
+        "confidence_percentage": confidence,
+        "product_profile_summary": summary,
+        "physical_weight_assessment": weight_class,
+        "fragility_assessment": fragility,
+        "variant_complexity": variants,
+        "shipping_complexity": shipping,
         "metric_logistics_margin": logistics,
         "metric_logistics_margin_note": _ensure_text(
-            data.get("metric_logistics_margin_note"),
+            data.get("logistics_note") or data.get("metric_logistics_margin_note"),
             "Lightweight, high-markup products score highest on logistics and margin.",
         ),
         "metric_market_saturation": saturation,
         "metric_market_saturation_note": _ensure_text(
-            data.get("metric_market_saturation_note"),
-            "Market opportunity estimated from category knowledge — lower scores mean heavier crowding.",
+            data.get("saturation_note") or data.get("metric_market_saturation_note"),
+            "Market opportunity — lower scores mean heavier crowding.",
         ),
         "metric_marketing_velocity": velocity,
         "metric_marketing_velocity_note": _ensure_text(
-            data.get("metric_marketing_velocity_note"),
-            "Organic viral potential vs paid viability based on product visual appeal.",
+            data.get("marketing_note") or data.get("metric_marketing_velocity_note"),
+            "Organic viral potential vs paid viability.",
         ),
         "metric_seasonality": seasonality,
         "metric_seasonality_note": _ensure_text(
-            data.get("metric_seasonality_note"),
+            data.get("seasonality_note") or data.get("metric_seasonality_note"),
             "Year-round demand scores higher than holiday-only spikes.",
         ),
         "metric_brandability": brandability,
         "metric_brandability_note": _ensure_text(
-            data.get("metric_brandability_note"),
+            data.get("brandability_note") or data.get("metric_brandability_note"),
             "Long-term brand potential vs impulse-buy fad risk.",
         ),
+        "red_flag_headline": "Pending risk analysis",
+        "red_flag_analysis": "Section 2 will analyse red flags.",
+        "red_flag_1": "Pending",
+        "red_flag_2": "Pending",
+        "red_flag_3": "Pending",
+    }
+
+
+def normalize_section2_payload(raw: Any) -> dict[str, Any]:
+    """Section 2 — red flags. Risk score computed in Python."""
+    data = dict(raw) if isinstance(raw, dict) else {}
+    flags_raw = data.get("flags") if isinstance(data.get("flags"), list) else []
+
+    flags: list[dict[str, str]] = []
+    severities: list[str] = []
+    for item in flags_raw[:6]:
+        if not isinstance(item, dict):
+            continue
+        severity = _ensure_text(item.get("severity"), "MEDIUM").upper()
+        if severity not in {"SEVERE", "HIGH", "MEDIUM", "LOW"}:
+            severity = "MEDIUM"
+        severities.append(severity)
+        flags.append(
+            {
+                "title": _ensure_text(item.get("title"), "Risk factor"),
+                "severity": severity,
+                "explanation": _ensure_text(item.get("explanation"), "Review before scaling."),
+                "means_for_you": _ensure_text(
+                    item.get("means_for_you"),
+                    "What this means for you: validate with a sample order first.",
+                ),
+            }
+        )
+
+    if len(flags) < 3:
+        defaults = [
+            ("Thin margins", "MEDIUM", "Unit economics may not survive paid ads.", "What this means for you: model CPA before spending."),
+            ("Category competition", "HIGH", "Incumbents may undercut on price.", "What this means for you: differentiate or avoid price wars."),
+            ("Operational risk", "MEDIUM", "Shipping or QC surprises erode margin.", "What this means for you: order samples and test carriers."),
+        ]
+        for title, sev, expl, means in defaults[len(flags) : 3]:
+            severities.append(sev)
+            flags.append(
+                {"title": title, "severity": sev, "explanation": expl, "means_for_you": means}
+            )
+
+    risk_score = compute_risk_score(severities)
+    risk_tier = risk_tier_label(risk_score)
+
+    would_invest = data.get("would_invest")
+    if isinstance(would_invest, str):
+        would_invest = would_invest.strip().lower() in {"true", "yes", "1"}
+    elif would_invest is None:
+        would_invest = risk_score < 56
+
+    invest_reasoning = _ensure_text(
+        data.get("invest_reasoning"),
+        "Yes with conditions" if would_invest else "No — risks outweigh upside at current inputs.",
+    )
+
+    titles = [f["title"] for f in flags[:3]]
+    analysis_parts = [f"{f['title']}: {f['explanation']}" for f in flags]
+
+    return {
+        "risk_score": risk_score,
+        "risk_tier": risk_tier,
+        "risk_flags": flags,
+        "would_invest": bool(would_invest),
+        "invest_reasoning": invest_reasoning,
         "red_flag_headline": _ensure_text(
             data.get("red_flag_headline"),
-            "Key risks to validate before investing",
+            f"{len(flags)} material risks identified",
         ),
         "red_flag_analysis": _ensure_text(
             data.get("red_flag_analysis"),
-            "Review return rates, compliance, and margin compression before scaling.",
+            " ".join(analysis_parts[:4]),
         ),
-        "red_flag_1": _ensure_text(data.get("red_flag_1"), "Margin may not survive paid acquisition at scale."),
-        "red_flag_2": _ensure_text(data.get("red_flag_2"), "Category competition could force price wars."),
-        "red_flag_3": _ensure_text(data.get("red_flag_3"), "Shipping or sizing surprises can erode contribution margin."),
+        "red_flag_1": titles[0] if len(titles) > 0 else "Margin risk",
+        "red_flag_2": titles[1] if len(titles) > 1 else "Competition risk",
+        "red_flag_3": titles[2] if len(titles) > 2 else "Operational risk",
     }
+
+
+def merge_section1_and_section2(section1: dict[str, Any], section2: dict[str, Any]) -> dict[str, Any]:
+    merged = dict(section1)
+    merged.update(section2)
+    return merged
+
+
+def normalize_free_evaluation_payload(raw: Any) -> dict[str, Any]:
+    """Legacy combined S1+S2 normalizer."""
+    section1 = normalize_section1_payload(raw)
+    section2 = normalize_section2_payload(raw)
+    return merge_section1_and_section2(section1, section2)
 
 
 def normalize_marketing_teaser_payload(raw: Any) -> dict[str, Any]:
@@ -189,8 +291,16 @@ def _normalize_ad_scripts(raw: Any) -> list[dict[str, str]]:
             {
                 "platform": _ensure_text(item.get("platform"), fallback["platform"]),
                 "hook": _ensure_text(item.get("hook"), fallback["hook"]),
-                "body": _ensure_text(item.get("body"), fallback["body"]),
+                "problem": _ensure_text(item.get("problem"), ""),
+                "solution": _ensure_text(item.get("solution"), fallback["body"]),
+                "social_proof": _ensure_text(item.get("social_proof"), ""),
                 "cta": _ensure_text(item.get("cta"), fallback["cta"]),
+                "visual_cues": _ensure_text(item.get("visual_cues"), ""),
+                "estimated_length": _ensure_text(item.get("estimated_length"), "30–45 sec"),
+                "body": _ensure_text(
+                    item.get("body") or item.get("solution"),
+                    fallback["body"],
+                ),
             }
         )
     return normalized
@@ -221,6 +331,15 @@ def normalize_marketing_blueprint_payload(raw: Any) -> dict[str, Any]:
                 data.get("influencer_dm_templates"),
                 count=3,
                 fallback_prefix="DM template",
+            ),
+            "marketing_angle_details": _normalize_string_list(
+                data.get("marketing_angle_details") or data.get("marketing_angles"),
+                count=3,
+                fallback_prefix="Angle detail",
+            ),
+            "channel_recommendation_reason": _ensure_text(
+                data.get("channel_recommendation_reason"),
+                "Lead with the channel where this product is easiest to demo visually.",
             ),
         }
     )
@@ -254,6 +373,10 @@ def normalize_financial_verdict_payload(raw: Any) -> dict[str, Any]:
         ),
         "financial_conditions": conditions[:5],
         "financial_key_risks": risks[:5],
+        "financial_recommendation": _ensure_text(
+            data.get("financial_recommendation"),
+            "Validate break-even CPA with a small paid test before scaling spend.",
+        ),
     }
 
 
@@ -315,6 +438,15 @@ def normalize_web_intelligence_payload(raw: Any) -> dict[str, Any]:
         "market_timing_assessment": _ensure_text(
             data.get("market_timing_assessment"),
             "Validate demand with a small test batch before committing inventory.",
+        ),
+        "trending_keywords": _normalize_string_list(
+            data.get("trending_keywords"),
+            count=3,
+            fallback_prefix="Keyword",
+        ),
+        "live_market_summary": _ensure_text(
+            data.get("live_market_summary") or data.get("web_intelligence_summary"),
+            "Live market summary unavailable — re-run Section 5.",
         ),
     }
 
@@ -444,4 +576,12 @@ def normalize_competitor_sentiment_payload(raw: Any) -> dict[str, Any]:
             pain_points,
         ),
         "sentiment_shopify_hooks": _normalize_shopify_hooks(data.get("sentiment_shopify_hooks")),
+        "supplier_briefing_note": _ensure_text(
+            data.get("supplier_briefing_note"),
+            "Request pre-shipment QC on the top complaint areas identified in competitor reviews.",
+        ),
+        "competitive_opportunity_summary": _ensure_text(
+            data.get("competitive_opportunity_summary") or data.get("sentiment_executive_summary"),
+            "Competitive opportunity summary synthesized from category review patterns.",
+        ),
     }

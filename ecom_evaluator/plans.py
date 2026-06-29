@@ -6,10 +6,10 @@ from dataclasses import dataclass
 from enum import Enum
 
 from ecom_evaluator.config import (
-    CLAUDE_OPUS_MODEL,
+    CLAUDE_HAIKU_MODEL,
+    CLAUDE_MAX_OUTPUT_TOKENS,
     CLAUDE_SONNET_MODEL,
     FREE_EVALUATIONS_PER_ACCOUNT,
-    GEMINI_MODEL,
 )
 
 UNLIMITED_EVALUATIONS = 999_999
@@ -27,7 +27,7 @@ class PlanConfig:
     price_usd_monthly: int
     monthly_evaluations: int
     ai_model_label: str
-    gemini_model: str
+    claude_haiku_model: str
     claude_sonnet_model: str
     claude_opus_model: str
     runs_web_search: bool
@@ -45,10 +45,10 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Free",
         price_usd_monthly=0,
         monthly_evaluations=FREE_EVALUATIONS_PER_ACCOUNT,
-        ai_model_label="Fast product analysis",
-        gemini_model=GEMINI_MODEL,
+        ai_model_label="Claude Haiku — Sections 1–2",
+        claude_haiku_model=CLAUDE_HAIKU_MODEL,
         claude_sonnet_model=CLAUDE_SONNET_MODEL,
-        claude_opus_model=CLAUDE_OPUS_MODEL,
+        claude_opus_model=CLAUDE_SONNET_MODEL,
         runs_web_search=False,
         runs_marketing_teaser=False,
         runs_financial_verdict=False,
@@ -62,10 +62,10 @@ PLAN_CONFIG: dict[PlanTier, PlanConfig] = {
         label="Premium",
         price_usd_monthly=29,
         monthly_evaluations=UNLIMITED_EVALUATIONS,
-        ai_model_label="Full platform · Claude Sonnet + Opus CFO verdict",
-        gemini_model=GEMINI_MODEL,
+        ai_model_label="Full platform · Claude Sonnet",
+        claude_haiku_model=CLAUDE_HAIKU_MODEL,
         claude_sonnet_model=CLAUDE_SONNET_MODEL,
-        claude_opus_model=CLAUDE_OPUS_MODEL,
+        claude_opus_model=CLAUDE_SONNET_MODEL,
         runs_web_search=True,
         runs_marketing_teaser=True,
         runs_financial_verdict=True,

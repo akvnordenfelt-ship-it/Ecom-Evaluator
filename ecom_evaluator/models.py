@@ -7,8 +7,15 @@ from typing import Literal, TypedDict
 from pydantic import BaseModel, Field
 
 
+class RiskFlag(BaseModel):
+    title: str = Field(min_length=1)
+    severity: Literal["SEVERE", "HIGH", "MEDIUM", "LOW"]
+    explanation: str = Field(min_length=1)
+    means_for_you: str = Field(min_length=1)
+
+
 class FreeCorePayload(BaseModel):
-    """Sections 1–2 from Gemini Flash (free tier core)."""
+    """Sections 1–2 from Claude Haiku (free tier core)."""
 
     overall_score: int = Field(ge=0, le=100)
     product_profile_summary: str = Field(min_length=1)
@@ -31,6 +38,19 @@ class FreeCorePayload(BaseModel):
     red_flag_1: str = Field(min_length=1)
     red_flag_2: str = Field(min_length=1)
     red_flag_3: str = Field(min_length=1)
+    # Section 1 extended fields
+    product_category: str | None = None
+    product_type: str | None = None
+    main_use: str | None = None
+    key_feature: str | None = None
+    one_line_verdict: str | None = None
+    confidence_percentage: int | None = Field(default=None, ge=0, le=100)
+    # Section 2 extended fields
+    risk_score: int | None = Field(default=None, ge=0, le=100)
+    risk_tier: str | None = None
+    risk_flags: list[RiskFlag] | None = None
+    would_invest: bool | None = None
+    invest_reasoning: str | None = None
 
 
 class MarketingTeaserPayload(BaseModel):
@@ -43,8 +63,13 @@ class MarketingTeaserPayload(BaseModel):
 class AdScriptFramework(BaseModel):
     platform: str = Field(min_length=1)
     hook: str = Field(min_length=1)
-    body: str = Field(min_length=1)
+    problem: str = Field(default="")
+    solution: str = Field(default="")
+    social_proof: str = Field(default="")
     cta: str = Field(min_length=1)
+    visual_cues: str = Field(default="")
+    estimated_length: str = Field(default="")
+    body: str = Field(default="")
 
 
 class MarketingBlueprintPayload(MarketingTeaserPayload):
@@ -55,6 +80,8 @@ class MarketingBlueprintPayload(MarketingTeaserPayload):
     ad_script_frameworks: list[AdScriptFramework] = Field(min_length=5, max_length=5)
     targeting_stack: str = Field(min_length=1)
     influencer_dm_templates: list[str] = Field(min_length=3, max_length=3)
+    marketing_angle_details: list[str] | None = None
+    channel_recommendation_reason: str | None = None
 
 
 class SupplierRecommendation(BaseModel):
@@ -66,13 +93,14 @@ class SupplierRecommendation(BaseModel):
 
 
 class FinancialVerdictPayload(BaseModel):
-    """Section 3 CFO synthesis (Premium, Claude Opus)."""
+    """Section 3 financial synthesis (Premium, Claude Sonnet)."""
 
     financial_verdict: Literal["GO", "NO-GO", "CONDITIONAL GO"]
     financial_verdict_headline: str = Field(min_length=1)
     cfo_summary: str = Field(min_length=1)
     financial_conditions: list[str] = Field(min_length=2, max_length=5)
     financial_key_risks: list[str] = Field(min_length=2, max_length=5)
+    financial_recommendation: str | None = None
 
 
 class SentimentPainPoint(BaseModel):
@@ -129,6 +157,9 @@ class ProductEvaluationResponse(FreeCorePayload):
     category_sentiment_score: int | None = Field(default=None, ge=0, le=100)
     praised_features: list[str] | None = None
     unmet_needs: list[str] | None = None
+    supplier_briefing_note: str | None = None
+    competitive_opportunity_summary: str | None = None
+    section_errors: dict[str, str] | None = None
 
     def has_marketing_teaser(self) -> bool:
         return bool(self.marketing_primary_channel and self.marketing_teaser)
@@ -156,6 +187,8 @@ class WebIntelligencePayload(BaseModel):
     competitor_price_range: str = Field(min_length=1)
     demand_trend: Literal["rising", "stable", "declining"]
     market_timing_assessment: str = Field(min_length=1)
+    trending_keywords: list[str] | None = None
+    live_market_summary: str | None = None
 
 
 class CompetitorSentimentPayload(BaseModel):
